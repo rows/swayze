@@ -1,0 +1,12 @@
+*.iml
+.DS_Store
+.atom/
+.idea
+.dart_tool/
+.pub/
+build/
+ios/.generated/
+.classpath
+.project
+.settings
+.vscode

@@ -1,0 +1,75 @@
+name: pull-request
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [ opened, reopened, synchronize ]
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: beta
+      - uses: bluefireteam/melos-action@main
+
+      - run: melos run format-check
+
+  analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: beta
+      - uses: bluefireteam/melos-action@main
+
+      - run: melos run analyze
+
+  publish-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: beta
+      - uses: bluefireteam/melos-action@main
+
+      - run: melos publish --dry-run -y
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: beta
+      - uses: bluefireteam/melos-action@main
+
+      - run: melos run test
+      - name: Upload test packages artifacts
+        if: failure()
+        uses: actions/upload-artifact@v2
+        with:
+          name: packages-test-artifacts
+          path: |
+            packages/**/test/**/failures/
+
+      - run: melos run test-update-goldens
+        if: failure()
+        
+      - name: Upload test packages artifacts updated
+        if: failure()
+        uses: actions/upload-artifact@v2
+        with:
+          name: packages-test-artifacts-updated
+          path: |
+            packages/**/test/**/goldens/
