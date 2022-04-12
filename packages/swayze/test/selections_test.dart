@@ -19,7 +19,6 @@ import 'test_utils/type_of.dart';
 
 void main() async {
   await loadFonts();
-  final binding = TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
     'should be able to create a mouse cell selection',
