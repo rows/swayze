@@ -47,7 +47,7 @@ class PointerScrollDetector extends StatelessWidget {
     );
 
     if (verticalDelta != null || horizontalDelta != null) {
-      GestureBinding.instance.pointerSignalResolver
+      GestureBinding.instance?.pointerSignalResolver
           .register(event, applyScroll);
     }
   }
