@@ -234,7 +234,7 @@ class _TableOverlapCalculatorState extends State<_TableOverlapCalculator> {
   @override
   void didUpdateWidget(_TableOverlapCalculator oldWidget) {
     super.didUpdateWidget(oldWidget);
-    SchedulerBinding.instance.scheduleFrameCallback((timeStamp) {
+    SchedulerBinding.instance?.scheduleFrameCallback((timeStamp) {
       updateRectPositioning();
     });
   }

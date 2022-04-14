@@ -19,7 +19,6 @@ import 'test_utils/type_of.dart';
 
 void main() async {
   await loadFonts();
-  final binding = TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
     'should be able to create a mouse cell selection',
@@ -146,7 +145,7 @@ void main() async {
   testWidgets('should show and update data selections',
       (WidgetTester tester) async {
     tester.binding.window.physicalSizeTestValue = const Size(1024, 1024);
-    binding.window.devicePixelRatioTestValue = 1.0;
+    tester.binding.window.devicePixelRatioTestValue = 1.0;
 
     // resets the screen to its original size after the test end
     addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
