@@ -168,8 +168,7 @@ Rect? _getTableRect(BuildContext context) {
     return null;
   }
 
-  final overlay =
-      Navigator.of(context).overlay!.context.findRenderObject()! as RenderBox;
+  final overlay = Overlay.of(context)!.context.findRenderObject()! as RenderBox;
 
   final topLeft = MatrixUtils.transformPoint(
     table.getTransformTo(overlay),
@@ -194,7 +193,7 @@ Rect? _getCellRect({
   }
 
   final overlay =
-      (Navigator.of(context).overlay!.context.findRenderObject()! as RenderBox)
+      (Overlay.of(context)!.context.findRenderObject()! as RenderBox)
           .paintBounds;
 
   final displacedRect =

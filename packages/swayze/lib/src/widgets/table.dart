@@ -86,6 +86,9 @@ class SliverSwayzeTable<CellDataType extends SwayzeCellData>
   /// will edit a particular cell inline, that is, in the same physical spot
   /// occupied by the cell in the screen.
   ///
+  /// The inline editor will be added to the closest [Overlay]. If you haven't
+  /// defined one, it will default to the [Navigator]'s [Overlay].
+  ///
   /// See also:
   /// - [InlineEditorBuilder] for more details
   /// - [InlineEditorController] that controls the overall state of the
