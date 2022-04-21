@@ -314,6 +314,15 @@ class _TableBodyGestureDetectorState extends State<TableBodyGestureDetector> {
         return Listener(
           behavior: HitTestBehavior.translucent,
           onPointerDown: (details) {
+            final isMouse = details.kind == PointerDeviceKind.mouse;
+            final isPrimaryMouseButton = details.buttons == kPrimaryMouseButton;
+
+            final shouldReact = !isMouse || isPrimaryMouseButton;
+
+            if (!shouldReact) {
+              return;
+            }
+
             final tableGestureDetails = _getTableGestureDetails(
               context,
               details.position,
