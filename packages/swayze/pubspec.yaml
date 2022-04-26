@@ -1,6 +1,6 @@
 name: swayze
 description: A set of widgets and controllers to display very large tables on flutter apps.
-version: 1.0.2
+version: 1.0.3
 repository: https://github.com/rows/swayze
 issue_tracker: https://github.com/rows/swayze/issues
 homepage: https://github.com/rows/swayze

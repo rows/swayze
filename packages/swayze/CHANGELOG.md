@@ -1,3 +1,8 @@
+# 1.0.3
+
+- Fix `SwayzeSliverTable` using `Navigator`'s `overlay` property instead of fetching the closest 
+  `Overlay` ancestor.
+
 # 1.0.2
 
 - Start a new selection only when clicking the mouse primary button or when the pointer device is not a mouse
