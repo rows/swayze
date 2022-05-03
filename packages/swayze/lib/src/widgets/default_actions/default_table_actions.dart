@@ -79,6 +79,18 @@ class _DefaultActionsState extends State<DefaultActions> {
           internalScope,
           viewportContext,
         ).overridable(context),
+        HeaderDragStartIntent: HeaderDragStartAction(
+          internalScope,
+          viewportContext,
+        ).overridable(context),
+        HeaderDragEndIntent: HeaderDragEndAction(
+          internalScope,
+          viewportContext,
+        ).overridable(context),
+        HeaderDragUpdateIntent: HeaderDragUpdateAction(
+          internalScope,
+          viewportContext,
+        ).overridable(context),
       },
       child: widget.child,
     );

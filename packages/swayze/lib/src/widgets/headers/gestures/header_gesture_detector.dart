@@ -114,6 +114,10 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
   /// Listen for [ViewportContext] range changes to update selections in case
   /// a [AutoScrollActivity] is in progress.
   void onRangesChanged() {
+    if (isDraggingHeader()) {
+      return;
+    }
+
     final scrollController = internalScope.controller.scroll;
     final selectionController = internalScope.controller.selection;
 
@@ -250,6 +254,31 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
     );
   }
 
+  // TODO: [victor] doc.
+  bool isHeaderSelected(int position, Axis axis) {
+    final selectionController = internalScope.controller.selection;
+    final selections = selectionController.userSelectionState.selections;
+
+    for (final selection in selections) {
+      if (selection is HeaderUserSelectionModel && selection.axis == axis) {
+        final range = Range(selection.start, selection.end);
+        if (range.contains(position)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  // TODO: [victor] doc.
+  bool isDraggingHeader() {
+    final tableDataController =
+        InternalScope.of(context).controller.tableDataController;
+    final header =
+        tableDataController.getHeaderControllerFor(axis: widget.axis);
+    return header.value.dragging;
+  }
+
   @override
   Widget build(BuildContext context) {
     return RawGestureDetector(
@@ -265,8 +294,9 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                 globalPosition: details.globalPosition,
               );
 
-              handleStartSelection(headerGestureDetails);
-
+              if (!isDraggingHeader()) {
+                handleStartSelection(headerGestureDetails);
+              }
               dragOriginOffsetCache = headerGestureDetails.localPosition;
             };
             instance.onUpdate = (DragUpdateDetails details) {
@@ -282,15 +312,45 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                 originOffset: dragOriginOffsetCache!,
               );
 
+              if (isDraggingHeader()) {
+                Actions.invoke(
+                  context,
+                  HeaderDragUpdateIntent(
+                    header: headerGestureDetails.headerPosition,
+                    axis: widget.axis,
+                  ),
+                );
+                return;
+              }
               handleUpdateSelection(headerGestureDetails);
             };
             instance.onEnd = (DragEndDetails details) {
               dragOriginOffsetCache = null;
               internalScope.controller.scroll.stopAutoScroll(widget.axis);
+
+              if (isDraggingHeader()) {
+                Actions.invoke(
+                  context,
+                  HeaderDragEndIntent(
+                    header: 0,
+                    axis: widget.axis,
+                  ),
+                );
+              }
             };
             instance.onCancel = () {
               dragOriginOffsetCache = null;
               internalScope.controller.scroll.stopAutoScroll(widget.axis);
+
+              if (isDraggingHeader()) {
+                Actions.invoke(
+                  context,
+                  HeaderDragEndIntent(
+                    header: 0,
+                    axis: widget.axis,
+                  ),
+                );
+              }
             };
           },
         ),
@@ -305,6 +365,19 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                 globalPosition: details.globalPosition,
               );
 
+              if (isHeaderSelected(
+                headerGestureDetails.headerPosition,
+                widget.axis,
+              )) {
+                Actions.invoke(
+                  context,
+                  HeaderDragStartIntent(
+                    header: headerGestureDetails.headerPosition,
+                    axis: widget.axis,
+                  ),
+                );
+                return;
+              }
               handleStartSelection(headerGestureDetails);
             };
           },

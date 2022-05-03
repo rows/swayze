@@ -429,6 +429,7 @@ class HeaderSelectionStartAction
       );
     } else {
       selectionController.updateUserSelections((state) {
+        print('Controller updateUserSelections');
         return state.resetSelectionsToHeaderSelection(
           anchor: intent.header,
           focus: intent.header,
@@ -458,6 +459,7 @@ class CellSelectionUpdateAction
     TableBodySelectionUpdateIntent intent,
     BuildContext context,
   ) {
+    print('Update cell selection');
     final selectionController = internalScope.controller.selection;
     selectionController.updateUserSelections(
       (state) => state.updateLastSelectionToCellSelection(
@@ -489,6 +491,74 @@ class HeaderSelectionUpdateAction
         axis: intent.axis,
         focus: intent.header,
       ),
+    );
+  }
+}
+
+// TODO: [victor] probably we want to move this to another file.
+class HeaderDragStartAction extends DefaultSwayzeAction<HeaderDragStartIntent> {
+  HeaderDragStartAction(
+    InternalScope internalScope,
+    ViewportContext viewportContext,
+  ) : super(internalScope, viewportContext);
+
+  @override
+  void invokeAction(
+    HeaderDragStartIntent intent,
+    BuildContext context,
+  ) {
+    final controller = internalScope.controller.tableDataController
+        .getHeaderControllerFor(axis: intent.axis);
+    controller.updateState(
+      (state) => state.copyWith(
+        dragging: true,
+        draggingHeaderIndex: intent.header,
+        draggingCurrentReference: intent.header,
+      ),
+    );
+  }
+}
+
+class HeaderDragUpdateAction
+    extends DefaultSwayzeAction<HeaderDragUpdateIntent> {
+  HeaderDragUpdateAction(
+    InternalScope internalScope,
+    ViewportContext viewportContext,
+  ) : super(internalScope, viewportContext);
+
+  @override
+  void invokeAction(
+    HeaderDragUpdateIntent intent,
+    BuildContext context,
+  ) {
+    final controller = internalScope.controller.tableDataController
+        .getHeaderControllerFor(axis: intent.axis);
+
+    controller.updateState(
+      (state) => state.copyWith(
+        draggingCurrentReference: intent.header,
+      ),
+    );
+  }
+}
+
+class HeaderDragEndAction extends DefaultSwayzeAction<HeaderDragEndIntent> {
+  HeaderDragEndAction(
+    InternalScope internalScope,
+    ViewportContext viewportContext,
+  ) : super(internalScope, viewportContext);
+
+  @override
+  void invokeAction(
+    HeaderDragEndIntent intent,
+    BuildContext context,
+  ) {
+    final controller =
+        internalScope.controller.tableDataController.getHeaderControllerFor(
+      axis: intent.axis,
+    );
+    controller.updateState(
+      (state) => state.copyWith(dragging: false),
     );
   }
 }

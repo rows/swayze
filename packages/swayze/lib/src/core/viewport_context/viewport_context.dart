@@ -86,6 +86,9 @@ class ViewportAxisContext extends ChangeNotifier
     frozenRange: Range.zero,
     visibleIndices: [],
     visibleFrozenIndices: [],
+    isDragging: false,
+    draggingHeaderIndex: null,
+    draggingCurrentReference: null,
   );
 
   ViewportAxisContext(this.axis, this.virtualizationState);
@@ -162,6 +165,11 @@ class ViewportAxisContextState {
   /// Just like [visibleIndices] but for the [frozenRange]
   final Iterable<int> visibleFrozenIndices;
 
+  // TODO: [victor] doc
+  final bool isDragging;
+  final int? draggingHeaderIndex;
+  final int? draggingCurrentReference;
+
   const ViewportAxisContextState({
     required this.scrollableRange,
     required this.frozenRange,
@@ -173,6 +181,9 @@ class ViewportAxisContextState {
     required this.frozenSizes,
     required this.visibleIndices,
     required this.visibleFrozenIndices,
+    required this.isDragging,
+    required this.draggingHeaderIndex,
+    required this.draggingCurrentReference,
   });
 
   @override
@@ -184,6 +195,9 @@ class ViewportAxisContextState {
           frozenRange == other.frozenRange &&
           extent == other.extent &&
           frozenExtent == other.frozenExtent &&
+          isDragging == other.isDragging &&
+          draggingHeaderIndex == other.draggingHeaderIndex &&
+          draggingCurrentReference == other.draggingCurrentReference &&
           _kDoubleListEquality.equals(offsets, other.offsets) &&
           _kDoubleListEquality.equals(frozenOffsets, other.frozenOffsets) &&
           _kDoubleListEquality.equals(sizes, other.sizes) &&
@@ -205,7 +219,10 @@ class ViewportAxisContextState {
       sizes.hashCode ^
       frozenSizes.hashCode ^
       visibleIndices.hashCode ^
-      visibleFrozenIndices.hashCode;
+      visibleFrozenIndices.hashCode ^
+      isDragging.hashCode ^
+      draggingHeaderIndex.hashCode ^
+      draggingCurrentReference.hashCode;
 }
 
 /// A result of a conversion of a pixel offset into column/row index.

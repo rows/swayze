@@ -79,6 +79,12 @@ class SwayzeHeaderState {
     return result;
   })();
 
+  // TODO: [victor] probably a controller is a better solution
+  final bool dragging;
+  // TODO: [victor] get from selection
+  final int? draggingHeaderIndex;
+  final int? draggingCurrentReference;
+
   /// Creates a header state from an unsorted list of [SwayzeHeaderData].
   ///
   /// This is axis agnostic.
@@ -88,6 +94,9 @@ class SwayzeHeaderState {
     required Iterable<SwayzeHeaderData> headerData,
     required int frozenCount,
     int? elasticCount,
+    bool? dragging,
+    this.draggingHeaderIndex,
+    this.draggingCurrentReference,
   })  : _frozenCount = frozenCount,
         elasticCount = elasticCount ?? 0,
         _customSizedHeaders = headerData.fold(
@@ -96,7 +105,8 @@ class SwayzeHeaderState {
             previousValue[element.index] = element;
             return previousValue;
           },
-        );
+        ),
+        dragging = dragging ?? false;
 
   /// Creates a header state from a sorted map of [SwayzeHeaderData]
   SwayzeHeaderState._fromSortedHeaderData({
@@ -105,8 +115,12 @@ class SwayzeHeaderState {
     required this.count,
     required SplayTreeMap<int, SwayzeHeaderData> sortedHeaderData,
     required int frozenCount,
+    bool? dragging,
+    this.draggingHeaderIndex,
+    this.draggingCurrentReference,
   })  : _frozenCount = frozenCount,
-        _customSizedHeaders = sortedHeaderData;
+        _customSizedHeaders = sortedHeaderData,
+        dragging = dragging ?? false;
 
   /// Copies the state overriding specific fields.
   ///
@@ -117,6 +131,9 @@ class SwayzeHeaderState {
     int? elasticCount,
     Iterable<SwayzeHeaderData>? headerData,
     int? frozenCount,
+    bool? dragging,
+    int? draggingHeaderIndex,
+    int? draggingCurrentReference,
   }) {
     if (headerData != null) {
       return SwayzeHeaderState(
@@ -125,6 +142,10 @@ class SwayzeHeaderState {
         count: count ?? this.count,
         headerData: headerData,
         frozenCount: frozenCount ?? this.frozenCount,
+        dragging: dragging ?? this.dragging,
+        draggingCurrentReference:
+            draggingCurrentReference ?? this.draggingCurrentReference,
+        draggingHeaderIndex: draggingHeaderIndex ?? this.draggingHeaderIndex,
       );
     }
 
@@ -134,6 +155,10 @@ class SwayzeHeaderState {
       count: count ?? this.count,
       sortedHeaderData: _customSizedHeaders,
       frozenCount: frozenCount ?? this.frozenCount,
+      dragging: dragging ?? this.dragging,
+      draggingCurrentReference:
+          draggingCurrentReference ?? this.draggingCurrentReference,
+      draggingHeaderIndex: draggingHeaderIndex ?? this.draggingHeaderIndex,
     );
   }
 
@@ -180,6 +205,9 @@ class SwayzeHeaderState {
           defaultHeaderExtent == other.defaultHeaderExtent &&
           count == other.count &&
           elasticCount == other.elasticCount &&
+          dragging == other.dragging &&
+          draggingHeaderIndex == other.draggingHeaderIndex &&
+          draggingCurrentReference == other.draggingCurrentReference &&
           _kMapEquality.equals(customSizedHeaders, other.customSizedHeaders);
 
   @override
@@ -188,7 +216,10 @@ class SwayzeHeaderState {
       defaultHeaderExtent.hashCode ^
       count.hashCode ^
       elasticCount.hashCode ^
-      customSizedHeaders.hashCode;
+      customSizedHeaders.hashCode ^
+      dragging.hashCode ^
+      draggingHeaderIndex.hashCode ^
+      draggingCurrentReference.hashCode;
 
   @override
   String toString() {

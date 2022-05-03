@@ -88,3 +88,36 @@ class HeaderSelectionUpdateIntent extends SwayzeIntent {
     required this.axis,
   });
 }
+
+// TODO: [victor] doc
+class HeaderDragStartIntent extends SwayzeIntent {
+  final int header;
+  final Axis axis;
+
+  const HeaderDragStartIntent({
+    required this.header,
+    required this.axis,
+  });
+}
+
+// TODO: [victor] doc
+class HeaderDragUpdateIntent extends SwayzeIntent {
+  final int header;
+  final Axis axis;
+
+  const HeaderDragUpdateIntent({
+    required this.header,
+    required this.axis,
+  });
+}
+
+// TODO: [victor] doc
+class HeaderDragEndIntent extends SwayzeIntent {
+  final int header;
+  final Axis axis;
+
+  const HeaderDragEndIntent({
+    required this.header,
+    required this.axis,
+  });
+}

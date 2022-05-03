@@ -6,10 +6,10 @@ import '../../core/viewport_context/viewport_context_provider.dart';
 import '../internal_scope.dart';
 import '../shared/expand_all.dart';
 import '../wrappers.dart';
-
 import 'cells/cells_wrapper.dart';
 import 'gestures/table_body_gesture_detector.dart';
 import 'mouse_hover/mouse_hover.dart';
+import 'reorder_preview.dart';
 import 'selections/selections.dart';
 import 'table_lines.dart';
 
@@ -164,6 +164,30 @@ class _TableBodyScrollableArea extends StatelessWidget {
           ),
         ),
         const ClipRect(child: TableBodySelections()),
+        if (viewportContext.columns.value.isDragging)
+          RepaintBoundary(
+            key: const ValueKey('RepaintBoundaryReorderPreview'),
+            child: ReorderPreview(
+              currentDropColumn: viewportContext
+                  .positionToPixel(
+                    viewportContext.columns.value.draggingCurrentReference! <
+                            viewportContext.columns.value.draggingHeaderIndex!
+                        ? viewportContext
+                            .columns.value.draggingCurrentReference!
+                        : viewportContext
+                                .columns.value.draggingCurrentReference! +
+                            1,
+                    Axis.horizontal,
+                    isForFrozenPanes: false,
+                  )
+                  .pixel
+                  .toInt(),
+              columnSizes: viewportContext.columns.value.sizes,
+              rowSizes: viewportContext.rows.value.sizes,
+              swayzeStyle: style,
+              translateOffset: offset,
+            ),
+          ),
       ],
     );
   }

@@ -174,6 +174,7 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
       }
     }
 
+    print("Update axis dragging ${headerController.value.dragging}");
     viewportAxisContext._unprotectedSetState(
       ViewportAxisContextState(
         scrollableRange: scrollableRange,
@@ -186,6 +187,9 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
         frozenSizes: frozenSizes,
         visibleIndices: visibleHeaders,
         visibleFrozenIndices: visibleFrozenHeaders,
+        isDragging: headerController.value.dragging,
+        draggingHeaderIndex: headerController.value.draggingHeaderIndex,
+        draggingCurrentReference: headerController.value.draggingCurrentReference,
       ),
     );
   }
