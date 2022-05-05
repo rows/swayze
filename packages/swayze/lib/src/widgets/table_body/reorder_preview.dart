@@ -52,6 +52,7 @@ class ReorderPreview extends StatelessWidget {
         )
         .pixel;
 
+    // TODO: [victor] similar to selection rendering logic.
     final selection = selectionController.userSelectionState.selections;
     final selectionModel = selection.first;
     final range = selectionModel.bound(to: tableController.tableRange);
@@ -64,10 +65,12 @@ class ReorderPreview extends StatelessWidget {
     return Stack(
       children: [
         _PreviewRect(
+          axis: axis,
           pointerPosition: header.value.draggingPosition,
           preview: leftTopPixelOffset & size,
         ),
         _PreviewLine(
+          axis: axis,
           columnSizes: columnSizes,
           rowSizes: rowSizes,
           lineColor: lineColor,
@@ -116,6 +119,8 @@ class _PreviewLine extends LeafRenderObjectWidget {
 
   final double dropHeaderAtPosition;
 
+  final Axis axis;
+
   const _PreviewLine({
     Key? key,
     required this.columnSizes,
@@ -124,13 +129,13 @@ class _PreviewLine extends LeafRenderObjectWidget {
     required this.lineWidth,
     required this.translateOffset,
     required this.dropHeaderAtPosition,
+    required this.axis,
   }) : super(key: key);
 
   @override
   RenderObject createRenderObject(BuildContext context) {
     return _RenderPreviewLine(
-      columnSizes,
-      rowSizes,
+      axis,
       lineColor,
       lineWidth,
       translateOffset,
@@ -144,8 +149,7 @@ class _PreviewLine extends LeafRenderObjectWidget {
     _RenderPreviewLine renderObject,
   ) {
     renderObject
-      ..columnSizes = columnSizes
-      ..rowSizes = rowSizes
+      ..axis = axis
       ..lineWidth = lineWidth
       ..lineColor = lineColor
       ..translateOffset = translateOffset
@@ -154,24 +158,6 @@ class _PreviewLine extends LeafRenderObjectWidget {
 }
 
 class _RenderPreviewLine extends RenderBox {
-  List<double> _columnSizes;
-
-  List<double> get columnSizes => _columnSizes;
-
-  set columnSizes(List<double> value) {
-    _columnSizes = value;
-    markNeedsPaint();
-  }
-
-  List<double> _rowSizes;
-
-  List<double> get rowSizes => _rowSizes;
-
-  set rowSizes(List<double> value) {
-    _rowSizes = value;
-    markNeedsPaint();
-  }
-
   Color _lineColor;
 
   Color get lineColor => _lineColor;
@@ -206,9 +192,15 @@ class _RenderPreviewLine extends RenderBox {
     markNeedsPaint();
   }
 
+  Axis _axis;
+  Axis get axis => _axis;
+  set axis(Axis value) {
+    _axis = value;
+    markNeedsPaint();
+  }
+
   _RenderPreviewLine(
-    this._columnSizes,
-    this._rowSizes,
+    this._axis,
     this._lineColor,
     this._lineWidth,
     this._translateOffset,
@@ -240,33 +232,45 @@ class _RenderPreviewLine extends RenderBox {
   @override
   void paint(PaintingContext context, Offset offset) {
     final canvas = context.canvas;
-    //canvas.translate(-0.5, -0.5);
+    canvas.translate(-0.5, -0.5);
     canvas.translate(translateOffset.dx, translateOffset.dy);
     canvas.save();
 
-    canvas.translate(dropHeaderAtPosition, 0);
-    canvas.drawLine(
-      Offset.zero,
-      Offset(0, size.height),
-      linePaintCache.value,
-    );
+    if (axis == Axis.horizontal) {
+      canvas.translate(dropHeaderAtPosition, 0);
+      canvas.drawLine(
+        Offset.zero,
+        Offset(0, size.height),
+        linePaintCache.value,
+      );
+    } else {
+      canvas.translate(0, dropHeaderAtPosition);
+      canvas.drawLine(
+        Offset.zero,
+        Offset(size.width, 0),
+        linePaintCache.value,
+      );
+    }
     canvas.restore();
   }
 }
 
 // TODO: [victor] doc.
 class _PreviewRect extends LeafRenderObjectWidget {
+  final Axis axis;
   final Rect preview;
   final Offset pointerPosition;
 
   const _PreviewRect({
     Key? key,
+    required this.axis,
     required this.preview,
     required this.pointerPosition,
   }) : super(key: key);
 
   @override
   RenderObject createRenderObject(BuildContext context) => _RenderPreviewRect(
+        axis,
         preview,
         pointerPosition,
       );
@@ -277,6 +281,7 @@ class _PreviewRect extends LeafRenderObjectWidget {
     _RenderPreviewRect renderObject,
   ) {
     renderObject
+      ..axis = axis
       ..preview = preview
       ..pointerPosition = pointerPosition;
   }
@@ -284,6 +289,7 @@ class _PreviewRect extends LeafRenderObjectWidget {
 
 class _RenderPreviewRect extends RenderBox {
   _RenderPreviewRect(
+    this._axis,
     this._preview,
     this._pointerPosition,
   );
@@ -306,6 +312,13 @@ class _RenderPreviewRect extends RenderBox {
     markNeedsPaint();
   }
 
+  Axis _axis;
+  Axis get axis => _axis;
+  set axis(Axis value) {
+    _axis = value;
+    markNeedsPaint();
+  }
+
   // TODO: [victor] theme.
   late final backgroundPaint = CachedValue(
     () => Paint()..color = Colors.black26,
@@ -323,8 +336,13 @@ class _RenderPreviewRect extends RenderBox {
   void paint(PaintingContext context, Offset offset) {
     final canvas = context.canvas;
     canvas.save();
-    canvas.translate(pointerPosition.dx - _preview.topCenter.dx, 0);
-    canvas.drawRect(_preview, backgroundPaint.value);
+    if (axis == Axis.horizontal) {
+      canvas.translate(pointerPosition.dx - _preview.topCenter.dx, 0);
+      canvas.drawRect(_preview, backgroundPaint.value);
+    } else {
+      canvas.translate(0, pointerPosition.dy - _preview.topCenter.dy);
+      canvas.drawRect(_preview, backgroundPaint.value);
+    }
     canvas.restore();
   }
 }
