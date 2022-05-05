@@ -89,6 +89,7 @@ class ViewportAxisContext extends ChangeNotifier
     isDragging: false,
     draggingHeaderIndex: null,
     draggingCurrentReference: null,
+    draggingPosition: Offset.zero,
   );
 
   ViewportAxisContext(this.axis, this.virtualizationState);
@@ -169,6 +170,7 @@ class ViewportAxisContextState {
   final bool isDragging;
   final int? draggingHeaderIndex;
   final int? draggingCurrentReference;
+  final Offset draggingPosition;
 
   const ViewportAxisContextState({
     required this.scrollableRange,
@@ -184,6 +186,7 @@ class ViewportAxisContextState {
     required this.isDragging,
     required this.draggingHeaderIndex,
     required this.draggingCurrentReference,
+    required this.draggingPosition,
   });
 
   @override
@@ -198,6 +201,7 @@ class ViewportAxisContextState {
           isDragging == other.isDragging &&
           draggingHeaderIndex == other.draggingHeaderIndex &&
           draggingCurrentReference == other.draggingCurrentReference &&
+          draggingPosition == other.draggingPosition &&
           _kDoubleListEquality.equals(offsets, other.offsets) &&
           _kDoubleListEquality.equals(frozenOffsets, other.frozenOffsets) &&
           _kDoubleListEquality.equals(sizes, other.sizes) &&
@@ -222,6 +226,7 @@ class ViewportAxisContextState {
       visibleFrozenIndices.hashCode ^
       isDragging.hashCode ^
       draggingHeaderIndex.hashCode ^
+      draggingPosition.hashCode ^
       draggingCurrentReference.hashCode;
 }
 

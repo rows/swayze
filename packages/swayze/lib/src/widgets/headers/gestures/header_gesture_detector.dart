@@ -316,6 +316,7 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                 Actions.invoke(
                   context,
                   HeaderDragUpdateIntent(
+                    draggingPosition: details.localPosition,
                     header: headerGestureDetails.headerPosition,
                     axis: widget.axis,
                   ),
@@ -372,6 +373,7 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                 Actions.invoke(
                   context,
                   HeaderDragStartIntent(
+                    draggingPosition: details.localPosition,
                     header: headerGestureDetails.headerPosition,
                     axis: widget.axis,
                   ),

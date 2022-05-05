@@ -93,10 +93,12 @@ class HeaderSelectionUpdateIntent extends SwayzeIntent {
 class HeaderDragStartIntent extends SwayzeIntent {
   final int header;
   final Axis axis;
+  final Offset draggingPosition;
 
   const HeaderDragStartIntent({
     required this.header,
     required this.axis,
+    required this.draggingPosition,
   });
 }
 
@@ -104,10 +106,12 @@ class HeaderDragStartIntent extends SwayzeIntent {
 class HeaderDragUpdateIntent extends SwayzeIntent {
   final int header;
   final Axis axis;
+  final Offset draggingPosition;
 
   const HeaderDragUpdateIntent({
     required this.header,
     required this.axis,
+    required this.draggingPosition,
   });
 }
 

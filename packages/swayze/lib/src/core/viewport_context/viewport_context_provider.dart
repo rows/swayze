@@ -189,7 +189,9 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
         visibleFrozenIndices: visibleFrozenHeaders,
         isDragging: headerController.value.dragging,
         draggingHeaderIndex: headerController.value.draggingHeaderIndex,
-        draggingCurrentReference: headerController.value.draggingCurrentReference,
+        draggingCurrentReference:
+            headerController.value.draggingCurrentReference,
+        draggingPosition: headerController.value.draggingPosition,
       ),
     );
   }

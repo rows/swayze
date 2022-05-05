@@ -1,7 +1,13 @@
 import 'package:cached_value/cached_value.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:swayze_math/swayze_math.dart';
 
+import '../../../controller.dart';
 import '../../core/style/style.dart';
+import '../../core/viewport_context/viewport_context.dart';
+import '../../core/viewport_context/viewport_context_provider.dart';
+import '../internal_scope.dart';
 
 // TODO: [victor] doc.
 class ReorderPreview extends StatelessWidget {
@@ -29,14 +35,58 @@ class ReorderPreview extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return _ReorderPreviewPainter(
-      columnSizes: columnSizes,
-      rowSizes: rowSizes,
-      lineColor: lineColor,
-      lineWidth: lineWidth,
-      translateOffset: translateOffset,
-      currentDropColumn: currentDropColumn,
+    final viewportContext = ViewportContextProvider.of(context);
+    final selectionController = InternalScope.of(context).controller.selection;
+    final tableController =
+        InternalScope.of(context).controller.tableDataController;
+
+    final selection = selectionController.userSelectionState.selections;
+    final selectionModel = selection.first;
+    final range = selectionModel.bound(to: tableController.tableRange);
+    final leftTopPixelOffset = getOffset(viewportContext, range.leftTop);
+    final rightBottomPixelOffset =
+        getOffset(viewportContext, range.rightBottom);
+    final sizeOffset = rightBottomPixelOffset - leftTopPixelOffset;
+    final size = Size(sizeOffset.dx, sizeOffset.dy);
+
+    print(viewportContext.columns.value.draggingPosition);
+    return Stack(
+      children: [
+        _PreviewRect(
+          pointerPosition: viewportContext.columns.value.draggingPosition,
+          currentDropColumn: currentDropColumn,
+          preview: leftTopPixelOffset & size,
+        ),
+        _ReorderPreviewPainter(
+          columnSizes: columnSizes,
+          rowSizes: rowSizes,
+          lineColor: lineColor,
+          lineWidth: lineWidth,
+          translateOffset: translateOffset,
+          currentDropColumn: currentDropColumn,
+        ),
+      ],
     );
+  }
+
+  // TODO: [victor] same as selection
+  Offset getOffset(ViewportContext viewportContext, IntVector2 coordinate) {
+    final x = viewportContext
+        .positionToPixel(
+          coordinate.dx,
+          Axis.horizontal,
+          isForFrozenPanes: false,
+        )
+        .pixel;
+    final y = viewportContext
+        .positionToPixel(
+          coordinate.dy,
+          Axis.vertical,
+          isForFrozenPanes: false,
+        )
+        .pixel;
+
+    return Offset(x, y);
   }
 }
 
@@ -183,24 +233,100 @@ class _RenderReorderDragDropPreviewLine extends RenderBox {
     canvas.translate(-0.5, -0.5);
     canvas.translate(translateOffset.dx, translateOffset.dy);
     canvas.save();
-    // paint column lines
-    // for (var i = 0; i < _columnSizes.length; i++) {
-    //   canvas.translate(_columnSizes[i], 0);
-    //   if (i == _currentDropColumn) {
-    //     canvas.drawLine(
-    //       Offset.zero,
-    //       Offset(0, size.height),
-    //       linePaintCache.value,
-    //     );
-    //     break;
-    //   }
-    // }
+
     canvas.translate(currentDropColumn.toDouble(), 0);
     canvas.drawLine(
       Offset.zero,
       Offset(0, size.height),
       linePaintCache.value,
     );
+    canvas.restore();
+  }
+}
+
+// TODO: [victor] doc.
+class _PreviewRect extends LeafRenderObjectWidget {
+  final Rect preview;
+  final int currentDropColumn;
+  final Offset pointerPosition;
+
+  const _PreviewRect({
+    Key? key,
+    required this.preview,
+    required this.currentDropColumn,
+    required this.pointerPosition,
+  }) : super(key: key);
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => _RenderPreviewRect(
+        preview,
+        currentDropColumn,
+        pointerPosition,
+      );
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderPreviewRect renderObject,
+  ) {
+    renderObject
+      ..preview = preview
+      ..currentDropColumn = currentDropColumn
+      ..pointerPosition = pointerPosition;
+  }
+}
+
+class _RenderPreviewRect extends RenderBox {
+  _RenderPreviewRect(
+    this._preview,
+    this._currentDropColumn,
+    this._pointerPosition,
+  );
+
+  Rect _preview;
+
+  Rect get preview {
+    return _preview;
+  }
+
+  set preview(Rect value) {
+    _preview = value;
+    markNeedsPaint();
+  }
+
+  int _currentDropColumn;
+  int get currentDropColumn => _currentDropColumn;
+  set currentDropColumn(int value) {
+    _currentDropColumn = value;
+    markNeedsPaint();
+  }
+
+  Offset _pointerPosition;
+  Offset get pointerPosition => _pointerPosition;
+  set pointerPosition(Offset value) {
+    _pointerPosition = value;
+    markNeedsPaint();
+  }
+
+  // TODO: [victor] theme.
+  late final backgroundPaint = CachedValue(
+    () => Paint()..color = Colors.black26,
+  );
+
+  @override
+  bool get sizedByParent => true;
+
+  @override
+  Size computeDryLayout(BoxConstraints constraints) {
+    return constraints.biggest;
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final canvas = context.canvas;
+    canvas.save();
+    canvas.translate(pointerPosition.dx - _preview.topCenter.dx, 0);
+    canvas.drawRect(_preview, backgroundPaint.value);
     canvas.restore();
   }
 }
