@@ -45,7 +45,18 @@ _HeaderGestureDetails _getHeaderGestureDetails({
 }) {
   final box = context.findRenderObject()! as RenderBox;
   final localPosition = box.globalToLocal(globalPosition);
+  return _getHeaderLocalPositionGestureDetails(
+    context: context,
+    axis: axis,
+    localPosition: localPosition,
+  );
+}
 
+_HeaderGestureDetails _getHeaderLocalPositionGestureDetails({
+  required BuildContext context,
+  required Axis axis,
+  required Offset localPosition,
+}) {
   final viewportContext = ViewportContextProvider.of(context);
   final tableDataController =
       InternalScope.of(context).controller.tableDataController;
@@ -92,6 +103,12 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
   /// Cache to make the position of the start of a drag gesture acessible in
   /// the drag updates.
   Offset? dragOriginOffsetCache;
+
+  /// Current mouse cursor.
+  ///
+  /// A grab cursor is displayed when a header is selected and it can be
+  /// dragged.
+  MouseCursor cursor = MouseCursor.defer;
 
   @override
   void initState() {
@@ -254,6 +271,13 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
     );
   }
 
+  /// Sets a new cursor state.
+  void setCursorState(MouseCursor newCursor) {
+    if (newCursor != cursor) {
+      setState(() => cursor = newCursor);
+    }
+  }
+
   // TODO: [victor] doc.
   bool isHeaderSelected(int position, Axis axis) {
     final selectionController = internalScope.controller.selection;
@@ -281,111 +305,129 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
 
   @override
   Widget build(BuildContext context) {
-    return RawGestureDetector(
-      gestures: <Type, GestureRecognizerFactory>{
-        PanGestureRecognizer:
-            GestureRecognizerFactoryWithHandlers<PanGestureRecognizer>(
-          () => PanGestureRecognizer(debugOwner: this),
-          (PanGestureRecognizer instance) {
-            instance.onStart = (DragStartDetails details) {
-              final headerGestureDetails = _getHeaderGestureDetails(
-                axis: widget.axis,
-                context: context,
-                globalPosition: details.globalPosition,
-              );
-
-              if (!isDraggingHeader()) {
-                handleStartSelection(headerGestureDetails);
-              }
-              dragOriginOffsetCache = headerGestureDetails.localPosition;
-            };
-            instance.onUpdate = (DragUpdateDetails details) {
-              final headerGestureDetails = _getHeaderGestureDetails(
-                axis: widget.axis,
-                context: context,
-                globalPosition: details.globalPosition,
-              );
-
-              updateDragScroll(
-                localOffset: headerGestureDetails.localPosition,
-                globalOffset: details.globalPosition,
-                originOffset: dragOriginOffsetCache!,
-              );
-
-              if (isDraggingHeader()) {
-                Actions.invoke(
-                  context,
-                  HeaderDragUpdateIntent(
-                    draggingPosition: details.localPosition,
-                    header: headerGestureDetails.headerPosition,
-                    axis: widget.axis,
-                  ),
-                );
-                return;
-              }
-              handleUpdateSelection(headerGestureDetails);
-            };
-            instance.onEnd = (DragEndDetails details) {
-              dragOriginOffsetCache = null;
-              internalScope.controller.scroll.stopAutoScroll(widget.axis);
-
-              if (isDraggingHeader()) {
-                Actions.invoke(
-                  context,
-                  HeaderDragEndIntent(
-                    header: 0,
-                    axis: widget.axis,
-                  ),
-                );
-              }
-            };
-            instance.onCancel = () {
-              dragOriginOffsetCache = null;
-              internalScope.controller.scroll.stopAutoScroll(widget.axis);
-
-              if (isDraggingHeader()) {
-                Actions.invoke(
-                  context,
-                  HeaderDragEndIntent(
-                    header: 0,
-                    axis: widget.axis,
-                  ),
-                );
-              }
-            };
-          },
-        ),
-        TapGestureRecognizer:
-            GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
-          () => TapGestureRecognizer(debugOwner: this),
-          (TapGestureRecognizer instance) {
-            instance.onTapDown = (TapDownDetails details) {
-              final headerGestureDetails = _getHeaderGestureDetails(
-                axis: widget.axis,
-                context: context,
-                globalPosition: details.globalPosition,
-              );
-
-              if (isHeaderSelected(
-                headerGestureDetails.headerPosition,
-                widget.axis,
-              )) {
-                Actions.invoke(
-                  context,
-                  HeaderDragStartIntent(
-                    draggingPosition: details.localPosition,
-                    header: headerGestureDetails.headerPosition,
-                    axis: widget.axis,
-                  ),
-                );
-                return;
-              }
-              handleStartSelection(headerGestureDetails);
-            };
-          },
-        ),
+    return MouseRegion(
+      cursor: cursor,
+      onHover: (event) {
+        final headerGestureDetails = _getHeaderLocalPositionGestureDetails(
+          axis: widget.axis,
+          context: context,
+          localPosition: event.localPosition,
+        );
+        final isSelected = isHeaderSelected(
+          headerGestureDetails.headerPosition,
+          widget.axis,
+        );
+        setCursorState(
+          isSelected ? SystemMouseCursors.grab : MouseCursor.defer,
+        );
       },
-      behavior: HitTestBehavior.translucent,
+      child: RawGestureDetector(
+        gestures: <Type, GestureRecognizerFactory>{
+          PanGestureRecognizer:
+              GestureRecognizerFactoryWithHandlers<PanGestureRecognizer>(
+            () => PanGestureRecognizer(debugOwner: this),
+            (PanGestureRecognizer instance) {
+              instance.onStart = (DragStartDetails details) {
+                final headerGestureDetails = _getHeaderGestureDetails(
+                  axis: widget.axis,
+                  context: context,
+                  globalPosition: details.globalPosition,
+                );
+
+                if (!isDraggingHeader()) {
+                  handleStartSelection(headerGestureDetails);
+                }
+                dragOriginOffsetCache = headerGestureDetails.localPosition;
+              };
+              instance.onUpdate = (DragUpdateDetails details) {
+                final headerGestureDetails = _getHeaderGestureDetails(
+                  axis: widget.axis,
+                  context: context,
+                  globalPosition: details.globalPosition,
+                );
+
+                updateDragScroll(
+                  localOffset: headerGestureDetails.localPosition,
+                  globalOffset: details.globalPosition,
+                  originOffset: dragOriginOffsetCache!,
+                );
+
+                if (isDraggingHeader()) {
+                  Actions.invoke(
+                    context,
+                    HeaderDragUpdateIntent(
+                      draggingPosition: details.localPosition,
+                      header: headerGestureDetails.headerPosition,
+                      axis: widget.axis,
+                    ),
+                  );
+                  return;
+                }
+                handleUpdateSelection(headerGestureDetails);
+              };
+              instance.onEnd = (DragEndDetails details) {
+                dragOriginOffsetCache = null;
+                internalScope.controller.scroll.stopAutoScroll(widget.axis);
+
+                if (isDraggingHeader()) {
+                  Actions.invoke(
+                    context,
+                    HeaderDragEndIntent(
+                      header: 0,
+                      axis: widget.axis,
+                    ),
+                  );
+                }
+              };
+              instance.onCancel = () {
+                dragOriginOffsetCache = null;
+                internalScope.controller.scroll.stopAutoScroll(widget.axis);
+
+                if (isDraggingHeader()) {
+                  Actions.invoke(
+                    context,
+                    HeaderDragEndIntent(
+                      header: 0,
+                      axis: widget.axis,
+                    ),
+                  );
+                }
+              };
+            },
+          ),
+          TapGestureRecognizer:
+              GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
+            () => TapGestureRecognizer(debugOwner: this),
+            (TapGestureRecognizer instance) {
+              instance.onTapDown = (TapDownDetails details) {
+                final headerGestureDetails = _getHeaderGestureDetails(
+                  axis: widget.axis,
+                  context: context,
+                  globalPosition: details.globalPosition,
+                );
+
+                if (isHeaderSelected(
+                  headerGestureDetails.headerPosition,
+                  widget.axis,
+                )) {
+                  setCursorState(SystemMouseCursors.basic);
+                  Actions.invoke(
+                    context,
+                    HeaderDragStartIntent(
+                      draggingPosition: details.localPosition,
+                      header: headerGestureDetails.headerPosition,
+                      axis: widget.axis,
+                    ),
+                  );
+                  return;
+                }
+                handleStartSelection(headerGestureDetails);
+              };
+            },
+          ),
+        },
+        behavior: HitTestBehavior.translucent,
+      ),
     );
   }
 }
