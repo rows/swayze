@@ -164,10 +164,15 @@ class _TableBodyScrollableArea extends StatelessWidget {
           ),
         ),
         const ClipRect(child: TableBodySelections()),
-        if (viewportContext.columns.value.isDragging)
+        // TODO: [victor] find a better checking.
+        if (viewportContext.columns.value.isDragging ||
+            viewportContext.rows.value.isDragging)
           RepaintBoundary(
             key: const ValueKey('RepaintBoundaryReorderPreview'),
             child: ReorderPreview(
+              axis: viewportContext.columns.value.isDragging
+                  ? Axis.horizontal
+                  : Axis.vertical,
               columnSizes: viewportContext.columns.value.sizes,
               rowSizes: viewportContext.rows.value.sizes,
               swayzeStyle: style,

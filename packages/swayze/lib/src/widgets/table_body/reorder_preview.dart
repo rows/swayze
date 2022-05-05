@@ -11,6 +11,7 @@ import '../internal_scope.dart';
 
 // TODO: [victor] doc.
 class ReorderPreview extends StatelessWidget {
+  final Axis axis;
   final List<double> columnSizes;
   final List<double> rowSizes;
   final SwayzeStyle swayzeStyle;
@@ -18,6 +19,7 @@ class ReorderPreview extends StatelessWidget {
 
   const ReorderPreview({
     Key? key,
+    required this.axis,
     required this.columnSizes,
     required this.rowSizes,
     required this.swayzeStyle,
@@ -38,17 +40,17 @@ class ReorderPreview extends StatelessWidget {
     final tableController =
         InternalScope.of(context).controller.tableDataController;
 
-    final currentDropColumn = viewportContext
+    final header = viewportContext.getAxisContextFor(axis: axis);
+    final dropHeaderAtPosition = viewportContext
         .positionToPixel(
-          viewportContext.columns.value.draggingCurrentReference! <
-                  viewportContext.columns.value.draggingHeaderIndex!
-              ? viewportContext.columns.value.draggingCurrentReference!
-              : viewportContext.columns.value.draggingCurrentReference! + 1,
-          Axis.horizontal,
+          header.value.draggingCurrentReference! <
+                  header.value.draggingHeaderIndex!
+              ? header.value.draggingCurrentReference!
+              : header.value.draggingCurrentReference! + 1,
+          axis,
           isForFrozenPanes: false,
         )
-        .pixel
-        .toInt();
+        .pixel;
 
     final selection = selectionController.userSelectionState.selections;
     final selectionModel = selection.first;
@@ -62,8 +64,7 @@ class ReorderPreview extends StatelessWidget {
     return Stack(
       children: [
         _PreviewRect(
-          pointerPosition: viewportContext.columns.value.draggingPosition,
-          currentDropColumn: currentDropColumn,
+          pointerPosition: header.value.draggingPosition,
           preview: leftTopPixelOffset & size,
         ),
         _PreviewLine(
@@ -72,7 +73,7 @@ class ReorderPreview extends StatelessWidget {
           lineColor: lineColor,
           lineWidth: lineWidth,
           translateOffset: translateOffset,
-          currentDropColumn: currentDropColumn,
+          dropHeaderAtPosition: dropHeaderAtPosition,
         ),
       ],
     );
@@ -113,7 +114,7 @@ class _PreviewLine extends LeafRenderObjectWidget {
   /// The offset in which the painting of lines will be translated by.
   final Offset translateOffset;
 
-  final int currentDropColumn;
+  final double dropHeaderAtPosition;
 
   const _PreviewLine({
     Key? key,
@@ -122,7 +123,7 @@ class _PreviewLine extends LeafRenderObjectWidget {
     required this.lineColor,
     required this.lineWidth,
     required this.translateOffset,
-    required this.currentDropColumn,
+    required this.dropHeaderAtPosition,
   }) : super(key: key);
 
   @override
@@ -133,14 +134,14 @@ class _PreviewLine extends LeafRenderObjectWidget {
       lineColor,
       lineWidth,
       translateOffset,
-      currentDropColumn,
+      dropHeaderAtPosition,
     );
   }
 
   @override
   void updateRenderObject(
     BuildContext context,
-      _RenderPreviewLine renderObject,
+    _RenderPreviewLine renderObject,
   ) {
     renderObject
       ..columnSizes = columnSizes
@@ -148,7 +149,7 @@ class _PreviewLine extends LeafRenderObjectWidget {
       ..lineWidth = lineWidth
       ..lineColor = lineColor
       ..translateOffset = translateOffset
-      ..currentDropColumn = currentDropColumn;
+      ..dropHeaderAtPosition = dropHeaderAtPosition;
   }
 }
 
@@ -198,10 +199,10 @@ class _RenderPreviewLine extends RenderBox {
     markNeedsPaint();
   }
 
-  int _currentDropColumn;
-  int get currentDropColumn => _currentDropColumn;
-  set currentDropColumn(int value) {
-    _currentDropColumn = value;
+  double _dropHeaderAtPosition;
+  double get dropHeaderAtPosition => _dropHeaderAtPosition;
+  set dropHeaderAtPosition(double value) {
+    _dropHeaderAtPosition = value;
     markNeedsPaint();
   }
 
@@ -211,7 +212,7 @@ class _RenderPreviewLine extends RenderBox {
     this._lineColor,
     this._lineWidth,
     this._translateOffset,
-    this._currentDropColumn,
+    this._dropHeaderAtPosition,
   );
 
   @override
@@ -239,11 +240,11 @@ class _RenderPreviewLine extends RenderBox {
   @override
   void paint(PaintingContext context, Offset offset) {
     final canvas = context.canvas;
-    canvas.translate(-0.5, -0.5);
+    //canvas.translate(-0.5, -0.5);
     canvas.translate(translateOffset.dx, translateOffset.dy);
     canvas.save();
 
-    canvas.translate(currentDropColumn.toDouble(), 0);
+    canvas.translate(dropHeaderAtPosition, 0);
     canvas.drawLine(
       Offset.zero,
       Offset(0, size.height),
@@ -256,20 +257,17 @@ class _RenderPreviewLine extends RenderBox {
 // TODO: [victor] doc.
 class _PreviewRect extends LeafRenderObjectWidget {
   final Rect preview;
-  final int currentDropColumn;
   final Offset pointerPosition;
 
   const _PreviewRect({
     Key? key,
     required this.preview,
-    required this.currentDropColumn,
     required this.pointerPosition,
   }) : super(key: key);
 
   @override
   RenderObject createRenderObject(BuildContext context) => _RenderPreviewRect(
         preview,
-        currentDropColumn,
         pointerPosition,
       );
 
@@ -280,7 +278,6 @@ class _PreviewRect extends LeafRenderObjectWidget {
   ) {
     renderObject
       ..preview = preview
-      ..currentDropColumn = currentDropColumn
       ..pointerPosition = pointerPosition;
   }
 }
@@ -288,7 +285,6 @@ class _PreviewRect extends LeafRenderObjectWidget {
 class _RenderPreviewRect extends RenderBox {
   _RenderPreviewRect(
     this._preview,
-    this._currentDropColumn,
     this._pointerPosition,
   );
 
@@ -300,13 +296,6 @@ class _RenderPreviewRect extends RenderBox {
 
   set preview(Rect value) {
     _preview = value;
-    markNeedsPaint();
-  }
-
-  int _currentDropColumn;
-  int get currentDropColumn => _currentDropColumn;
-  set currentDropColumn(int value) {
-    _currentDropColumn = value;
     markNeedsPaint();
   }
 
