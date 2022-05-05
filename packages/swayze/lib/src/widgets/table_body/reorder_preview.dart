@@ -15,7 +15,6 @@ class ReorderPreview extends StatelessWidget {
   final List<double> rowSizes;
   final SwayzeStyle swayzeStyle;
   final Offset translateOffset;
-  final int currentDropColumn;
 
   const ReorderPreview({
     Key? key,
@@ -23,7 +22,6 @@ class ReorderPreview extends StatelessWidget {
     required this.rowSizes,
     required this.swayzeStyle,
     required this.translateOffset,
-    required this.currentDropColumn,
   }) : super(key: key);
 
   @override
@@ -40,6 +38,18 @@ class ReorderPreview extends StatelessWidget {
     final tableController =
         InternalScope.of(context).controller.tableDataController;
 
+    final currentDropColumn = viewportContext
+        .positionToPixel(
+          viewportContext.columns.value.draggingCurrentReference! <
+                  viewportContext.columns.value.draggingHeaderIndex!
+              ? viewportContext.columns.value.draggingCurrentReference!
+              : viewportContext.columns.value.draggingCurrentReference! + 1,
+          Axis.horizontal,
+          isForFrozenPanes: false,
+        )
+        .pixel
+        .toInt();
+
     final selection = selectionController.userSelectionState.selections;
     final selectionModel = selection.first;
     final range = selectionModel.bound(to: tableController.tableRange);
@@ -49,7 +59,6 @@ class ReorderPreview extends StatelessWidget {
     final sizeOffset = rightBottomPixelOffset - leftTopPixelOffset;
     final size = Size(sizeOffset.dx, sizeOffset.dy);
 
-    print(viewportContext.columns.value.draggingPosition);
     return Stack(
       children: [
         _PreviewRect(
@@ -57,7 +66,7 @@ class ReorderPreview extends StatelessWidget {
           currentDropColumn: currentDropColumn,
           preview: leftTopPixelOffset & size,
         ),
-        _ReorderPreviewPainter(
+        _PreviewLine(
           columnSizes: columnSizes,
           rowSizes: rowSizes,
           lineColor: lineColor,
@@ -90,7 +99,7 @@ class ReorderPreview extends StatelessWidget {
   }
 }
 
-class _ReorderPreviewPainter extends LeafRenderObjectWidget {
+class _PreviewLine extends LeafRenderObjectWidget {
   /// The size of each visible column
   final List<double> columnSizes;
 
@@ -106,7 +115,7 @@ class _ReorderPreviewPainter extends LeafRenderObjectWidget {
 
   final int currentDropColumn;
 
-  const _ReorderPreviewPainter({
+  const _PreviewLine({
     Key? key,
     required this.columnSizes,
     required this.rowSizes,
@@ -118,7 +127,7 @@ class _ReorderPreviewPainter extends LeafRenderObjectWidget {
 
   @override
   RenderObject createRenderObject(BuildContext context) {
-    return _RenderReorderDragDropPreviewLine(
+    return _RenderPreviewLine(
       columnSizes,
       rowSizes,
       lineColor,
@@ -131,7 +140,7 @@ class _ReorderPreviewPainter extends LeafRenderObjectWidget {
   @override
   void updateRenderObject(
     BuildContext context,
-    _RenderReorderDragDropPreviewLine renderObject,
+      _RenderPreviewLine renderObject,
   ) {
     renderObject
       ..columnSizes = columnSizes
@@ -143,7 +152,7 @@ class _ReorderPreviewPainter extends LeafRenderObjectWidget {
   }
 }
 
-class _RenderReorderDragDropPreviewLine extends RenderBox {
+class _RenderPreviewLine extends RenderBox {
   List<double> _columnSizes;
 
   List<double> get columnSizes => _columnSizes;
@@ -196,7 +205,7 @@ class _RenderReorderDragDropPreviewLine extends RenderBox {
     markNeedsPaint();
   }
 
-  _RenderReorderDragDropPreviewLine(
+  _RenderPreviewLine(
     this._columnSizes,
     this._rowSizes,
     this._lineColor,

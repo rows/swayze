@@ -174,7 +174,6 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
       }
     }
 
-    print("Update axis dragging ${headerController.value.dragging}");
     viewportAxisContext._unprotectedSetState(
       ViewportAxisContextState(
         scrollableRange: scrollableRange,

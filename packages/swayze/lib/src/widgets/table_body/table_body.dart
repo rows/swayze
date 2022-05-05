@@ -168,20 +168,6 @@ class _TableBodyScrollableArea extends StatelessWidget {
           RepaintBoundary(
             key: const ValueKey('RepaintBoundaryReorderPreview'),
             child: ReorderPreview(
-              currentDropColumn: viewportContext
-                  .positionToPixel(
-                    viewportContext.columns.value.draggingCurrentReference! <
-                            viewportContext.columns.value.draggingHeaderIndex!
-                        ? viewportContext
-                            .columns.value.draggingCurrentReference!
-                        : viewportContext
-                                .columns.value.draggingCurrentReference! +
-                            1,
-                    Axis.horizontal,
-                    isForFrozenPanes: false,
-                  )
-                  .pixel
-                  .toInt(),
               columnSizes: viewportContext.columns.value.sizes,
               rowSizes: viewportContext.rows.value.sizes,
               swayzeStyle: style,
