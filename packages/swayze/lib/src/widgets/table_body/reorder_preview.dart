@@ -48,22 +48,18 @@ class ReorderPreview extends StatelessWidget {
         )
         .pixel;
 
-    // TODO: [victor] similar to selection rendering logic.
-    final selection = selectionController.userSelectionState.selections;
-    final selectionModel = selection.first;
-    final range = selectionModel.bound(to: tableController.tableRange);
-    final leftTopPixelOffset = getOffset(viewportContext, range.leftTop);
-    final rightBottomPixelOffset =
-        getOffset(viewportContext, range.rightBottom);
-    final sizeOffset = rightBottomPixelOffset - leftTopPixelOffset;
-    final size = Size(sizeOffset.dx, sizeOffset.dy);
-
+    final previewRect = selectionRect(
+      header.value.draggingHeaderIndex!,
+      selectionController.userSelectionState,
+      viewportContext,
+      tableController,
+    );
     return Stack(
       children: [
         _PreviewRect(
           axis: axis,
           pointerPosition: header.value.draggingPosition,
-          preview: leftTopPixelOffset & size,
+          preview: previewRect, // leftTopPixelOffset & size,
         ),
         _PreviewLine(
           axis: axis,
@@ -94,6 +90,33 @@ class ReorderPreview extends StatelessWidget {
         .pixel;
 
     return Offset(x, y);
+  }
+
+  Rect selectionRect(
+    int headerPosition,
+    UserSelectionState selectionState,
+    ViewportContext viewportContext,
+    SwayzeTableDataController tableController,
+  ) {
+    final selections = selectionState.selections;
+    late UserSelectionModel selectionModel;
+    for (final selection in selections) {
+      if (selection is HeaderUserSelectionModel && selection.axis == axis) {
+        final range = Range(selection.start, selection.end);
+        if (range.contains(headerPosition)) {
+          selectionModel = selection;
+          break;
+        }
+      }
+    }
+
+    final range = selectionModel.bound(to: tableController.tableRange);
+    final leftTopPixelOffset = getOffset(viewportContext, range.leftTop);
+    final rightBottomPixelOffset =
+        getOffset(viewportContext, range.rightBottom);
+    final sizeOffset = rightBottomPixelOffset - leftTopPixelOffset;
+    final size = Size(sizeOffset.dx, sizeOffset.dy);
+    return leftTopPixelOffset & size;
   }
 }
 
