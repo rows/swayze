@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import '../swayze_math.dart';
 import 'int_vector2.dart';
 
 /// A function signature to iterate on a  [MatrixMap] of type [T]
@@ -15,6 +16,14 @@ typedef MaybeMatrixMapIterator<T> = void Function(
   int colIndex,
   int rowIndex,
 );
+
+/// Holds the value and position of an item in a [MatrixMapReadOnly].
+class MatrixMapIterableResult<T> {
+  final IntVector2 position;
+  final T value;
+
+  const MatrixMapIterableResult({required this.position, required this.value});
+}
 
 /// A read only interface for instances of [MatrixMap]
 abstract class MatrixMapReadOnly<T> {
@@ -57,6 +66,12 @@ abstract class MatrixMapReadOnly<T> {
     required Iterable<int> colIndices,
     required Iterable<int> rowIndices,
     required MaybeMatrixMapIterator<T> iterate,
+  });
+
+  /// Iterates all positions in the given list of columns and rows.
+  Iterable<MatrixMapIterableResult<T?>> forEachInRange({
+    required Iterable<int> colIndices,
+    required Iterable<int> rowIndices,
   });
 
   /// Iterate in all items of this matrix map in a specific row.
@@ -189,6 +204,28 @@ class MatrixMap<T> implements MatrixMapReadOnly<T> {
       for (final colIndex in colIndices) {
         final cell = row?[colIndex];
         iterate(cell, colIndex, rowIndex);
+      }
+    }
+  }
+
+  /// See [MatrixMapReadOnly.forEachInRange].
+  ///
+  /// Returns a lazy [Iterable] of [MatrixMapIterableResult] that contains the
+  /// item's value as well as its position.
+  @override
+  Iterable<MatrixMapIterableResult<T?>> forEachInRange({
+    required Iterable<int> colIndices,
+    required Iterable<int> rowIndices,
+  }) sync* {
+    for (final rowIndex in rowIndices) {
+      final row = _rows[rowIndex];
+      for (final colIndex in colIndices) {
+        final cell = row?[colIndex];
+
+        yield MatrixMapIterableResult(
+          position: IntVector2(colIndex, rowIndex),
+          value: cell,
+        );
       }
     }
   }
