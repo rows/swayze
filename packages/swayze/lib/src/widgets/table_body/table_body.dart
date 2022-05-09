@@ -173,8 +173,6 @@ class _TableBodyScrollableArea extends StatelessWidget {
               axis: viewportContext.columns.value.isDragging
                   ? Axis.horizontal
                   : Axis.vertical,
-              columnSizes: viewportContext.columns.value.sizes,
-              rowSizes: viewportContext.rows.value.sizes,
               swayzeStyle: style,
               translateOffset: offset,
             ),

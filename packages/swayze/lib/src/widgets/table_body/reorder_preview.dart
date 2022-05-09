@@ -12,16 +12,12 @@ import '../internal_scope.dart';
 // TODO: [victor] doc.
 class ReorderPreview extends StatelessWidget {
   final Axis axis;
-  final List<double> columnSizes;
-  final List<double> rowSizes;
   final SwayzeStyle swayzeStyle;
   final Offset translateOffset;
 
   const ReorderPreview({
     Key? key,
     required this.axis,
-    required this.columnSizes,
-    required this.rowSizes,
     required this.swayzeStyle,
     required this.translateOffset,
   }) : super(key: key);
@@ -71,8 +67,6 @@ class ReorderPreview extends StatelessWidget {
         ),
         _PreviewLine(
           axis: axis,
-          columnSizes: columnSizes,
-          rowSizes: rowSizes,
           lineColor: lineColor,
           lineWidth: lineWidth,
           translateOffset: translateOffset,
@@ -104,12 +98,6 @@ class ReorderPreview extends StatelessWidget {
 }
 
 class _PreviewLine extends LeafRenderObjectWidget {
-  /// The size of each visible column
-  final List<double> columnSizes;
-
-  /// The size of each visible row
-  final List<double> rowSizes;
-
   final Color lineColor;
 
   final double lineWidth;
@@ -123,8 +111,6 @@ class _PreviewLine extends LeafRenderObjectWidget {
 
   const _PreviewLine({
     Key? key,
-    required this.columnSizes,
-    required this.rowSizes,
     required this.lineColor,
     required this.lineWidth,
     required this.translateOffset,
