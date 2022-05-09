@@ -1,13 +1,8 @@
 import 'package:cached_value/cached_value.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:swayze_math/swayze_math.dart';
 
-import '../../../controller.dart';
 import '../../core/style/style.dart';
-import '../../core/viewport_context/viewport_context.dart';
 import '../../core/viewport_context/viewport_context_provider.dart';
-import '../internal_scope.dart';
 
 // TODO: [victor] doc.
 class ReorderPreview extends StatelessWidget {
@@ -32,10 +27,6 @@ class ReorderPreview extends StatelessWidget {
     }
 
     final viewportContext = ViewportContextProvider.of(context);
-    final selectionController = InternalScope.of(context).controller.selection;
-    final tableController =
-        InternalScope.of(context).controller.tableDataController;
-
     final header = viewportContext.getAxisContextFor(axis: axis);
     final dropHeaderAtPosition = viewportContext
         .positionToPixel(
@@ -48,18 +39,22 @@ class ReorderPreview extends StatelessWidget {
         )
         .pixel;
 
-    final previewRect = selectionRect(
-      header.value.draggingHeaderIndex!,
-      selectionController.userSelectionState,
-      viewportContext,
-      tableController,
-    );
+    final headerExtent = header.value.draggingHeaderExtent;
+    final headerPosition = viewportContext
+        .positionToPixel(
+          header.value.draggingHeaderIndex!,
+          axis,
+          isForFrozenPanes: false,
+        )
+        .pixel;
+
     return Stack(
       children: [
         _PreviewRect(
           axis: axis,
           pointerPosition: header.value.draggingPosition,
-          preview: previewRect, // leftTopPixelOffset & size,
+          headerPosition: headerPosition,
+          headerExtent: headerExtent,
         ),
         _PreviewLine(
           axis: axis,
@@ -70,53 +65,6 @@ class ReorderPreview extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  // TODO: [victor] same as selection
-  Offset getOffset(ViewportContext viewportContext, IntVector2 coordinate) {
-    final x = viewportContext
-        .positionToPixel(
-          coordinate.dx,
-          Axis.horizontal,
-          isForFrozenPanes: false,
-        )
-        .pixel;
-    final y = viewportContext
-        .positionToPixel(
-          coordinate.dy,
-          Axis.vertical,
-          isForFrozenPanes: false,
-        )
-        .pixel;
-
-    return Offset(x, y);
-  }
-
-  Rect selectionRect(
-    int headerPosition,
-    UserSelectionState selectionState,
-    ViewportContext viewportContext,
-    SwayzeTableDataController tableController,
-  ) {
-    final selections = selectionState.selections;
-    late UserSelectionModel selectionModel;
-    for (final selection in selections) {
-      if (selection is HeaderUserSelectionModel && selection.axis == axis) {
-        final range = Range(selection.start, selection.end);
-        if (range.contains(headerPosition)) {
-          selectionModel = selection;
-          break;
-        }
-      }
-    }
-
-    final range = selectionModel.bound(to: tableController.tableRange);
-    final leftTopPixelOffset = getOffset(viewportContext, range.leftTop);
-    final rightBottomPixelOffset =
-        getOffset(viewportContext, range.rightBottom);
-    final sizeOffset = rightBottomPixelOffset - leftTopPixelOffset;
-    final size = Size(sizeOffset.dx, sizeOffset.dy);
-    return leftTopPixelOffset & size;
   }
 }
 
@@ -267,21 +215,24 @@ class _RenderPreviewLine extends RenderBox {
 // TODO: [victor] doc.
 class _PreviewRect extends LeafRenderObjectWidget {
   final Axis axis;
-  final Rect preview;
   final Offset pointerPosition;
+  final double headerPosition;
+  final double headerExtent;
 
   const _PreviewRect({
+    required this.headerPosition,
+    required this.headerExtent,
     Key? key,
     required this.axis,
-    required this.preview,
     required this.pointerPosition,
   }) : super(key: key);
 
   @override
   RenderObject createRenderObject(BuildContext context) => _RenderPreviewRect(
         axis,
-        preview,
         pointerPosition,
+        headerPosition,
+        headerExtent,
       );
 
   @override
@@ -291,28 +242,19 @@ class _PreviewRect extends LeafRenderObjectWidget {
   ) {
     renderObject
       ..axis = axis
-      ..preview = preview
-      ..pointerPosition = pointerPosition;
+      ..pointerPosition = pointerPosition
+      ..headerPosition = headerPosition
+      ..headerExtent = headerExtent;
   }
 }
 
 class _RenderPreviewRect extends RenderBox {
   _RenderPreviewRect(
     this._axis,
-    this._preview,
     this._pointerPosition,
+    this._headerPosition,
+    this._headerExtent,
   );
-
-  Rect _preview;
-
-  Rect get preview {
-    return _preview;
-  }
-
-  set preview(Rect value) {
-    _preview = value;
-    markNeedsPaint();
-  }
 
   Offset _pointerPosition;
   Offset get pointerPosition => _pointerPosition;
@@ -325,6 +267,20 @@ class _RenderPreviewRect extends RenderBox {
   Axis get axis => _axis;
   set axis(Axis value) {
     _axis = value;
+    markNeedsPaint();
+  }
+
+  double _headerPosition;
+  double get headerPosition => _headerPosition;
+  set headerPosition(double value) {
+    _headerPosition = value;
+    markNeedsPaint();
+  }
+
+  double _headerExtent;
+  double get headerExtent => _headerExtent;
+  set headerExtent(double value) {
+    _headerExtent = value;
     markNeedsPaint();
   }
 
@@ -346,11 +302,23 @@ class _RenderPreviewRect extends RenderBox {
     final canvas = context.canvas;
     canvas.save();
     if (axis == Axis.horizontal) {
-      canvas.translate(pointerPosition.dx - _preview.topCenter.dx, 0);
-      canvas.drawRect(_preview, backgroundPaint.value);
+      final previewRect = Rect.fromLTWH(
+        headerPosition,
+        0,
+        headerExtent,
+        size.height,
+      );
+      canvas.translate(pointerPosition.dx - previewRect.topCenter.dx, 0);
+      canvas.drawRect(previewRect, backgroundPaint.value);
     } else {
-      canvas.translate(0, pointerPosition.dy - _preview.topCenter.dy);
-      canvas.drawRect(_preview, backgroundPaint.value);
+      final previewRect = Rect.fromLTWH(
+        0,
+        headerPosition,
+        size.width,
+        headerExtent,
+      );
+      canvas.translate(0, pointerPosition.dy - previewRect.topCenter.dy);
+      canvas.drawRect(previewRect, backgroundPaint.value);
     }
     canvas.restore();
   }

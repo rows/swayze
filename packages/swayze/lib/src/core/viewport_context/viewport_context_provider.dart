@@ -191,6 +191,11 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
         draggingCurrentReference:
             headerController.value.draggingCurrentReference,
         draggingPosition: headerController.value.draggingPosition,
+        draggingHeaderExtent: headerController.value.draggingHeaderIndex != null
+            ? headerController.value.getHeaderExtentFor(
+                index: headerController.value.draggingHeaderIndex!,
+              )
+            : 0,
       ),
     );
   }
