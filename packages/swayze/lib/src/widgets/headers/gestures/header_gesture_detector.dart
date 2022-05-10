@@ -333,10 +333,23 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                   context: context,
                   globalPosition: details.globalPosition,
                 );
-
-                if (!isDraggingHeader()) {
+                if (isHeaderSelected(
+                  headerGestureDetails.headerPosition,
+                  widget.axis,
+                )) {
+                  setCursorState(SystemMouseCursors.basic);
+                  Actions.invoke(
+                    context,
+                    HeaderDragStartIntent(
+                      draggingPosition: details.localPosition,
+                      header: headerGestureDetails.headerPosition,
+                      axis: widget.axis,
+                    ),
+                  );
+                } else {
                   handleStartSelection(headerGestureDetails);
                 }
+
                 dragOriginOffsetCache = headerGestureDetails.localPosition;
               };
               instance.onUpdate = (DragUpdateDetails details) {
@@ -399,28 +412,12 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
               GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
             () => TapGestureRecognizer(debugOwner: this),
             (TapGestureRecognizer instance) {
-              instance.onTapDown = (TapDownDetails details) {
+              instance.onTapUp = (TapUpDetails details) {
                 final headerGestureDetails = _getHeaderGestureDetails(
                   axis: widget.axis,
                   context: context,
                   globalPosition: details.globalPosition,
                 );
-
-                if (isHeaderSelected(
-                  headerGestureDetails.headerPosition,
-                  widget.axis,
-                )) {
-                  setCursorState(SystemMouseCursors.basic);
-                  Actions.invoke(
-                    context,
-                    HeaderDragStartIntent(
-                      draggingPosition: details.localPosition,
-                      header: headerGestureDetails.headerPosition,
-                      axis: widget.axis,
-                    ),
-                  );
-                  return;
-                }
                 handleStartSelection(headerGestureDetails);
               };
             },
