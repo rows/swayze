@@ -282,7 +282,7 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
 
   /// Checks if a header is selected.
   bool isHeaderSelected(int position, Axis axis) =>
-      hoverSelection(position, axis) != null;
+      internalScope.controller.selection.isHeaderSelected(position, axis);
 
   /// Finds the selection that is under position.
   ///
