@@ -1,6 +1,6 @@
 name: swayze_math
 description: Classes for math operations in the context of a spreadsheet UI
-version: 1.0.0
+version: 1.1.0
 repository: https://github.com/rows/swayze
 issue_tracker: https://github.com/rows/swayze/issues
 homepage: https://github.com/rows/swayze

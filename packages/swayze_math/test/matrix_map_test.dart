@@ -116,30 +116,30 @@ void main() {
       matrixMap[const IntVector2(0, 0)] = 'item1';
       matrixMap[const IntVector2(2, 2)] = 'item2';
 
-      final existingItemsInteration = <IntVector2>[];
+      final existingItemsIteration = <IntVector2>[];
       matrixMap.forEachExistingItemOn(
         colIndices: [0, 2],
         rowIndices: [0, 2],
         iterate: (item, colIndex, rowIndex) {
-          existingItemsInteration.add(IntVector2(colIndex, rowIndex));
+          existingItemsIteration.add(IntVector2(colIndex, rowIndex));
         },
       );
 
-      final allPositionsItemsInteration = <IntVector2>[];
+      final allPositionsItemsIteration = <IntVector2>[];
       matrixMap.forEachPositionOn(
         colIndices: const Range(0, 3).iterable,
         rowIndices: const Range(0, 3).iterable,
         iterate: (item, colIndex, rowIndex) {
-          allPositionsItemsInteration.add(IntVector2(colIndex, rowIndex));
+          allPositionsItemsIteration.add(IntVector2(colIndex, rowIndex));
         },
       );
 
-      expect(existingItemsInteration, [
+      expect(existingItemsIteration, [
         const IntVector2(0, 0),
         const IntVector2(2, 2),
       ]);
 
-      expect(allPositionsItemsInteration, [
+      expect(allPositionsItemsIteration, [
         const IntVector2(0, 0),
         const IntVector2(1, 0),
         const IntVector2(2, 0),
@@ -149,6 +149,29 @@ void main() {
         const IntVector2(0, 2),
         const IntVector2(1, 2),
         const IntVector2(2, 2),
+      ]);
+    });
+
+    testMatrixMap('forEachInRange', (matrixMap) {
+      final forEachInRange = <IntVector2>[];
+      final iterable = matrixMap.forEachInRange(
+        colIndices: const Range(0, 3).iterable,
+        rowIndices: const Range(0, 3).iterable,
+      );
+      for (final result in iterable) {
+        if (result.position.dx == 2 && result.position.dy == 1) {
+          break;
+        }
+
+        forEachInRange.add(IntVector2(result.position.dx, result.position.dy));
+      }
+
+      expect(forEachInRange, [
+        const IntVector2(0, 0),
+        const IntVector2(1, 0),
+        const IntVector2(2, 0),
+        const IntVector2(0, 1),
+        const IntVector2(1, 1),
       ]);
     });
 

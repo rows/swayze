@@ -1,3 +1,7 @@
+# 1.1.0
+
+- Bump `swayze_math` from 1.0.0 to 1.1.0
+
 # 1.0.3
 
 - Fix `SwayzeSliverTable` using `Navigator`'s `overlay` property instead of fetching the closest 
