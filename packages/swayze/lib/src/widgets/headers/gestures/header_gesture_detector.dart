@@ -26,8 +26,8 @@ class _HeaderGestureDetails {
 }
 
 /// Return the [Range] edge to expand according to the given [ScrollDirection].
-int _getRangeEdgeOnAutoScroll(Range range, ScrollDirection scrolDirection) {
-  if (scrolDirection == ScrollDirection.forward) {
+int _getRangeEdgeOnAutoScroll(Range range, ScrollDirection scrollDirection) {
+  if (scrollDirection == ScrollDirection.forward) {
     return range.start;
   }
 
@@ -273,6 +273,37 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
     );
   }
 
+  /// Handles drag starts that should start dragging a header around.
+  void handleStartDraggingHeader(
+    DragStartDetails details,
+    Range selectionRange,
+  ) {
+    setCursorState(SystemMouseCursors.basic);
+    Actions.invoke(
+      context,
+      HeaderDragStartIntent(
+        draggingPosition: details.localPosition,
+        headers: selectionRange,
+        axis: widget.axis,
+      ),
+    );
+  }
+
+  /// Handles header dragging updates.
+  void handleUpdateDraggingHeader(
+    DragUpdateDetails gestureDetails,
+    _HeaderGestureDetails details,
+  ) {
+    Actions.invoke(
+      context,
+      HeaderDragUpdateIntent(
+        draggingPosition: gestureDetails.localPosition,
+        header: details.headerPosition,
+        axis: widget.axis,
+      ),
+    );
+  }
+
   /// Sets a new cursor state.
   void setCursorState(MouseCursor newCursor) {
     if (newCursor != cursor) {
@@ -374,16 +405,7 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                 );
                 if (selection != null) {
                   final range = headerSelectionRange(selection);
-                  print(range);
-                  setCursorState(SystemMouseCursors.basic);
-                  Actions.invoke(
-                    context,
-                    HeaderDragStartIntent(
-                      draggingPosition: details.localPosition,
-                      headers: range,
-                      axis: widget.axis,
-                    ),
-                  );
+                  handleStartDraggingHeader(details, range);
                 } else {
                   handleStartSelection(headerGestureDetails);
                 }
@@ -404,14 +426,7 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                 );
 
                 if (isDraggingHeader()) {
-                  Actions.invoke(
-                    context,
-                    HeaderDragUpdateIntent(
-                      draggingPosition: details.localPosition,
-                      header: headerGestureDetails.headerPosition,
-                      axis: widget.axis,
-                    ),
-                  );
+                  handleUpdateDraggingHeader(details, headerGestureDetails);
                   return;
                 }
                 handleUpdateSelection(headerGestureDetails);

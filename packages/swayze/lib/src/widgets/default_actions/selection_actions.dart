@@ -512,8 +512,8 @@ class HeaderDragStartAction extends DefaultSwayzeAction<HeaderDragStartIntent> {
     controller.updateState(
       (state) => state.copyWith(
         dragging: true,
-        draggingHeaderIndex: intent.header,
-        draggingCurrentReference: intent.header,
+        draggingHeaders: intent.headers,
+        draggingCurrentReference: intent.headers.start,
         draggingPosition: intent.draggingPosition,
       ),
     );
