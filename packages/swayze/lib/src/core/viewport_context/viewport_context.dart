@@ -87,7 +87,7 @@ class ViewportAxisContext extends ChangeNotifier
     visibleIndices: [],
     visibleFrozenIndices: [],
     isDragging: false,
-    draggingHeaderIndex: null,
+    draggingHeaders: null,
     draggingCurrentReference: null,
     draggingPosition: Offset.zero,
     draggingHeaderExtent: 0,
@@ -169,7 +169,7 @@ class ViewportAxisContextState {
 
   // TODO: [victor] doc
   final bool isDragging;
-  final int? draggingHeaderIndex;
+  final Range? draggingHeaders;
   final int? draggingCurrentReference;
   final Offset draggingPosition;
   final double draggingHeaderExtent;
@@ -186,7 +186,7 @@ class ViewportAxisContextState {
     required this.visibleIndices,
     required this.visibleFrozenIndices,
     required this.isDragging,
-    required this.draggingHeaderIndex,
+    required this.draggingHeaders,
     required this.draggingCurrentReference,
     required this.draggingPosition,
     required this.draggingHeaderExtent,
@@ -202,7 +202,7 @@ class ViewportAxisContextState {
           extent == other.extent &&
           frozenExtent == other.frozenExtent &&
           isDragging == other.isDragging &&
-          draggingHeaderIndex == other.draggingHeaderIndex &&
+          draggingHeaders == other.draggingHeaders &&
           draggingCurrentReference == other.draggingCurrentReference &&
           draggingPosition == other.draggingPosition &&
           draggingHeaderExtent == other.draggingHeaderExtent &&
@@ -229,7 +229,7 @@ class ViewportAxisContextState {
       visibleIndices.hashCode ^
       visibleFrozenIndices.hashCode ^
       isDragging.hashCode ^
-      draggingHeaderIndex.hashCode ^
+      draggingHeaders.hashCode ^
       draggingPosition.hashCode ^
       draggingHeaderExtent.hashCode ^
       draggingCurrentReference.hashCode;

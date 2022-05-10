@@ -91,12 +91,12 @@ class HeaderSelectionUpdateIntent extends SwayzeIntent {
 
 // TODO: [victor] doc
 class HeaderDragStartIntent extends SwayzeIntent {
-  final int header;
+  final Range headers;
   final Axis axis;
   final Offset draggingPosition;
 
   const HeaderDragStartIntent({
-    required this.header,
+    required this.headers,
     required this.axis,
     required this.draggingPosition,
   });

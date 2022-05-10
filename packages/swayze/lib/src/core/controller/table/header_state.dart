@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:swayze_math/swayze_math.dart';
 
 import '../controller.dart';
 
@@ -83,7 +84,7 @@ class SwayzeHeaderState {
   // TODO: [victor] probably a controller is a better solution
   final bool dragging;
   // TODO: [victor] get from selection
-  final int? draggingHeaderIndex;
+  final Range? draggingHeaders;
   final int? draggingCurrentReference;
   final Offset draggingPosition;
 
@@ -98,7 +99,7 @@ class SwayzeHeaderState {
     int? elasticCount,
     bool? dragging,
     this.draggingPosition = Offset.zero,
-    this.draggingHeaderIndex,
+    this.draggingHeaders,
     this.draggingCurrentReference,
   })  : _frozenCount = frozenCount,
         elasticCount = elasticCount ?? 0,
@@ -120,7 +121,7 @@ class SwayzeHeaderState {
     required int frozenCount,
     bool? dragging,
     this.draggingPosition = Offset.zero,
-    this.draggingHeaderIndex,
+    this.draggingHeaders,
     this.draggingCurrentReference,
   })  : _frozenCount = frozenCount,
         _customSizedHeaders = sortedHeaderData,
@@ -136,7 +137,7 @@ class SwayzeHeaderState {
     Iterable<SwayzeHeaderData>? headerData,
     int? frozenCount,
     bool? dragging,
-    int? draggingHeaderIndex,
+    Range? draggingHeaders,
     int? draggingCurrentReference,
     Offset? draggingPosition,
   }) {
@@ -151,7 +152,7 @@ class SwayzeHeaderState {
         draggingPosition: draggingPosition ?? this.draggingPosition,
         draggingCurrentReference:
             draggingCurrentReference ?? this.draggingCurrentReference,
-        draggingHeaderIndex: draggingHeaderIndex ?? this.draggingHeaderIndex,
+        draggingHeaders: draggingHeaders ?? this.draggingHeaders,
       );
     }
 
@@ -165,7 +166,7 @@ class SwayzeHeaderState {
       draggingPosition: draggingPosition ?? this.draggingPosition,
       draggingCurrentReference:
           draggingCurrentReference ?? this.draggingCurrentReference,
-      draggingHeaderIndex: draggingHeaderIndex ?? this.draggingHeaderIndex,
+      draggingHeaders: draggingHeaders ?? this.draggingHeaders,
     );
   }
 
@@ -213,7 +214,7 @@ class SwayzeHeaderState {
           count == other.count &&
           elasticCount == other.elasticCount &&
           dragging == other.dragging &&
-          draggingHeaderIndex == other.draggingHeaderIndex &&
+          draggingHeaders == other.draggingHeaders &&
           draggingCurrentReference == other.draggingCurrentReference &&
           draggingPosition == other.draggingPosition &&
           _kMapEquality.equals(customSizedHeaders, other.customSizedHeaders);
@@ -226,7 +227,7 @@ class SwayzeHeaderState {
       elasticCount.hashCode ^
       customSizedHeaders.hashCode ^
       dragging.hashCode ^
-      draggingHeaderIndex.hashCode ^
+      draggingHeaders.hashCode ^
       draggingPosition.hashCode ^
       draggingCurrentReference.hashCode;
 

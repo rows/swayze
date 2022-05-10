@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -278,8 +280,14 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
     }
   }
 
-  // TODO: [victor] doc.
-  bool isHeaderSelected(int position, Axis axis) {
+  /// Checks if a header is selected.
+  bool isHeaderSelected(int position, Axis axis) =>
+      hoverSelection(position, axis) != null;
+
+  /// Finds the selection that is under position.
+  ///
+  /// Returns null if position header is not selected.
+  HeaderUserSelectionModel? hoverSelection(int position, Axis axis) {
     final selectionController = internalScope.controller.selection;
     final selections = selectionController.userSelectionState.selections;
 
@@ -287,11 +295,37 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
       if (selection is HeaderUserSelectionModel && selection.axis == axis) {
         final range = Range(selection.start, selection.end);
         if (range.contains(position)) {
-          return true;
+          return selection;
         }
       }
     }
-    return false;
+    return null;
+  }
+
+  /// Finds the range of the current reference selection and all adjacent
+  /// selections.
+  ///
+  /// Returns a range containing all adjacent selections from the reference
+  /// selection, so it can be dragged as a single group.
+  Range headerSelectionRange(HeaderUserSelectionModel referenceSelection) {
+    final selectionController = internalScope.controller.selection;
+    final selections = selectionController.userSelectionState.selections;
+    var selectionRange =
+        Range(referenceSelection.start, referenceSelection.end);
+    for (final selection in selections) {
+      if (selection is HeaderUserSelectionModel &&
+          selection.axis == referenceSelection.axis) {
+        if (selection.end == selectionRange.start ||
+            selection.start == selectionRange.end) {
+          selectionRange = Range(
+            min(selectionRange.start, selection.start),
+            max(selectionRange.end, selection.end),
+          );
+        }
+      }
+    }
+
+    return selectionRange;
   }
 
   // TODO: [victor] doc.
@@ -333,16 +367,20 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                   context: context,
                   globalPosition: details.globalPosition,
                 );
-                if (isHeaderSelected(
+
+                final selection = hoverSelection(
                   headerGestureDetails.headerPosition,
                   widget.axis,
-                )) {
+                );
+                if (selection != null) {
+                  final range = headerSelectionRange(selection);
+                  print(range);
                   setCursorState(SystemMouseCursors.basic);
                   Actions.invoke(
                     context,
                     HeaderDragStartIntent(
                       draggingPosition: details.localPosition,
-                      header: headerGestureDetails.headerPosition,
+                      headers: range,
                       axis: widget.axis,
                     ),
                   );

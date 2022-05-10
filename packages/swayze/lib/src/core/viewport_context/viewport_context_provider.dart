@@ -174,6 +174,14 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
       }
     }
 
+    var draggingHeaderExtent = 0.0;
+    if (headerController.value.dragging) {
+      for (final index in headerController.value.draggingHeaders!.iterable) {
+        draggingHeaderExtent +=
+            headerController.value.getHeaderExtentFor(index: index);
+      }
+    }
+
     viewportAxisContext._unprotectedSetState(
       ViewportAxisContextState(
         scrollableRange: scrollableRange,
@@ -187,15 +195,11 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
         visibleIndices: visibleHeaders,
         visibleFrozenIndices: visibleFrozenHeaders,
         isDragging: headerController.value.dragging,
-        draggingHeaderIndex: headerController.value.draggingHeaderIndex,
+        draggingHeaders: headerController.value.draggingHeaders,
         draggingCurrentReference:
             headerController.value.draggingCurrentReference,
         draggingPosition: headerController.value.draggingPosition,
-        draggingHeaderExtent: headerController.value.draggingHeaderIndex != null
-            ? headerController.value.getHeaderExtentFor(
-                index: headerController.value.draggingHeaderIndex!,
-              )
-            : 0,
+        draggingHeaderExtent: draggingHeaderExtent,
       ),
     );
   }

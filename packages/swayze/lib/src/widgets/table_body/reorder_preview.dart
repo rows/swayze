@@ -31,7 +31,7 @@ class ReorderPreview extends StatelessWidget {
     final dropHeaderAtPosition = viewportContext
         .positionToPixel(
           header.value.draggingCurrentReference! <
-                  header.value.draggingHeaderIndex!
+                  header.value.draggingHeaders!.start
               ? header.value.draggingCurrentReference!
               : header.value.draggingCurrentReference! + 1,
           axis,
@@ -42,7 +42,7 @@ class ReorderPreview extends StatelessWidget {
     final headerExtent = header.value.draggingHeaderExtent;
     final headerPosition = viewportContext
         .positionToPixel(
-          header.value.draggingHeaderIndex!,
+          header.value.draggingHeaders!.start,
           axis,
           isForFrozenPanes: false,
         )
