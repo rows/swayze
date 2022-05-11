@@ -439,7 +439,12 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                   Actions.invoke(
                     context,
                     HeaderDragEndIntent(
-                      header: 0,
+                      header: internalScope.controller.tableDataController
+                          .getHeaderControllerFor(
+                            axis: widget.axis,
+                          )
+                          .value
+                          .draggingCurrentReference!,
                       axis: widget.axis,
                     ),
                   );

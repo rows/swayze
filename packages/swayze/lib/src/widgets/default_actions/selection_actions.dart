@@ -429,7 +429,6 @@ class HeaderSelectionStartAction
       );
     } else {
       selectionController.updateUserSelections((state) {
-        print('Controller updateUserSelections');
         return state.resetSelectionsToHeaderSelection(
           anchor: intent.header,
           focus: intent.header,
@@ -459,7 +458,6 @@ class CellSelectionUpdateAction
     TableBodySelectionUpdateIntent intent,
     BuildContext context,
   ) {
-    print('Update cell selection');
     final selectionController = internalScope.controller.selection;
     selectionController.updateUserSelections(
       (state) => state.updateLastSelectionToCellSelection(
