@@ -557,9 +557,23 @@ class HeaderDragEndAction extends DefaultSwayzeAction<HeaderDragEndIntent> {
         internalScope.controller.tableDataController.getHeaderControllerFor(
       axis: intent.axis,
     );
+    final insertAfter = controller.value.draggingCurrentReference! >=
+        controller.value.draggingHeaders!.start;
+
+    final size = controller.value.draggingHeaders!.end -
+        controller.value.draggingHeaders!.start -
+        1;
+
     controller.updateState(
       (state) => state.copyWith(dragging: false),
     );
+    internalScope.controller.selection.updateUserSelections((state) {
+      return state.resetSelectionsToHeaderSelection(
+        anchor: intent.header,
+        focus: insertAfter ? intent.header - size : intent.header + size,
+        axis: intent.axis,
+      );
+    });
   }
 }
 
