@@ -457,10 +457,7 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                 if (isDraggingHeader()) {
                   Actions.invoke(
                     context,
-                    HeaderDragEndIntent(
-                      header: 0,
-                      axis: widget.axis,
-                    ),
+                    HeaderDragCancelIntent(widget.axis),
                   );
                 }
               };

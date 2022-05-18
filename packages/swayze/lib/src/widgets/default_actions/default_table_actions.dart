@@ -91,6 +91,10 @@ class _DefaultActionsState extends State<DefaultActions> {
           internalScope,
           viewportContext,
         ).overridable(context),
+        HeaderDragCancelIntent: HeaderDragCancelAction(
+          internalScope,
+          viewportContext,
+        ).overridable(context),
       },
       child: widget.child,
     );

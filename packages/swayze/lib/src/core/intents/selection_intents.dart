@@ -125,3 +125,9 @@ class HeaderDragEndIntent extends SwayzeIntent {
     required this.axis,
   });
 }
+
+class HeaderDragCancelIntent extends SwayzeIntent {
+  final Axis axis;
+
+  const HeaderDragCancelIntent(this.axis);
+}

@@ -577,6 +577,28 @@ class HeaderDragEndAction extends DefaultSwayzeAction<HeaderDragEndIntent> {
   }
 }
 
+class HeaderDragCancelAction
+    extends DefaultSwayzeAction<HeaderDragCancelIntent> {
+  HeaderDragCancelAction(
+    InternalScope internalScope,
+    ViewportContext viewportContext,
+  ) : super(internalScope, viewportContext);
+
+  @override
+  void invokeAction(
+    HeaderDragCancelIntent intent,
+    BuildContext context,
+  ) {
+    final controller =
+        internalScope.controller.tableDataController.getHeaderControllerFor(
+      axis: intent.axis,
+    );
+    controller.updateState(
+      (state) => state.copyWith(dragging: false),
+    );
+  }
+}
+
 extension on Set<LogicalKeyboardKey> {
   bool get containsModifier {
     final isDarwin = Platform.isMacOS || Platform.isIOS;
