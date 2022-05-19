@@ -287,6 +287,12 @@ class SwayzeHeaderDragState {
     required this.position,
   });
 
+  /// Checks if the current [headers] can be dropped at the [dropAtIndex]
+  /// position.
+  ///
+  /// The headers can only be dropped outside its own range.
+  bool get isDropAllowed => !headers.contains(dropAtIndex);
+
   SwayzeHeaderDragState copyWith({
     Range? headers,
     int? dropAtIndex,

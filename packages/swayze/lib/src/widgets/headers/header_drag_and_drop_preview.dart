@@ -1,5 +1,6 @@
 import 'package:cached_value/cached_value.dart';
 import 'package:flutter/material.dart';
+import 'package:swayze_math/swayze_math.dart';
 
 import '../../core/style/style.dart';
 import '../../core/viewport_context/viewport_context_provider.dart';
@@ -33,6 +34,7 @@ class HeaderDragAndDropPreview extends StatelessWidget {
             header.value.draggingHeaders.start
         ? header.value.draggingCurrentReference
         : header.value.draggingCurrentReference + 1;
+
     final dropHeaderAtPosition = viewportContext
             .positionToPixel(
               currentHeaderIndex,
@@ -51,6 +53,11 @@ class HeaderDragAndDropPreview extends StatelessWidget {
         )
         .pixel;
 
+    final blockedRange = Range(
+      header.value.draggingHeaders.start,
+      header.value.draggingHeaders.end + 1,
+    );
+
     return Stack(
       children: [
         _PreviewRect(
@@ -59,13 +66,14 @@ class HeaderDragAndDropPreview extends StatelessWidget {
           headerPosition: headerPosition,
           headerExtent: headerExtent,
         ),
-        _PreviewLine(
-          axis: axis,
-          lineColor: lineColor,
-          lineWidth: lineWidth,
-          translateOffset: translateOffset,
-          dropHeaderAtPosition: dropHeaderAtPosition,
-        ),
+        if (!blockedRange.contains(currentHeaderIndex))
+          _PreviewLine(
+            axis: axis,
+            lineColor: lineColor,
+            lineWidth: lineWidth,
+            translateOffset: translateOffset,
+            dropHeaderAtPosition: dropHeaderAtPosition,
+          ),
       ],
     );
   }

@@ -304,6 +304,27 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
     );
   }
 
+  void handleDragEnd(SwayzeHeaderDragState state) {
+    if (state.isDropAllowed) {
+      Actions.invoke(
+        context,
+        HeaderDragEndIntent(
+          header: state.dropAtIndex,
+          axis: widget.axis,
+        ),
+      );
+    } else {
+      handleDragCancel();
+    }
+  }
+
+  void handleDragCancel() {
+    Actions.invoke(
+      context,
+      HeaderDragCancelIntent(widget.axis),
+    );
+  }
+
   /// Sets a new cursor state.
   void setCursorState(MouseCursor newCursor) {
     if (newCursor != cursor) {
@@ -361,8 +382,7 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
 
   // TODO: [victor] doc.
   bool isDraggingHeader() {
-    final tableDataController =
-        InternalScope.of(context).controller.tableDataController;
+    final tableDataController = internalScope.controller.tableDataController;
     final header =
         tableDataController.getHeaderControllerFor(axis: widget.axis);
     return header.value.dragState != null;
@@ -435,20 +455,15 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                 dragOriginOffsetCache = null;
                 internalScope.controller.scroll.stopAutoScroll(widget.axis);
 
-                if (isDraggingHeader()) {
-                  Actions.invoke(
-                    context,
-                    HeaderDragEndIntent(
-                      header: internalScope.controller.tableDataController
-                          .getHeaderControllerFor(
-                            axis: widget.axis,
-                          )
-                          .value
-                          .dragState!
-                          .dropAtIndex,
+                final tableDataController =
+                    internalScope.controller.tableDataController;
+                final header = tableDataController
+                    .getHeaderControllerFor(
                       axis: widget.axis,
-                    ),
-                  );
+                    )
+                    .value;
+                if (header.dragState != null) {
+                  handleDragEnd(header.dragState!);
                 }
               };
               instance.onCancel = () {
@@ -456,10 +471,7 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                 internalScope.controller.scroll.stopAutoScroll(widget.axis);
 
                 if (isDraggingHeader()) {
-                  Actions.invoke(
-                    context,
-                    HeaderDragCancelIntent(widget.axis),
-                  );
+                  handleDragCancel();
                 }
               };
             },
