@@ -11,6 +11,7 @@ import '../../core/intents/intents.dart';
 import '../../core/internal_state/table_focus/table_focus_provider.dart';
 import '../../core/viewport_context/viewport_context.dart';
 import '../../core/viewport_context/viewport_context_provider.dart';
+import '../../helpers/wrapped.dart';
 import '../headers/gestures/header_gesture_detector.dart';
 import '../internal_scope.dart';
 import '../shortcuts/shortcuts.dart';
@@ -509,10 +510,13 @@ class HeaderDragStartAction extends DefaultSwayzeAction<HeaderDragStartIntent> {
         .getHeaderControllerFor(axis: intent.axis);
     controller.updateState(
       (state) => state.copyWith(
-        dragging: true,
-        draggingHeaders: intent.headers,
-        draggingCurrentReference: intent.headers.start,
-        draggingPosition: intent.draggingPosition,
+        dragState: Wrapped.value(
+          SwayzeHeaderDragState(
+            headers: intent.headers,
+            dropAtIndex: intent.headers.start,
+            position: intent.draggingPosition,
+          ),
+        ),
       ),
     );
   }
@@ -535,8 +539,12 @@ class HeaderDragUpdateAction
 
     controller.updateState(
       (state) => state.copyWith(
-        draggingCurrentReference: intent.header,
-        draggingPosition: intent.draggingPosition,
+        dragState: Wrapped.value(
+          state.dragState?.copyWith(
+            dropAtIndex: intent.header,
+            position: intent.draggingPosition,
+          ),
+        ),
       ),
     );
   }
@@ -557,15 +565,18 @@ class HeaderDragEndAction extends DefaultSwayzeAction<HeaderDragEndIntent> {
         internalScope.controller.tableDataController.getHeaderControllerFor(
       axis: intent.axis,
     );
-    final insertAfter = controller.value.draggingCurrentReference! >=
-        controller.value.draggingHeaders!.start;
 
-    final size = controller.value.draggingHeaders!.end -
-        controller.value.draggingHeaders!.start -
-        1;
+    final dragState = controller.value.dragState;
+    if (dragState == null) {
+      return;
+    }
+
+    final insertAfter = dragState.dropAtIndex >= dragState.headers.start;
+
+    final size = dragState.headers.end - dragState.headers.start - 1;
 
     controller.updateState(
-      (state) => state.copyWith(dragging: false),
+      (state) => state.copyWith(dragState: const Wrapped.value(null)),
     );
     internalScope.controller.selection.updateUserSelections((state) {
       return state.resetSelectionsToHeaderSelection(
@@ -594,7 +605,7 @@ class HeaderDragCancelAction
       axis: intent.axis,
     );
     controller.updateState(
-      (state) => state.copyWith(dragging: false),
+      (state) => state.copyWith(dragState: const Wrapped.value(null)),
     );
   }
 }

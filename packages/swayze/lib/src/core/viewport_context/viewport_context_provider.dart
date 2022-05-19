@@ -174,9 +174,10 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
       }
     }
 
+    final dragState = headerController.value.dragState;
     var draggingHeaderExtent = 0.0;
-    if (headerController.value.dragging) {
-      for (final index in headerController.value.draggingHeaders!.iterable) {
+    if (dragState != null) {
+      for (final index in dragState.headers.iterable) {
         draggingHeaderExtent +=
             headerController.value.getHeaderExtentFor(index: index);
       }
@@ -194,11 +195,10 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
         frozenSizes: frozenSizes,
         visibleIndices: visibleHeaders,
         visibleFrozenIndices: visibleFrozenHeaders,
-        isDragging: headerController.value.dragging,
-        draggingHeaders: headerController.value.draggingHeaders,
-        draggingCurrentReference:
-            headerController.value.draggingCurrentReference,
-        draggingPosition: headerController.value.draggingPosition,
+        isDragging: dragState != null,
+        draggingHeaders: dragState != null ? dragState.headers : Range.zero,
+        draggingCurrentReference: dragState != null ? dragState.dropAtIndex : 0,
+        draggingPosition: dragState != null ? dragState.position : Offset.zero,
         draggingHeaderExtent: draggingHeaderExtent,
       ),
     );

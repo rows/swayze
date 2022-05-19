@@ -365,7 +365,7 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
         InternalScope.of(context).controller.tableDataController;
     final header =
         tableDataController.getHeaderControllerFor(axis: widget.axis);
-    return header.value.dragging;
+    return header.value.dragState != null;
   }
 
   @override
@@ -444,7 +444,8 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                             axis: widget.axis,
                           )
                           .value
-                          .draggingCurrentReference!,
+                          .dragState!
+                          .dropAtIndex,
                       axis: widget.axis,
                     ),
                   );

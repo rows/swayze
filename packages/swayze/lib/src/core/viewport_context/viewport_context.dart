@@ -87,8 +87,8 @@ class ViewportAxisContext extends ChangeNotifier
     visibleIndices: [],
     visibleFrozenIndices: [],
     isDragging: false,
-    draggingHeaders: null,
-    draggingCurrentReference: null,
+    draggingHeaders: Range.zero,
+    draggingCurrentReference: 0,
     draggingPosition: Offset.zero,
     draggingHeaderExtent: 0,
   );
@@ -169,8 +169,8 @@ class ViewportAxisContextState {
 
   // TODO: [victor] doc
   final bool isDragging;
-  final Range? draggingHeaders;
-  final int? draggingCurrentReference;
+  final Range draggingHeaders;
+  final int draggingCurrentReference;
   final Offset draggingPosition;
   final double draggingHeaderExtent;
 
