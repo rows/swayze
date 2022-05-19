@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import '../../core/style/style.dart';
 import '../../core/viewport_context/viewport_context_provider.dart';
 
-// TODO: [victor] doc.
-class ReorderPreview extends StatelessWidget {
+/// Renders the preview line and block of a header drag and drop action.
+class HeaderDragAndDropPreview extends StatelessWidget {
   final Axis axis;
   final SwayzeStyle swayzeStyle;
   final Offset translateOffset;
 
-  const ReorderPreview({
+  const HeaderDragAndDropPreview({
     Key? key,
     required this.axis,
     required this.swayzeStyle,

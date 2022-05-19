@@ -3,13 +3,13 @@ import 'package:flutter/widgets.dart';
 import '../../core/style/style.dart';
 import '../../core/viewport_context/viewport_context.dart';
 import '../../core/viewport_context/viewport_context_provider.dart';
+import '../headers/header_drag_and_drop_preview.dart';
 import '../internal_scope.dart';
 import '../shared/expand_all.dart';
 import '../wrappers.dart';
 import 'cells/cells_wrapper.dart';
 import 'gestures/table_body_gesture_detector.dart';
 import 'mouse_hover/mouse_hover.dart';
-import 'reorder_preview.dart';
 import 'selections/selections.dart';
 import 'table_lines.dart';
 
@@ -169,7 +169,7 @@ class _TableBodyScrollableArea extends StatelessWidget {
             viewportContext.rows.value.isDragging)
           RepaintBoundary(
             key: const ValueKey('RepaintBoundaryReorderPreview'),
-            child: ReorderPreview(
+            child: HeaderDragAndDropPreview(
               axis: viewportContext.columns.value.isDragging
                   ? Axis.horizontal
                   : Axis.vertical,
