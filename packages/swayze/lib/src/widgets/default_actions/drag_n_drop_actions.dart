@@ -7,6 +7,13 @@ import '../../helpers/wrapped.dart';
 import '../internal_scope.dart';
 import 'default_swayze_action.dart';
 
+/// Default [Action] for [HeaderDragStartIntent].
+///
+/// See also:
+/// * [HeaderGestureDetector] that triggers the intent.
+/// * [SwayzeHeaderDragState] that holds the drag state.
+/// * [DefaultActions] for the widget that binds this action into the
+/// widget tree.
 class HeaderDragStartAction extends DefaultSwayzeAction<HeaderDragStartIntent> {
   HeaderDragStartAction(
     InternalScope internalScope,
@@ -34,6 +41,13 @@ class HeaderDragStartAction extends DefaultSwayzeAction<HeaderDragStartIntent> {
   }
 }
 
+/// Default [Action] for [HeaderDragUpdateIntent].
+///
+/// See also:
+/// * [HeaderGestureDetector] that triggers the intent.
+/// * [SwayzeHeaderDragState] that holds the drag state.
+/// * [DefaultActions] for the widget that binds this action into the
+/// widget tree.
 class HeaderDragUpdateAction
     extends DefaultSwayzeAction<HeaderDragUpdateIntent> {
   HeaderDragUpdateAction(
@@ -62,6 +76,13 @@ class HeaderDragUpdateAction
   }
 }
 
+/// Default [Action] for [HeaderDragEndIntent].
+///
+/// See also:
+/// * [HeaderGestureDetector] that triggers the intent.
+/// * [SwayzeHeaderDragState] that holds the drag state.
+/// * [DefaultActions] for the widget that binds this action into the
+/// widget tree.
 class HeaderDragEndAction extends DefaultSwayzeAction<HeaderDragEndIntent> {
   HeaderDragEndAction(
     InternalScope internalScope,
@@ -100,6 +121,13 @@ class HeaderDragEndAction extends DefaultSwayzeAction<HeaderDragEndIntent> {
   }
 }
 
+/// Default [Action] for [HeaderDragCancelIntent].
+///
+/// See also:
+/// * [HeaderGestureDetector] that triggers the intent.
+/// * [SwayzeHeaderDragState] that holds the drag state.
+/// * [DefaultActions] for the widget that binds this action into the
+/// widget tree.
 class HeaderDragCancelAction
     extends DefaultSwayzeAction<HeaderDragCancelIntent> {
   HeaderDragCancelAction(
