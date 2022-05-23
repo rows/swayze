@@ -1,8 +1,10 @@
 import 'package:flutter/widgets.dart';
 
+import '../../core/intents/drag_n_drop_intents.dart';
 import '../../core/intents/intents.dart';
 import '../../core/viewport_context/viewport_context_provider.dart';
 import '../internal_scope.dart';
+import 'drag_n_drop_actions.dart';
 import 'inline_editor_actions.dart';
 import 'selection_actions.dart';
 
