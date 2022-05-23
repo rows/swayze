@@ -67,6 +67,9 @@ class SwayzeStyle {
         offset: Offset(2, 2),
       ),
     ],
+    dragNDropPreviewLineColor: Colors.amberAccent,
+    dragNDropPreviewHeadersColor: Colors.black26,
+    dragNDropPreviewLineWidth: 2.0,
   );
 
   // Headers
@@ -105,6 +108,15 @@ class SwayzeStyle {
 
   final List<BoxShadow> inlineEditorShadow;
 
+  /// The color of the line that previews where dragged headers will be drop.
+  final Color dragNDropPreviewLineColor;
+
+  /// Width of the line that previews where dragged headers will be drop.
+  final double dragNDropPreviewLineWidth;
+
+  /// The color of the preview headers that are being dragged.
+  final Color dragNDropPreviewHeadersColor;
+
   const SwayzeStyle({
     required this.defaultHeaderPalette,
     required this.selectedHeaderPalette,
@@ -117,6 +129,9 @@ class SwayzeStyle {
     required this.userSelectionStyle,
     required this.selectionAnimationDuration,
     required this.inlineEditorShadow,
+    required this.dragNDropPreviewLineColor,
+    required this.dragNDropPreviewHeadersColor,
+    required this.dragNDropPreviewLineWidth,
   });
 
   /// Copy an instance of [SwayzeStyle] with certain modifications.
@@ -134,6 +149,9 @@ class SwayzeStyle {
     SelectionStyle? userSelectionStyle,
     Duration? selectionAnimationDuration,
     List<BoxShadow>? inlineEditorShadow,
+    Color? dragNDropPreviewLineColor,
+    Color? dragNDropPreviewHeadersColor,
+    double? dragNDropPreviewLineWidth,
   }) {
     return SwayzeStyle(
       defaultHeaderPalette: defaultHeaderPalette ?? this.defaultHeaderPalette,
@@ -152,6 +170,12 @@ class SwayzeStyle {
       selectionAnimationDuration:
           selectionAnimationDuration ?? this.selectionAnimationDuration,
       inlineEditorShadow: inlineEditorShadow ?? this.inlineEditorShadow,
+      dragNDropPreviewLineColor:
+          dragNDropPreviewLineColor ?? this.dragNDropPreviewLineColor,
+      dragNDropPreviewHeadersColor:
+          dragNDropPreviewHeadersColor ?? this.dragNDropPreviewHeadersColor,
+      dragNDropPreviewLineWidth:
+          dragNDropPreviewLineWidth ?? this.dragNDropPreviewLineWidth,
     );
   }
 
@@ -169,7 +193,10 @@ class SwayzeStyle {
           defaultCellBackground == other.defaultCellBackground &&
           userSelectionStyle == other.userSelectionStyle &&
           selectionAnimationDuration == other.selectionAnimationDuration &&
-          inlineEditorShadow == other.inlineEditorShadow;
+          inlineEditorShadow == other.inlineEditorShadow &&
+          dragNDropPreviewLineColor == other.dragNDropPreviewLineColor &&
+          dragNDropPreviewHeadersColor == other.dragNDropPreviewHeadersColor &&
+          dragNDropPreviewLineWidth == other.dragNDropPreviewLineWidth;
 
   @override
   int get hashCode =>
@@ -181,5 +208,8 @@ class SwayzeStyle {
       cellSeparatorColor.hashCode ^
       defaultCellBackground.hashCode ^
       userSelectionStyle.hashCode ^
-      inlineEditorShadow.hashCode;
+      inlineEditorShadow.hashCode ^
+      dragNDropPreviewLineColor.hashCode ^
+      dragNDropPreviewLineWidth.hashCode ^
+      dragNDropPreviewHeadersColor.hashCode;
 }

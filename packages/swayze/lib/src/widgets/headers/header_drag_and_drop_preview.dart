@@ -20,10 +20,10 @@ class HeaderDragAndDropPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lineColor = swayzeStyle.userSelectionStyle.borderSide.color;
-    final lineWidth = swayzeStyle.userSelectionStyle.borderSide.width + 1;
+    final lineColor = swayzeStyle.dragNDropPreviewLineColor;
+    final lineWidth = swayzeStyle.dragNDropPreviewLineWidth + 1;
 
-    if (lineColor == null || lineWidth == 0.0 || lineColor.alpha == 0) {
+    if (lineWidth == 0.0 || lineColor.alpha == 0) {
       return const SizedBox.shrink();
     }
 
@@ -65,6 +65,7 @@ class HeaderDragAndDropPreview extends StatelessWidget {
           pointerPosition: header.value.draggingPosition,
           headerPosition: headerPosition,
           headerExtent: headerExtent,
+          color: swayzeStyle.dragNDropPreviewHeadersColor,
         ),
         if (!blockedRange.contains(currentHeaderIndex))
           _PreviewLine(
@@ -229,6 +230,7 @@ class _PreviewRect extends LeafRenderObjectWidget {
   final Offset pointerPosition;
   final double headerPosition;
   final double headerExtent;
+  final Color color;
 
   const _PreviewRect({
     required this.headerPosition,
@@ -236,6 +238,7 @@ class _PreviewRect extends LeafRenderObjectWidget {
     Key? key,
     required this.axis,
     required this.pointerPosition,
+    required this.color,
   }) : super(key: key);
 
   @override
@@ -244,6 +247,7 @@ class _PreviewRect extends LeafRenderObjectWidget {
         pointerPosition,
         headerPosition,
         headerExtent,
+        color,
       );
 
   @override
@@ -255,7 +259,8 @@ class _PreviewRect extends LeafRenderObjectWidget {
       ..axis = axis
       ..pointerPosition = pointerPosition
       ..headerPosition = headerPosition
-      ..headerExtent = headerExtent;
+      ..headerExtent = headerExtent
+      ..color = color;
   }
 }
 
@@ -265,6 +270,7 @@ class _RenderPreviewRect extends RenderBox {
     this._pointerPosition,
     this._headerPosition,
     this._headerExtent,
+    this._color,
   );
 
   Offset _pointerPosition;
@@ -295,9 +301,15 @@ class _RenderPreviewRect extends RenderBox {
     markNeedsPaint();
   }
 
-  // TODO: [victor] theme.
+  Color _color;
+  Color get color => _color;
+  set color(Color value) {
+    _color = value;
+    markNeedsPaint();
+  }
+
   late final backgroundPaint = CachedValue(
-    () => Paint()..color = Colors.black26,
+    () => Paint()..color = color,
   );
 
   @override
