@@ -164,7 +164,6 @@ class _TableBodyScrollableArea extends StatelessWidget {
           ),
         ),
         const ClipRect(child: TableBodySelections()),
-        // TODO: [victor] find a better checking.
         if (viewportContext.columns.value.isDragging ||
             viewportContext.rows.value.isDragging)
           RepaintBoundary(

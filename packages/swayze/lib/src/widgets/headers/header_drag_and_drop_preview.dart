@@ -224,7 +224,8 @@ class _RenderPreviewLine extends RenderBox {
   }
 }
 
-// TODO: [victor] doc.
+/// Renders a preview rect that represents the headers being dragged.
+/// The preview follows the position of [pointerPosition].
 class _PreviewRect extends LeafRenderObjectWidget {
   final Axis axis;
   final Offset pointerPosition;

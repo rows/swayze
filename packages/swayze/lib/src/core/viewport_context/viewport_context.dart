@@ -167,11 +167,20 @@ class ViewportAxisContextState {
   /// Just like [visibleIndices] but for the [frozenRange]
   final Iterable<int> visibleFrozenIndices;
 
-  // TODO: [victor] doc
+  /// Wetter or not the header is being dragged.
   final bool isDragging;
+
+  /// Headers that are being dragged.
   final Range draggingHeaders;
+
+  /// Current dragging reference, eg, the current header that [draggingPosition]
+  /// is hovering.
   final int draggingCurrentReference;
+
+  /// Current dragging position.
   final Offset draggingPosition;
+
+  /// Extent of all headers being dragged.
   final double draggingHeaderExtent;
 
   const ViewportAxisContextState({

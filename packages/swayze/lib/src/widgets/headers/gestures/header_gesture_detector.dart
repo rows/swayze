@@ -380,7 +380,7 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
     return selectionRange;
   }
 
-  // TODO: [victor] doc.
+  /// Checks if a header is being dragged. 
   bool isDraggingHeader() {
     final tableDataController = internalScope.controller.tableDataController;
     final header =
