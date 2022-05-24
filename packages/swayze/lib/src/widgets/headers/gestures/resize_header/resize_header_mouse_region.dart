@@ -131,7 +131,10 @@ class _ResizeLineOverlayManager {
     required Widget child,
   }) {
     _backdrop ??= OverlayEntry(
-      builder: (context) => const ColoredBox(color: Color(0x00000000)),
+      builder: (context) => const MouseRegion(
+        cursor: SystemMouseCursors.grab,
+        child: ColoredBox(color: Color(0x00000000)),
+      ),
     );
 
     _line ??= OverlayEntry(builder: (context) => child);
