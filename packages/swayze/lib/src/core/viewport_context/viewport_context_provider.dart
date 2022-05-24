@@ -172,7 +172,7 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
       final size = headerController.value.getHeaderExtentFor(index: index);
       sizes.add(size);
       extentAcc += size;
-      _addHeaderEdge(headersEdgesOffsets, key: frozenExtentAcc, value: index);
+      _addHeaderEdge(headersEdgesOffsets, key: extentAcc, value: index);
       if (size > 0) {
         visibleHeaders.add(index);
       }
@@ -224,7 +224,7 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
     required int value,
   }) {
     for (var i = -2; i <= 2; i++) {
-      headersEdgesOffsets[key + i] = value;
+      headersEdgesOffsets[key.ceilToDouble() + i] = value;
     }
   }
 
