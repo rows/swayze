@@ -8,6 +8,7 @@ import '../../core/viewport_context/viewport_context.dart';
 import '../../core/viewport_context/viewport_context_provider.dart';
 import '../internal_scope.dart';
 import '../shared/expand_all.dart';
+import '../table.dart';
 import '../wrappers.dart';
 import 'gestures/header_gesture_detector.dart';
 import 'header_displacer.dart';
@@ -27,12 +28,14 @@ class Header extends StatelessWidget {
   final Axis axis;
   final double displacement;
   final WrapHeaderBuilder? wrapHeader;
+  final OnHeaderExtentChanged? onHeaderExtentChanged;
 
   const Header({
     Key? key,
     required this.axis,
     required this.displacement,
     required this.wrapHeader,
+    required this.onHeaderExtentChanged,
   }) : super(key: key);
 
   @override
@@ -53,6 +56,7 @@ class Header extends StatelessWidget {
       rangeNotifier: rangeNotifier,
       displacement: displacement,
       background: style.defaultHeaderPalette.background,
+      onHeaderExtentChanged: onHeaderExtentChanged,
     );
 
     if (wrapHeader != null) {
@@ -175,6 +179,7 @@ class _HeaderRangeSubscriber extends StatefulWidget {
   final double displacement;
   final ValueListenable<ViewportAxisContextState> rangeNotifier;
   final Color background;
+  final OnHeaderExtentChanged? onHeaderExtentChanged;
 
   const _HeaderRangeSubscriber({
     Key? key,
@@ -182,6 +187,7 @@ class _HeaderRangeSubscriber extends StatefulWidget {
     required this.rangeNotifier,
     required this.displacement,
     required this.background,
+    this.onHeaderExtentChanged,
   }) : super(key: key);
 
   @override
@@ -379,6 +385,7 @@ class _HeaderRangeSubscriberState extends State<_HeaderRangeSubscriber> {
         HeaderGestureDetector(
           axis: widget.axis,
           displacement: widget.displacement,
+          onHeaderExtentChanged: widget.onHeaderExtentChanged,
         ),
       ],
     );

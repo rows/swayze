@@ -140,6 +140,8 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
     final headerController = tableController.getHeaderControllerFor(axis: axis);
     final scrollableRange = rangeNotifier.value;
 
+    final headersEdgesOffsets = <double, int>{};
+
     // Frozen
     final frozenSizes = <double>[];
     final frozenOffsets = <double>[];
@@ -153,6 +155,7 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
       final size = headerController.value.getHeaderExtentFor(index: index);
       frozenSizes.add(size);
       frozenExtentAcc += size;
+      _addHeaderEdge(headersEdgesOffsets, key: frozenExtentAcc, value: index);
       if (size > 0) {
         visibleFrozenHeaders.add(index);
       }
@@ -169,6 +172,7 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
       final size = headerController.value.getHeaderExtentFor(index: index);
       sizes.add(size);
       extentAcc += size;
+      _addHeaderEdge(headersEdgesOffsets, key: frozenExtentAcc, value: index);
       if (size > 0) {
         visibleHeaders.add(index);
       }
@@ -204,8 +208,24 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
         visibleIndices: visibleHeaders,
         visibleFrozenIndices: visibleFrozenHeaders,
         headerDragState: dragContextState,
+        headersEdgesOffsets: headersEdgesOffsets,
       ),
     );
+  }
+
+  /// Maps the headers edges to the corresponding index.
+  ///
+  /// Since we also want to show the resize cursor when the user hovers a bit
+  /// to the left or right of the edge, we save a range of positions and map
+  /// them to the right header index.
+  void _addHeaderEdge(
+    Map<double, int> headersEdgesOffsets, {
+    required double key,
+    required int value,
+  }) {
+    for (var i = -2; i <= 2; i++) {
+      headersEdgesOffsets[key + i] = value;
+    }
   }
 
   @override
