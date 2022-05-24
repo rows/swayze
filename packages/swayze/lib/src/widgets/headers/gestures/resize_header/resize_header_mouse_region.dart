@@ -158,6 +158,12 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
       .internalScope.controller.tableDataController
       .getHeaderControllerFor(axis: widget.axis);
 
+  late final flippedHeaderController = widget
+      .internalScope.controller.tableDataController
+      .getHeaderControllerFor(
+    axis: widget.axis == Axis.horizontal ? Axis.vertical : Axis.horizontal,
+  );
+
   final _resizeWidgetDetails = ValueNotifier<ResizeWidgetDetails?>(null);
 
   final resizeLineOverlayManager = _ResizeLineOverlayManager();
@@ -257,27 +263,21 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
     final renderBox = context.findRenderObject()! as RenderBox;
     final globalPosition = renderBox.localToGlobal(Offset.zero);
 
+    final size = flippedHeaderController.value.extent +
+        widget.flippedAxisViewportContext.virtualizationState.displacement;
+
     if (widget.axis == Axis.horizontal) {
       _resizeWidgetDetails.value = ResizeWidgetDetails(
         left: _getOffsetPositionForAxis(event.position),
         top: _getInvertedOffsetPositionForAxis(globalPosition),
         width: 1,
-        height: widget.internalScope.controller.tableDataController
-                .getHeaderControllerFor(axis: Axis.vertical)
-                .value
-                .extent +
-            widget.flippedAxisViewportContext.virtualizationState.displacement,
+        height: size,
       );
     } else {
       _resizeWidgetDetails.value = ResizeWidgetDetails(
         left: _getInvertedOffsetPositionForAxis(globalPosition),
         top: _getOffsetPositionForAxis(event.position),
-        width: widget.internalScope.controller.tableDataController
-                .getHeaderControllerFor(axis: Axis.horizontal)
-                .value
-                .extent +
-            widget.flippedAxisViewportContext.value.extent +
-            widget.flippedAxisViewportContext.virtualizationState.displacement,
+        width: size,
         height: 1,
       );
     }

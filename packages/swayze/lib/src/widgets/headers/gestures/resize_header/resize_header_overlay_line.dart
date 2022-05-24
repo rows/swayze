@@ -37,7 +37,8 @@ class ResizeHeaderOverlayLine extends StatelessWidget {
           ),
         );
       },
-      child: const _ResizeHeaderLine(
+      child: _ResizeHeaderLine(
+        axis: axis,
         fillColor: Colors.red,
         lineColor: Colors.green,
         lineWidth: 1,
@@ -47,11 +48,13 @@ class ResizeHeaderOverlayLine extends StatelessWidget {
 }
 
 class _ResizeHeaderLine extends LeafRenderObjectWidget {
+  final Axis axis;
   final Color lineColor;
   final Color fillColor;
   final double lineWidth;
 
   const _ResizeHeaderLine({
+    required this.axis,
     required this.lineColor,
     required this.fillColor,
     required this.lineWidth,
@@ -59,7 +62,7 @@ class _ResizeHeaderLine extends LeafRenderObjectWidget {
 
   @override
   RenderObject createRenderObject(BuildContext context) {
-    return _RenderResizeHeaderLine(lineColor, fillColor, lineWidth);
+    return _RenderResizeHeaderLine(axis, lineColor, fillColor, lineWidth);
   }
 
   @override
@@ -68,6 +71,7 @@ class _ResizeHeaderLine extends LeafRenderObjectWidget {
     _RenderResizeHeaderLine renderObject,
   ) {
     renderObject
+      ..axis = axis
       ..lineWidth = lineWidth
       ..lineColor = lineColor
       ..fillColor = fillColor;
@@ -75,6 +79,15 @@ class _ResizeHeaderLine extends LeafRenderObjectWidget {
 }
 
 class _RenderResizeHeaderLine extends RenderBox {
+  Axis _axis;
+
+  Axis get axis => _axis;
+
+  set axis(Axis value) {
+    _axis = value;
+    markNeedsPaint();
+  }
+
   Color _lineColor;
 
   Color get lineColor => _lineColor;
@@ -103,6 +116,7 @@ class _RenderResizeHeaderLine extends RenderBox {
   }
 
   _RenderResizeHeaderLine(
+    this._axis,
     this._lineColor,
     this._fillColor,
     this._lineWidth,
@@ -148,11 +162,19 @@ class _RenderResizeHeaderLine extends RenderBox {
     canvas.drawCircle(Offset.zero, radius, lineFillPaintCache.value);
     canvas.drawCircle(Offset.zero, radius, lineStrokePaintCache.value);
 
-    canvas.drawLine(
-      const Offset(0, 5),
-      Offset(0, size.height + kColumnHeaderHeight),
-      lineStrokePaintCache.value,
-    );
+    if (axis == Axis.horizontal) {
+      canvas.drawLine(
+        const Offset(0, 5),
+        Offset(0, size.height + kColumnHeaderHeight),
+        lineStrokePaintCache.value,
+      );
+    } else {
+      canvas.drawLine(
+        const Offset(5, 0),
+        Offset(size.width + kRowHeaderWidth, 0),
+        lineStrokePaintCache.value,
+      );
+    }
 
     canvas.restore();
   }
