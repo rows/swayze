@@ -38,11 +38,14 @@ class ResizeHeaderOverlayLine extends StatelessWidget {
           ),
         );
       },
-      child: _ResizeHeaderLine(
-        axis: axis,
-        fillColor: swayzeStyle.resizeHeaderStyle.fillColor,
-        lineColor: swayzeStyle.resizeHeaderStyle.lineColor,
-        lineThickness: swayzeStyle.resizeHeaderStyle.lineThickness,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.grab,
+        child: _ResizeHeaderLine(
+          axis: axis,
+          fillColor: swayzeStyle.resizeHeaderStyle.fillColor,
+          lineColor: swayzeStyle.resizeHeaderStyle.lineColor,
+          lineThickness: swayzeStyle.resizeHeaderStyle.lineThickness,
+        ),
       ),
     );
   }
