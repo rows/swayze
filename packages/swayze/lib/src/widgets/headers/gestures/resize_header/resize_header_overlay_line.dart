@@ -1,5 +1,4 @@
 import 'package:cached_value/cached_value.dart';
-import 'package:flutter/material.dart' show Colors;
 import 'package:flutter/widgets.dart';
 
 import '../../../../config.dart';
@@ -39,9 +38,9 @@ class ResizeHeaderOverlayLine extends StatelessWidget {
       },
       child: _ResizeHeaderLine(
         axis: axis,
-        fillColor: Colors.red,
-        lineColor: Colors.green,
-        lineWidth: 1,
+        fillColor: swayzeStyle.resizeHeaderStyle.fillColor,
+        lineColor: swayzeStyle.resizeHeaderStyle.lineColor,
+        lineWidth: swayzeStyle.resizeHeaderStyle.lineWidth,
       ),
     );
   }

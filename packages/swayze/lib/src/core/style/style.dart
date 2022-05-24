@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../../widgets.dart';
 import '../controller/selection/model/selection_style.dart';
+import 'resize_header_style.dart';
 
 /// Describes a collection of colors for headers in a determinate state.
 @immutable
@@ -72,6 +73,11 @@ class SwayzeStyle {
       previewLineColor: Colors.amberAccent,
       previewLineWidth: 2.0,
     ),
+    resizeHeaderStyle: const ResizeHeaderStyle(
+      fillColor: Color(0xFFFFF6D4),
+      lineColor: Color(0xFFFFC800),
+      lineWidth: 1.0,
+    ),
   );
 
   // Headers
@@ -112,6 +118,9 @@ class SwayzeStyle {
 
   final SwayzeHeaderDragAndDropStyle dragAndDropStyle;
 
+  /// The style of the resize header line widget.
+  final ResizeHeaderStyle resizeHeaderStyle;
+
   const SwayzeStyle({
     required this.defaultHeaderPalette,
     required this.selectedHeaderPalette,
@@ -125,6 +134,7 @@ class SwayzeStyle {
     required this.selectionAnimationDuration,
     required this.inlineEditorShadow,
     required this.dragAndDropStyle,
+    required this.resizeHeaderStyle,
   });
 
   /// Copy an instance of [SwayzeStyle] with certain modifications.
@@ -143,6 +153,7 @@ class SwayzeStyle {
     Duration? selectionAnimationDuration,
     List<BoxShadow>? inlineEditorShadow,
     SwayzeHeaderDragAndDropStyle? dragAndDropStyle,
+    ResizeHeaderStyle? resizeHeaderStyle,
   }) {
     return SwayzeStyle(
       defaultHeaderPalette: defaultHeaderPalette ?? this.defaultHeaderPalette,
@@ -162,6 +173,7 @@ class SwayzeStyle {
           selectionAnimationDuration ?? this.selectionAnimationDuration,
       inlineEditorShadow: inlineEditorShadow ?? this.inlineEditorShadow,
       dragAndDropStyle: dragAndDropStyle ?? this.dragAndDropStyle,
+      resizeHeaderStyle: resizeHeaderStyle ?? this.resizeHeaderStyle,
     );
   }
 
@@ -180,7 +192,8 @@ class SwayzeStyle {
           userSelectionStyle == other.userSelectionStyle &&
           selectionAnimationDuration == other.selectionAnimationDuration &&
           inlineEditorShadow == other.inlineEditorShadow &&
-          dragAndDropStyle == other.dragAndDropStyle;
+          dragAndDropStyle == other.dragAndDropStyle &&
+          resizeHeaderStyle == other.resizeHeaderStyle;
 
   @override
   int get hashCode =>
@@ -193,7 +206,8 @@ class SwayzeStyle {
       defaultCellBackground.hashCode ^
       userSelectionStyle.hashCode ^
       inlineEditorShadow.hashCode ^
-      dragAndDropStyle.hashCode;
+      dragAndDropStyle.hashCode ^
+      resizeHeaderStyle.hashCode;
 }
 
 /// Style for header drag and drop preview widgets.
