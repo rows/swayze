@@ -76,7 +76,7 @@ class SwayzeStyle {
     resizeHeaderStyle: const ResizeHeaderStyle(
       fillColor: Color(0xFFFFF6D4),
       lineColor: Color(0xFFFFC800),
-      lineWidth: 1.0,
+      lineThickness: 1.0,
     ),
   );
 

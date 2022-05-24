@@ -5,6 +5,8 @@ import '../../../../config.dart';
 import '../../../../core/style/style.dart';
 import 'resize_header_mouse_region.dart';
 
+/// Paints the header resize line at the given position and with the
+/// given size in [resizeWidgetDetails].
 class ResizeHeaderOverlayLine extends StatelessWidget {
   final SwayzeStyle swayzeStyle;
   final ValueNotifier<ResizeWidgetDetails?> resizeWidgetDetails;
@@ -40,28 +42,33 @@ class ResizeHeaderOverlayLine extends StatelessWidget {
         axis: axis,
         fillColor: swayzeStyle.resizeHeaderStyle.fillColor,
         lineColor: swayzeStyle.resizeHeaderStyle.lineColor,
-        lineWidth: swayzeStyle.resizeHeaderStyle.lineWidth,
+        lineThickness: swayzeStyle.resizeHeaderStyle.lineThickness,
       ),
     );
   }
 }
 
+/// A leaf render object that returns a [RenderBox] that paints an horizontal
+/// or vertical line (depending on the axis) with the given properties.
+///
+/// See also:
+/// - [_RenderResizeHeaderLine].
 class _ResizeHeaderLine extends LeafRenderObjectWidget {
   final Axis axis;
   final Color lineColor;
   final Color fillColor;
-  final double lineWidth;
+  final double lineThickness;
 
   const _ResizeHeaderLine({
     required this.axis,
     required this.lineColor,
     required this.fillColor,
-    required this.lineWidth,
+    required this.lineThickness,
   });
 
   @override
   RenderObject createRenderObject(BuildContext context) {
-    return _RenderResizeHeaderLine(axis, lineColor, fillColor, lineWidth);
+    return _RenderResizeHeaderLine(axis, lineColor, fillColor, lineThickness);
   }
 
   @override
@@ -71,18 +78,23 @@ class _ResizeHeaderLine extends LeafRenderObjectWidget {
   ) {
     renderObject
       ..axis = axis
-      ..lineWidth = lineWidth
+      ..lineThickness = lineThickness
       ..lineColor = lineColor
       ..fillColor = fillColor;
   }
 }
 
+/// Paints the header resize line at the canvas.
 class _RenderResizeHeaderLine extends RenderBox {
   Axis _axis;
 
   Axis get axis => _axis;
 
   set axis(Axis value) {
+    if (_axis == value) {
+      return;
+    }
+
     _axis = value;
     markNeedsPaint();
   }
@@ -92,6 +104,10 @@ class _RenderResizeHeaderLine extends RenderBox {
   Color get lineColor => _lineColor;
 
   set lineColor(Color value) {
+    if (_lineColor == value) {
+      return;
+    }
+
     _lineColor = value;
     markNeedsPaint();
   }
@@ -101,16 +117,24 @@ class _RenderResizeHeaderLine extends RenderBox {
   Color get fillColor => _fillColor;
 
   set fillColor(Color value) {
+    if (_fillColor == value) {
+      return;
+    }
+
     _fillColor = value;
     markNeedsPaint();
   }
 
-  double _lineWidth;
+  double _lineThickness;
 
-  double get lineWidth => _lineWidth;
+  double get lineThickness => _lineThickness;
 
-  set lineWidth(double value) {
-    _lineWidth = value;
+  set lineThickness(double value) {
+    if (_lineThickness == value) {
+      return;
+    }
+
+    _lineThickness = value;
     markNeedsPaint();
   }
 
@@ -118,7 +142,7 @@ class _RenderResizeHeaderLine extends RenderBox {
     this._axis,
     this._lineColor,
     this._fillColor,
-    this._lineWidth,
+    this._lineThickness,
   );
 
   @override
@@ -139,10 +163,12 @@ class _RenderResizeHeaderLine extends RenderBox {
     () {
       return Paint()
         ..color = lineColor
-        ..strokeWidth = lineWidth
+        ..strokeWidth = lineThickness
         ..style = PaintingStyle.stroke;
     },
-  ).withDependency<Color?>(() => lineColor);
+  )
+      .withDependency<Color?>(() => lineColor)
+      .withDependency<double>(() => lineThickness);
 
   late final lineFillPaintCache = CachedValue(
     () {
@@ -158,17 +184,22 @@ class _RenderResizeHeaderLine extends RenderBox {
 
     const radius = 5.0;
 
+    // draw the circle first.
     canvas.drawCircle(Offset.zero, radius, lineFillPaintCache.value);
+
+    // only then draw the border of the circle.
     canvas.drawCircle(Offset.zero, radius, lineStrokePaintCache.value);
 
     if (axis == Axis.horizontal) {
       canvas.drawLine(
+        // draw the line after the circle
         const Offset(0, 5),
         Offset(0, size.height + kColumnHeaderHeight),
         lineStrokePaintCache.value,
       );
     } else {
       canvas.drawLine(
+        // draw the line after the circle
         const Offset(5, 0),
         Offset(size.width + kRowHeaderWidth, 0),
         lineStrokePaintCache.value,

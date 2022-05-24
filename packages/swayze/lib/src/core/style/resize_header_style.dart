@@ -3,14 +3,19 @@ import 'package:flutter/widgets.dart' show Color, immutable;
 /// Defines the width of the resize header line as well as its colors.
 @immutable
 class ResizeHeaderStyle {
+  /// The color of the resize line circle fill.
   final Color fillColor;
+
+  /// The color of the resize line.
   final Color lineColor;
-  final double lineWidth;
+
+  /// The thickness of the line.
+  final double lineThickness;
 
   const ResizeHeaderStyle({
     required this.fillColor,
     required this.lineColor,
-    required this.lineWidth,
+    required this.lineThickness,
   });
 
   @override
@@ -22,10 +27,10 @@ class ResizeHeaderStyle {
     return other is ResizeHeaderStyle &&
         other.fillColor == fillColor &&
         other.lineColor == lineColor &&
-        other.lineWidth == lineWidth;
+        other.lineThickness == lineThickness;
   }
 
   @override
   int get hashCode =>
-      fillColor.hashCode ^ lineColor.hashCode ^ lineWidth.hashCode;
+      fillColor.hashCode ^ lineColor.hashCode ^ lineThickness.hashCode;
 }

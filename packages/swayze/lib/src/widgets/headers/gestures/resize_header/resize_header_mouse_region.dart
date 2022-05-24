@@ -4,14 +4,21 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../../../../widgets.dart';
+import '../../../../core/virtualization/virtualization_calculator.dart'
+    show VirtualizationState;
 import '../../../internal_scope.dart';
 import 'resize_header_overlay_line.dart';
 
+/// A callback that gives back the context and a bool that tells if the resize
+/// header line is visible or not.
 typedef ResizeHeaderMouseRegionBuilder = Widget Function(
   BuildContext context,
-  bool isResizeHeaderLineOpened,
+  bool isResizeHeaderLineVisible,
 );
 
+/// Used when resizing an header. Contains useful information about the header
+/// like the original width, the global pixel offset of the header edge and the
+/// minimum global position that the resize line can go to.
 class _ResizeHeaderDetails {
   /// Holds the header width.
   final double width;
@@ -26,6 +33,7 @@ class _ResizeHeaderDetails {
   /// The index of the header that is being resized.
   final int index;
 
+  /// The axis of the header.
   final Axis axis;
 
   /// The minimum global position that the resize line can be at.
@@ -35,15 +43,17 @@ class _ResizeHeaderDetails {
   /// [minGlobalPosition] and not at the mouse cursor.
   late double minGlobalPosition;
 
+  /// Computes the new width of the header.
   double getNewWidthForGlobalPosition(double globalPosition) {
     if (globalPosition > edgeGlobalPixelOffset) {
       return width + (globalPosition - edgeGlobalPixelOffset);
     }
 
-    return max(width - (edgeGlobalPixelOffset - globalPosition), maxSize);
+    return max(width - (edgeGlobalPixelOffset - globalPosition), defaultSize);
   }
 
-  double get maxSize =>
+  /// The default size of the header.
+  double get defaultSize =>
       axis == Axis.horizontal ? kDefaultCellWidth : kDefaultCellHeight;
 
   _ResizeHeaderDetails({
@@ -52,14 +62,16 @@ class _ResizeHeaderDetails {
     required this.index,
     required this.axis,
   }) {
-    if (width > maxSize) {
-      minGlobalPosition = edgeGlobalPixelOffset - (width - maxSize);
+    if (width > defaultSize) {
+      minGlobalPosition = edgeGlobalPixelOffset - (width - defaultSize);
     } else {
       minGlobalPosition = edgeGlobalPixelOffset;
     }
   }
 }
 
+/// Holds information about where to position the resize line as well as its
+/// width and height.
 @immutable
 class ResizeWidgetDetails {
   final double left;
@@ -104,11 +116,17 @@ class ResizeWidgetDetails {
   int get hashCode => left.hashCode ^ top.hashCode ^ height.hashCode;
 }
 
+/// A manager for the resize line overlay entries.
+///
+/// Creates a backdrop overlay entry to disable scrolling when resizing the
+/// header and an overlay entry that takes a widget.
 class _ResizeLineOverlayManager {
-  OverlayEntry? _line;
   OverlayEntry? _backdrop;
+  OverlayEntry? _line;
 
-  void initialize({
+  /// Creates the overlay entries for [_backdrop] and [_line] and inserts them
+  /// at [overlayState].
+  void createEntries({
     required OverlayState overlayState,
     required Widget child,
   }) {
@@ -121,6 +139,8 @@ class _ResizeLineOverlayManager {
     overlayState.insertAll([_backdrop!, _line!]);
   }
 
+  /// Removes [_backdrop] and [_line] from the overlay that they belong to
+  /// and sets their value to null.
   void removeEntries() {
     _backdrop?.remove();
     _line?.remove();
@@ -130,6 +150,12 @@ class _ResizeLineOverlayManager {
   }
 }
 
+/// Returns a mouse region that shows the resize cursor when the user hovers
+/// the edge of an header.
+///
+/// Also has a listener that spawns the resize line at the mouse position when
+/// [Listener.onPointerDown] is invoked and the mouse is hovering the edge of
+/// the header.
 class ResizeHeaderMouseRegion extends StatefulWidget {
   final InternalScope internalScope;
   final ViewportAxisContext viewportAxisContext;
@@ -169,10 +195,12 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
   final resizeLineOverlayManager = _ResizeLineOverlayManager();
 
   bool _isHoveringHeaderEdge = false;
-  bool _isResizeHeaderLineOpened = false;
+  bool _isResizeHeaderLineVisible = false;
 
   _ResizeHeaderDetails? _resizeHeaderDetails;
 
+  /// Gets the mouse cursor according to [_isHoveringHeaderEdge] and
+  /// [widget.axis] values.
   MouseCursor _getMouseCursor() {
     if (!_isHoveringHeaderEdge) {
       return MouseCursor.defer;
@@ -183,6 +211,7 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
         : SystemMouseCursors.resizeRow;
   }
 
+  /// Updates the value of [_isHoveringHeaderEdge].
   void _updateIsHoveringHeaderEdge(bool isHoveringHeaderEdge) {
     if (_isHoveringHeaderEdge == isHoveringHeaderEdge) {
       return;
@@ -193,24 +222,29 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
     });
   }
 
-  void _updateIsResizeHeaderLineOpened(bool isResizeHeaderLineOpened) {
-    if (_isResizeHeaderLineOpened == isResizeHeaderLineOpened) {
+  /// Updates the value of [_isResizeHeaderLineVisible].
+  void _updateIsResizeHeaderLineVisible(bool isResizeHeaderLineVisible) {
+    if (_isResizeHeaderLineVisible == isResizeHeaderLineVisible) {
       return;
     }
 
     setState(() {
-      _isResizeHeaderLineOpened = isResizeHeaderLineOpened;
+      _isResizeHeaderLineVisible = isResizeHeaderLineVisible;
     });
   }
 
+  /// Gets the pixel offset for the current [widget.axis].
   double _getOffsetPositionForAxis(Offset offset) {
     return widget.axis == Axis.horizontal ? offset.dx : offset.dy;
   }
 
+  /// Gets the pixel offset for the inverted [widget.axis].
   double _getInvertedOffsetPositionForAxis(Offset offset) {
     return widget.axis == Axis.horizontal ? offset.dy : offset.dx;
   }
 
+  /// Checks if the mouse coordinates are at an header edge and updates
+  /// [_isHoveringHeaderEdge] value.
   void _handleOnHover(PointerHoverEvent event) {
     final offsets = widget.viewportAxisContext.value.headersEdgesOffsets;
 
@@ -223,6 +257,10 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
     _updateIsHoveringHeaderEdge(false);
   }
 
+  /// Gets the pixel offset for the given [localPosition].
+  ///
+  /// Takes into consideration the current [VirtualizationState.displacement] in
+  /// frozen headers.
   double _getLocalPixelOffset(Offset localPosition) {
     var localPixelOffset = _getOffsetPositionForAxis(localPosition);
 
@@ -236,6 +274,10 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
     return localPixelOffset.ceilToDouble();
   }
 
+  /// Callback invoked when the user has tapped an header.
+  ///
+  /// Computes the position and size of the header resize line and adds it
+  /// to the current [Overlay].
   void _handleStartResizing(PointerDownEvent event) {
     if (!_isHoveringHeaderEdge) {
       return;
@@ -245,6 +287,7 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
 
     final localPixelOffset = _getLocalPixelOffset(event.localPosition);
 
+    // a safe check
     if (!offsets.containsKey(localPixelOffset)) {
       return;
     }
@@ -260,7 +303,13 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
       axis: widget.axis,
     );
 
-    final renderBox = context.findRenderObject()! as RenderBox;
+    final renderObject = context.findRenderObject();
+
+    if (renderObject == null) {
+      return;
+    }
+
+    final renderBox = renderObject as RenderBox;
     final globalPosition = renderBox.localToGlobal(Offset.zero);
 
     final size = flippedHeaderController.value.extent +
@@ -270,7 +319,7 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
       _resizeWidgetDetails.value = ResizeWidgetDetails(
         left: _getOffsetPositionForAxis(event.position),
         top: _getInvertedOffsetPositionForAxis(globalPosition),
-        width: 1,
+        width: widget.internalScope.style.resizeHeaderStyle.lineThickness,
         height: size,
       );
     } else {
@@ -278,7 +327,7 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
         left: _getInvertedOffsetPositionForAxis(globalPosition),
         top: _getOffsetPositionForAxis(event.position),
         width: size,
-        height: 1,
+        height: widget.internalScope.style.resizeHeaderStyle.lineThickness,
       );
     }
 
@@ -288,7 +337,7 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
       return;
     }
 
-    resizeLineOverlayManager.initialize(
+    resizeLineOverlayManager.createEntries(
       overlayState: overlay,
       child: ResizeHeaderOverlayLine(
         swayzeStyle: widget.internalScope.style,
@@ -297,11 +346,14 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
       ),
     );
 
-    _updateIsResizeHeaderLineOpened(true);
+    _updateIsResizeHeaderLineVisible(true);
   }
 
+  /// Callback invoked when the user is dragging the header resize line.
+  ///
+  /// Computes and sets the new position of the header resize line.
   void _handleUpdateResize(PointerMoveEvent event) {
-    if (!_isResizeHeaderLineOpened) {
+    if (!_isResizeHeaderLineVisible) {
       return;
     }
 
@@ -322,8 +374,14 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
     }
   }
 
+  /// Callback invoked when the user has let go the mouse after resizing
+  /// an header.
+  ///
+  /// Updates the header with the new width, calls `onHeaderExtentChanged` with
+  /// the old width as well as the new one. Then, removes the resize line from
+  /// the screen.
   void _handleStopResizing(PointerUpEvent event) {
-    if (!_isResizeHeaderLineOpened) {
+    if (!_isResizeHeaderLineVisible) {
       return;
     }
 
@@ -342,7 +400,7 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
 
     resizeLineOverlayManager.removeEntries();
 
-    _updateIsResizeHeaderLineOpened(false);
+    _updateIsResizeHeaderLineVisible(false);
   }
 
   @override
@@ -354,7 +412,7 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
       child: MouseRegion(
         cursor: _getMouseCursor(),
         onHover: _handleOnHover,
-        child: widget.builder(context, _isResizeHeaderLineOpened),
+        child: widget.builder(context, _isResizeHeaderLineVisible),
       ),
     );
   }
