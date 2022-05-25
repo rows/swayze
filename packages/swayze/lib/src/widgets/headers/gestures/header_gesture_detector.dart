@@ -393,6 +393,10 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
     return MouseRegion(
       cursor: cursor,
       onHover: (event) {
+        if (!internalScope.config.isHeaderDragAndDropEnabled) {
+          return;
+        }
+
         final headerGestureDetails = _getHeaderLocalPositionGestureDetails(
           axis: widget.axis,
           context: context,
@@ -423,7 +427,8 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                   headerGestureDetails.headerPosition,
                   widget.axis,
                 );
-                if (selection != null) {
+                if (selection != null &&
+                    internalScope.config.isHeaderDragAndDropEnabled) {
                   final range = headerSelectionRange(selection);
                   handleStartDraggingHeader(details, range);
                 } else {
