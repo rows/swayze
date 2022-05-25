@@ -279,7 +279,15 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
     DragStartDetails details,
     Range selectionRange,
   ) {
+    /// Sets the dragging cursor to be basic.
+    /// Instead of using [SystemMouseCursors.grabbing], we set the basic cursors
+    /// because currently there is no mechanism to globally change the cursor on
+    /// desktop, this means that the cursor would be a closed hand only when
+    /// hovering the header, which would cause a weird change of cursors during
+    /// a drag action, making the user think that something went wrong with the
+    /// action.
     setCursorState(SystemMouseCursors.basic);
+
     Actions.invoke(
       context,
       HeaderDragStartIntent(
