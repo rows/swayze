@@ -118,7 +118,7 @@ class SliverSwayzeTable<CellDataType extends SwayzeCellData>
     SwayzeConfig? config,
   })  : autofocus = autofocus ?? false,
         style = style ?? SwayzeStyle.defaultSwayzeStyle,
-        config = config ?? SwayzeConfig(),
+        config = config ?? const SwayzeConfig(),
         assert(
           stickyHeader == null || stickyHeaderSize != null,
           'if stickyHeader is not null, stickyHeaderSize must be also not null',
