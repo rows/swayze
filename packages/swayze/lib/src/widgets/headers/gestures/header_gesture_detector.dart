@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -361,22 +362,34 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
   /// selection, so it can be dragged as a single group.
   Range headerSelectionRange(HeaderUserSelectionModel referenceSelection) {
     final selectionController = internalScope.controller.selection;
-    final selections = selectionController.userSelectionState.selections;
+    final selections = selectionController.userSelectionState.selections
+        .whereType<HeaderUserSelectionModel>();
+
     var selectionRange =
         Range(referenceSelection.start, referenceSelection.end);
-    for (final selection in selections) {
-      if (selection is HeaderUserSelectionModel &&
-          selection.axis == referenceSelection.axis) {
-        if (selection.end == selectionRange.start ||
-            selection.start == selectionRange.end) {
-          selectionRange = Range(
-            min(selectionRange.start, selection.start),
-            max(selectionRange.end, selection.end),
-          );
-        }
+
+    final sortedSelections = selections
+        .where((selection) => selection.axis == referenceSelection.axis)
+        .sorted((lhs, rhs) => lhs.start.compareTo(rhs.start));
+
+    final selectionIndex = sortedSelections.indexOf(referenceSelection);
+
+    void checkForAdjacentSelection(HeaderUserSelectionModel selection) {
+      if (selection.end == selectionRange.start ||
+          selection.start == selectionRange.end) {
+        selectionRange = Range(
+          min(selectionRange.start, selection.start),
+          max(selectionRange.end, selection.end),
+        );
       }
     }
 
+    for (var i = selectionIndex; i >= 0; i--) {
+      checkForAdjacentSelection(sortedSelections.elementAt(i));
+    }
+    for (var i = selectionIndex; i < sortedSelections.length; i++) {
+      checkForAdjacentSelection(sortedSelections.elementAt(i));
+    }
     return selectionRange;
   }
 
