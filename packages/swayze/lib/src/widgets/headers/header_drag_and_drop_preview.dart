@@ -183,7 +183,6 @@ class _RenderPreviewLine extends RenderBox {
     canvas.translate(-0.5, -0.5);
     canvas.save();
 
-    print(dropHeaderAtPosition);
     if (axis == Axis.horizontal) {
       canvas.translate(dropHeaderAtPosition, 0);
       canvas.drawLine(

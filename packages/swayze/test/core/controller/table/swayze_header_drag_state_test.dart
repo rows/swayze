@@ -49,6 +49,14 @@ void main() {
         ).isDropAllowed,
         isFalse,
       );
+      expect(
+        const SwayzeHeaderDragState(
+          headers: Range(10, 15),
+          position: Offset(10, 0),
+          dropAtIndex: 14,
+        ).isDropAllowed,
+        isFalse,
+      );
     });
 
     test('equality', () {
