@@ -175,12 +175,20 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
     }
 
     final dragState = headerController.value.dragState;
-    var draggingHeaderExtent = 0.0;
+    ViewportHeaderDragContextState? dragContextState;
     if (dragState != null) {
+      var draggingHeaderExtent = 0.0;
       for (final index in dragState.headers.iterable) {
         draggingHeaderExtent +=
             headerController.value.getHeaderExtentFor(index: index);
       }
+
+      dragContextState = ViewportHeaderDragContextState(
+        headers: dragState.headers,
+        dropAtIndex: dragState.dropAtIndex,
+        position: dragState.position,
+        headersExtent: draggingHeaderExtent,
+      );
     }
 
     viewportAxisContext._unprotectedSetState(
@@ -195,11 +203,7 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
         frozenSizes: frozenSizes,
         visibleIndices: visibleHeaders,
         visibleFrozenIndices: visibleFrozenHeaders,
-        isDragging: dragState != null,
-        draggingHeaders: dragState != null ? dragState.headers : Range.zero,
-        draggingCurrentReference: dragState != null ? dragState.dropAtIndex : 0,
-        draggingPosition: dragState != null ? dragState.position : Offset.zero,
-        draggingHeaderExtent: draggingHeaderExtent,
+        headerDragState: dragContextState,
       ),
     );
   }

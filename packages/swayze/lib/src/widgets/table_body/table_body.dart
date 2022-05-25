@@ -104,7 +104,7 @@ class TableBody extends StatelessWidget {
           if (viewportContext.columns.value.isDragging ||
               viewportContext.rows.value.isDragging)
             RepaintBoundary(
-              key: const ValueKey('RepaintBoundaryReorderPreview'),
+              key: const ValueKey('RepaintBoundaryHeaderDragAndDropPreview'),
               child: HeaderDragAndDropPreview(
                 axis: viewportContext.columns.value.isDragging
                     ? Axis.horizontal

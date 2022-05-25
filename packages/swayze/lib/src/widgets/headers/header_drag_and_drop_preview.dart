@@ -21,17 +21,16 @@ class HeaderDragAndDropPreview extends StatelessWidget {
     final lineColor = swayzeStyle.dragNDropPreviewLineColor;
     final lineWidth = swayzeStyle.dragNDropPreviewLineWidth;
 
-    if (lineWidth == 0.0 || lineColor.alpha == 0) {
+    final viewportContext = ViewportContextProvider.of(context);
+    final header = viewportContext.getAxisContextFor(axis: axis);
+    final dragState = header.value.headerDragState;
+    if (dragState == null || lineWidth == 0.0 || lineColor.alpha == 0) {
       return const SizedBox.shrink();
     }
 
-    final viewportContext = ViewportContextProvider.of(context);
-    final header = viewportContext.getAxisContextFor(axis: axis);
-
-    final currentHeaderIndex = header.value.draggingCurrentReference <
-            header.value.draggingHeaders.start
-        ? header.value.draggingCurrentReference
-        : header.value.draggingCurrentReference + 1;
+    final currentHeaderIndex = dragState.dropAtIndex < dragState.headers.start
+        ? dragState.dropAtIndex
+        : dragState.dropAtIndex + 1;
 
     final dropHeaderAtPosition = viewportContext
         .positionToPixel(
@@ -41,25 +40,25 @@ class HeaderDragAndDropPreview extends StatelessWidget {
         )
         .pixel;
 
-    final headerExtent = header.value.draggingHeaderExtent;
+    final headerExtent = dragState.headersExtent;
     final headerPosition = viewportContext
         .positionToPixel(
-          header.value.draggingHeaders.start,
+          dragState.headers.start,
           axis,
           isForFrozenPanes: false,
         )
         .pixel;
 
     final blockedRange = Range(
-      header.value.draggingHeaders.start,
-      header.value.draggingHeaders.end + 1,
+      dragState.headers.start,
+      dragState.headers.end + 1,
     );
 
     return Stack(
       children: [
         _PreviewRect(
           axis: axis,
-          pointerPosition: header.value.draggingPosition,
+          pointerPosition: dragState.position,
           headerPosition: headerPosition,
           headerExtent: headerExtent,
           color: swayzeStyle.dragNDropPreviewHeadersColor,

@@ -86,11 +86,6 @@ class ViewportAxisContext extends ChangeNotifier
     frozenRange: Range.zero,
     visibleIndices: [],
     visibleFrozenIndices: [],
-    isDragging: false,
-    draggingHeaders: Range.zero,
-    draggingCurrentReference: 0,
-    draggingPosition: Offset.zero,
-    draggingHeaderExtent: 0,
   );
 
   ViewportAxisContext(this.axis, this.virtualizationState);
@@ -167,21 +162,9 @@ class ViewportAxisContextState {
   /// Just like [visibleIndices] but for the [frozenRange]
   final Iterable<int> visibleFrozenIndices;
 
-  /// Whether or not the header is being dragged.
-  final bool isDragging;
-
-  /// Headers that are being dragged.
-  final Range draggingHeaders;
-
-  /// Current dragging reference, eg, the current header that [draggingPosition]
-  /// is hovering.
-  final int draggingCurrentReference;
-
-  /// Current dragging position.
-  final Offset draggingPosition;
-
-  /// Extent of all headers being dragged.
-  final double draggingHeaderExtent;
+  /// Holds the current header drag state if there is an ongoing drag and drop
+  /// action.
+  final ViewportHeaderDragContextState? headerDragState;
 
   const ViewportAxisContextState({
     required this.scrollableRange,
@@ -194,12 +177,11 @@ class ViewportAxisContextState {
     required this.frozenSizes,
     required this.visibleIndices,
     required this.visibleFrozenIndices,
-    required this.isDragging,
-    required this.draggingHeaders,
-    required this.draggingCurrentReference,
-    required this.draggingPosition,
-    required this.draggingHeaderExtent,
+    this.headerDragState,
   });
+
+  /// True if there is an ongoing drag and drop action.
+  bool get isDragging => headerDragState != null;
 
   @override
   bool operator ==(Object other) =>
@@ -210,11 +192,7 @@ class ViewportAxisContextState {
           frozenRange == other.frozenRange &&
           extent == other.extent &&
           frozenExtent == other.frozenExtent &&
-          isDragging == other.isDragging &&
-          draggingHeaders == other.draggingHeaders &&
-          draggingCurrentReference == other.draggingCurrentReference &&
-          draggingPosition == other.draggingPosition &&
-          draggingHeaderExtent == other.draggingHeaderExtent &&
+          headerDragState == other.headerDragState &&
           _kDoubleListEquality.equals(offsets, other.offsets) &&
           _kDoubleListEquality.equals(frozenOffsets, other.frozenOffsets) &&
           _kDoubleListEquality.equals(sizes, other.sizes) &&
@@ -237,11 +215,48 @@ class ViewportAxisContextState {
       frozenSizes.hashCode ^
       visibleIndices.hashCode ^
       visibleFrozenIndices.hashCode ^
-      isDragging.hashCode ^
-      draggingHeaders.hashCode ^
-      draggingPosition.hashCode ^
-      draggingHeaderExtent.hashCode ^
-      draggingCurrentReference.hashCode;
+      headerDragState.hashCode;
+}
+
+/// Holds the state of an ongoing header drag and drop action.
+@immutable
+class ViewportHeaderDragContextState {
+  /// Headers that are being dragged.
+  final Range headers;
+
+  /// Current dragging reference, eg, the current header that [position]
+  /// is hovering.
+  final int dropAtIndex;
+
+  /// Current dragging position.
+  final Offset position;
+
+  /// Extent of all headers being dragged.
+  final double headersExtent;
+
+  const ViewportHeaderDragContextState({
+    required this.headers,
+    required this.dropAtIndex,
+    required this.position,
+    required this.headersExtent,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ViewportHeaderDragContextState &&
+          runtimeType == other.runtimeType &&
+          headers == other.headers &&
+          dropAtIndex == other.dropAtIndex &&
+          position == other.position &&
+          headersExtent == other.headersExtent;
+
+  @override
+  int get hashCode =>
+      headers.hashCode ^
+      position.hashCode ^
+      headersExtent.hashCode ^
+      dropAtIndex.hashCode;
 }
 
 /// A result of a conversion of a pixel offset into column/row index.
