@@ -70,52 +70,6 @@ class _ResizeHeaderDetails {
   }
 }
 
-/// Holds information about where to position the resize line as well as its
-/// width and height.
-@immutable
-class ResizeWidgetDetails {
-  final double left;
-  final double top;
-  final double width;
-  final double height;
-
-  const ResizeWidgetDetails({
-    required this.left,
-    required this.top,
-    required this.width,
-    required this.height,
-  });
-
-  ResizeWidgetDetails copyWith({
-    double? left,
-    double? top,
-    double? width,
-    double? height,
-  }) {
-    return ResizeWidgetDetails(
-      left: left ?? this.left,
-      top: top ?? this.top,
-      width: width ?? this.width,
-      height: height ?? this.height,
-    );
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
-    }
-
-    return other is ResizeWidgetDetails &&
-        other.left == left &&
-        other.top == top &&
-        other.height == height;
-  }
-
-  @override
-  int get hashCode => left.hashCode ^ top.hashCode ^ height.hashCode;
-}
-
 /// A manager for the resize line overlay entries.
 ///
 /// Creates a backdrop overlay entry to disable scrolling when resizing the
@@ -193,7 +147,7 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
     axis: widget.axis == Axis.horizontal ? Axis.vertical : Axis.horizontal,
   );
 
-  final _resizeWidgetDetails = ValueNotifier<ResizeWidgetDetails?>(null);
+  final _resizeLineRect = ValueNotifier<Rect?>(null);
 
   final resizeLineOverlayManager = _ResizeLineOverlayManager();
 
@@ -277,6 +231,43 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
     return localPixelOffset.ceilToDouble();
   }
 
+  /// Gets the ancestor render box global position to be able to place the
+  /// resize line in the correct position.
+  Offset? _getAncestorRenderBoxGlobalPosition() {
+    final renderObject = context.findRenderObject();
+
+    if (renderObject == null) {
+      return null;
+    }
+
+    final renderBox = renderObject as RenderBox;
+
+    return renderBox.localToGlobal(Offset.zero);
+  }
+
+  /// Builds a [Rect] for the resize line.
+  Rect _buildResizeLineRect({
+    required double globalPixelOffset,
+    required Offset renderBoxGlobalPosition,
+    required double size,
+  }) {
+    if (widget.axis == Axis.horizontal) {
+      return Rect.fromLTWH(
+        globalPixelOffset,
+        _getInvertedOffsetPositionForAxis(renderBoxGlobalPosition),
+        widget.internalScope.style.resizeHeaderStyle.lineThickness,
+        size,
+      );
+    }
+
+    return Rect.fromLTWH(
+      _getInvertedOffsetPositionForAxis(renderBoxGlobalPosition),
+      globalPixelOffset,
+      size,
+      widget.internalScope.style.resizeHeaderStyle.lineThickness,
+    );
+  }
+
   /// Callback invoked when the user has tapped an header.
   ///
   /// Computes the position and size of the header resize line and adds it
@@ -287,10 +278,9 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
     }
 
     final offsets = widget.viewportAxisContext.value.headersEdgesOffsets;
-
     final localPixelOffset = _getLocalPixelOffset(event.localPosition);
 
-    // a safe check
+    // safe check
     if (!offsets.containsKey(localPixelOffset)) {
       return;
     }
@@ -306,33 +296,20 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
       axis: widget.axis,
     );
 
-    final renderObject = context.findRenderObject();
+    final renderBoxGlobalPosition = _getAncestorRenderBoxGlobalPosition();
 
-    if (renderObject == null) {
+    if (renderBoxGlobalPosition == null) {
       return;
     }
-
-    final renderBox = renderObject as RenderBox;
-    final globalPosition = renderBox.localToGlobal(Offset.zero);
 
     final size = flippedHeaderController.value.extent +
         widget.flippedAxisViewportContext.virtualizationState.displacement;
 
-    if (widget.axis == Axis.horizontal) {
-      _resizeWidgetDetails.value = ResizeWidgetDetails(
-        left: _getOffsetPositionForAxis(event.position),
-        top: _getInvertedOffsetPositionForAxis(globalPosition),
-        width: widget.internalScope.style.resizeHeaderStyle.lineThickness,
-        height: size,
-      );
-    } else {
-      _resizeWidgetDetails.value = ResizeWidgetDetails(
-        left: _getInvertedOffsetPositionForAxis(globalPosition),
-        top: _getOffsetPositionForAxis(event.position),
-        width: size,
-        height: widget.internalScope.style.resizeHeaderStyle.lineThickness,
-      );
-    }
+    _resizeLineRect.value = _buildResizeLineRect(
+      globalPixelOffset: globalPixelOffset,
+      renderBoxGlobalPosition: renderBoxGlobalPosition,
+      size: size,
+    );
 
     final overlay = Overlay.of(context);
 
@@ -345,7 +322,7 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
       child: ResizeHeaderOverlayLine(
         swayzeStyle: widget.internalScope.style,
         axis: widget.axis,
-        resizeWidgetDetails: _resizeWidgetDetails,
+        resizeLineRect: _resizeLineRect,
       ),
     );
 
@@ -367,11 +344,11 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
     }
 
     if (widget.axis == Axis.horizontal) {
-      _resizeWidgetDetails.value = _resizeWidgetDetails.value!.copyWith(
+      _resizeLineRect.value = _resizeLineRect.value!.copyWith(
         left: _getOffsetPositionForAxis(event.position),
       );
     } else {
-      _resizeWidgetDetails.value = _resizeWidgetDetails.value!.copyWith(
+      _resizeLineRect.value = _resizeLineRect.value!.copyWith(
         top: _getOffsetPositionForAxis(event.position),
       );
     }
@@ -417,6 +394,20 @@ class _ResizeHeaderMouseRegionState extends State<ResizeHeaderMouseRegion> {
         onHover: _handleOnHover,
         child: widget.builder(context, _isResizeHeaderLineVisible),
       ),
+    );
+  }
+}
+
+extension on Rect {
+  Rect copyWith({
+    double? left,
+    double? top,
+  }) {
+    return Rect.fromLTWH(
+      left ?? this.left,
+      top ?? this.top,
+      width,
+      height,
     );
   }
 }

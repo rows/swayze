@@ -3,37 +3,36 @@ import 'package:flutter/widgets.dart';
 
 import '../../../../config.dart';
 import '../../../../core/style/style.dart';
-import 'resize_header_mouse_region.dart';
 
 /// Paints the header resize line at the given position and with the
 /// given size in [resizeWidgetDetails].
 class ResizeHeaderOverlayLine extends StatelessWidget {
   final SwayzeStyle swayzeStyle;
-  final ValueNotifier<ResizeWidgetDetails?> resizeWidgetDetails;
+  final ValueNotifier<Rect?> resizeLineRect;
   final Axis axis;
 
   const ResizeHeaderOverlayLine({
     Key? key,
     required this.swayzeStyle,
-    required this.resizeWidgetDetails,
+    required this.resizeLineRect,
     required this.axis,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<ResizeWidgetDetails?>(
-      valueListenable: resizeWidgetDetails,
-      builder: (context, resizeWidgetDetails, child) {
-        if (resizeWidgetDetails == null) {
+    return ValueListenableBuilder<Rect?>(
+      valueListenable: resizeLineRect,
+      builder: (context, resizeLineRect, child) {
+        if (resizeLineRect == null) {
           return const SizedBox.shrink();
         }
 
         return Positioned(
-          left: resizeWidgetDetails.left,
-          top: resizeWidgetDetails.top,
+          left: resizeLineRect.left,
+          top: resizeLineRect.top,
           child: SizedBox(
-            width: resizeWidgetDetails.width,
-            height: resizeWidgetDetails.height,
+            width: resizeLineRect.width,
+            height: resizeLineRect.height,
             child: child!,
           ),
         );
