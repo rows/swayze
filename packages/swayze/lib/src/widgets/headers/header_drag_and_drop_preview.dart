@@ -9,13 +9,11 @@ import '../../core/viewport_context/viewport_context_provider.dart';
 class HeaderDragAndDropPreview extends StatelessWidget {
   final Axis axis;
   final SwayzeStyle swayzeStyle;
-  final Offset translateOffset;
 
   const HeaderDragAndDropPreview({
     Key? key,
     required this.axis,
     required this.swayzeStyle,
-    required this.translateOffset,
   }) : super(key: key);
 
   @override
@@ -36,13 +34,12 @@ class HeaderDragAndDropPreview extends StatelessWidget {
         : header.value.draggingCurrentReference + 1;
 
     final dropHeaderAtPosition = viewportContext
-            .positionToPixel(
-              currentHeaderIndex,
-              axis,
-              isForFrozenPanes: false,
-            )
-            .pixel -
-        header.value.frozenExtent;
+        .positionToPixel(
+          currentHeaderIndex,
+          axis,
+          isForFrozenPanes: currentHeaderIndex < header.value.frozenRange.end,
+        )
+        .pixel;
 
     final headerExtent = header.value.draggingHeaderExtent;
     final headerPosition = viewportContext
@@ -72,7 +69,6 @@ class HeaderDragAndDropPreview extends StatelessWidget {
             axis: axis,
             lineColor: lineColor,
             lineWidth: lineWidth,
-            translateOffset: translateOffset,
             dropHeaderAtPosition: dropHeaderAtPosition,
           ),
       ],
@@ -85,9 +81,6 @@ class _PreviewLine extends LeafRenderObjectWidget {
 
   final double lineWidth;
 
-  /// The offset in which the painting of lines will be translated by.
-  final Offset translateOffset;
-
   final double dropHeaderAtPosition;
 
   final Axis axis;
@@ -96,7 +89,6 @@ class _PreviewLine extends LeafRenderObjectWidget {
     Key? key,
     required this.lineColor,
     required this.lineWidth,
-    required this.translateOffset,
     required this.dropHeaderAtPosition,
     required this.axis,
   }) : super(key: key);
@@ -107,7 +99,6 @@ class _PreviewLine extends LeafRenderObjectWidget {
       axis,
       lineColor,
       lineWidth,
-      translateOffset,
       dropHeaderAtPosition,
     );
   }
@@ -121,7 +112,6 @@ class _PreviewLine extends LeafRenderObjectWidget {
       ..axis = axis
       ..lineWidth = lineWidth
       ..lineColor = lineColor
-      ..translateOffset = translateOffset
       ..dropHeaderAtPosition = dropHeaderAtPosition;
   }
 }
@@ -142,37 +132,27 @@ class _RenderPreviewLine extends RenderBox {
 
   set lineWidth(double value) {
     _lineWidth = value;
-    markNeedsPaint();
-  }
-
-  Offset _translateOffset;
-
-  Offset get translateOffset => _translateOffset;
-
-  set translateOffset(Offset value) {
-    _translateOffset = value;
-    markNeedsPaint();
+    markNeedsLayout();
   }
 
   double _dropHeaderAtPosition;
   double get dropHeaderAtPosition => _dropHeaderAtPosition;
   set dropHeaderAtPosition(double value) {
     _dropHeaderAtPosition = value;
-    markNeedsPaint();
+    markNeedsLayout();
   }
 
   Axis _axis;
   Axis get axis => _axis;
   set axis(Axis value) {
     _axis = value;
-    markNeedsPaint();
+    markNeedsLayout();
   }
 
   _RenderPreviewLine(
     this._axis,
     this._lineColor,
     this._lineWidth,
-    this._translateOffset,
     this._dropHeaderAtPosition,
   );
 
@@ -202,9 +182,9 @@ class _RenderPreviewLine extends RenderBox {
   void paint(PaintingContext context, Offset offset) {
     final canvas = context.canvas;
     canvas.translate(-0.5, -0.5);
-    canvas.translate(translateOffset.dx, translateOffset.dy);
     canvas.save();
 
+    print(dropHeaderAtPosition);
     if (axis == Axis.horizontal) {
       canvas.translate(dropHeaderAtPosition, 0);
       canvas.drawLine(
@@ -327,21 +307,19 @@ class _RenderPreviewRect extends RenderBox {
     canvas.save();
     if (axis == Axis.horizontal) {
       final previewRect = Rect.fromLTWH(
-        headerPosition,
+        pointerPosition.dx - headerExtent / 2,
         0,
         headerExtent,
         size.height,
       );
-      canvas.translate(pointerPosition.dx - previewRect.topCenter.dx, 0);
       canvas.drawRect(previewRect, backgroundPaint.value);
     } else {
       final previewRect = Rect.fromLTWH(
         0,
-        headerPosition,
+        pointerPosition.dy - headerExtent / 2,
         size.width,
         headerExtent,
       );
-      canvas.translate(0, pointerPosition.dy - previewRect.topCenter.dy);
       canvas.drawRect(previewRect, backgroundPaint.value);
     }
     canvas.restore();

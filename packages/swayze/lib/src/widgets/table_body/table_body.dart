@@ -54,7 +54,7 @@ class TableBody extends StatelessWidget {
     Widget tableBody = MouseHoverTableBody(
       child: ExpandAll(
         children: [
-          // There is 4 possible areas of content in the table body.
+          // There is 5 possible areas of content in the table body.
 
           // There is the always present scrollable area
           _TableBodyScrollableArea(
@@ -97,6 +97,20 @@ class TableBody extends StatelessWidget {
               viewportContext: viewportContext,
               isOnAFrozenColumnsArea: true,
               isOnAFrozenRowsArea: true,
+            ),
+
+          // If columns or rows are being dragged, add the preview on top
+          // of other table layers.
+          if (viewportContext.columns.value.isDragging ||
+              viewportContext.rows.value.isDragging)
+            RepaintBoundary(
+              key: const ValueKey('RepaintBoundaryReorderPreview'),
+              child: HeaderDragAndDropPreview(
+                axis: viewportContext.columns.value.isDragging
+                    ? Axis.horizontal
+                    : Axis.vertical,
+                swayzeStyle: style,
+              ),
             ),
 
           // All areas respond to only one gesture detector
@@ -164,18 +178,6 @@ class _TableBodyScrollableArea extends StatelessWidget {
           ),
         ),
         const ClipRect(child: TableBodySelections()),
-        if (viewportContext.columns.value.isDragging ||
-            viewportContext.rows.value.isDragging)
-          RepaintBoundary(
-            key: const ValueKey('RepaintBoundaryReorderPreview'),
-            child: HeaderDragAndDropPreview(
-              axis: viewportContext.columns.value.isDragging
-                  ? Axis.horizontal
-                  : Axis.vertical,
-              swayzeStyle: style,
-              translateOffset: offset,
-            ),
-          ),
       ],
     );
   }
