@@ -167,7 +167,7 @@ class ViewportAxisContextState {
   /// Just like [visibleIndices] but for the [frozenRange]
   final Iterable<int> visibleFrozenIndices;
 
-  /// Wetter or not the header is being dragged.
+  /// Whether or not the header is being dragged.
   final bool isDragging;
 
   /// Headers that are being dragged.

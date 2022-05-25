@@ -21,7 +21,7 @@ class HeaderDragAndDropPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final lineColor = swayzeStyle.dragNDropPreviewLineColor;
-    final lineWidth = swayzeStyle.dragNDropPreviewLineWidth + 1;
+    final lineWidth = swayzeStyle.dragNDropPreviewLineWidth;
 
     if (lineWidth == 0.0 || lineColor.alpha == 0) {
       return const SizedBox.shrink();

@@ -108,10 +108,10 @@ class SwayzeStyle {
 
   final List<BoxShadow> inlineEditorShadow;
 
-  /// The color of the line that previews where dragged headers will be drop.
+  /// The color of the line that previews where dragged headers will be dropped.
   final Color dragNDropPreviewLineColor;
 
-  /// Width of the line that previews where dragged headers will be drop.
+  /// Width of the line that previews where dragged headers will be dropped.
   final double dragNDropPreviewLineWidth;
 
   /// The color of the preview headers that are being dragged.
