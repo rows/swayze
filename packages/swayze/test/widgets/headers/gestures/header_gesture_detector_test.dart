@@ -215,7 +215,7 @@ void main() {
         required Range expectedSelectedRange,
         required List<Range> shiftSelectedHeaders,
         required List<int> modifierSelectedHeaders,
-        int startDragAtHeader = 2,
+        int startDragAtHeader = 1,
       }) async {
         return testWidgets(description, (tester) async {
           await pumpTestWidget(tester);
@@ -229,10 +229,12 @@ void main() {
           final selections = swayzeController
               .selection.userSelectionState.selections
               .whereType<HeaderUserSelectionModel>();
-
-          /// Total of selections has to be the group selected with shift +
-          /// the total selected with modifier keys.
-          expect(selections, hasLength(modifierSelectedHeaders.length + 1));
+          expect(
+            selections,
+            hasLength(
+              modifierSelectedHeaders.length + shiftSelectedHeaders.length,
+            ),
+          );
 
           final firstLocation = tester.getCenter(
             columnHeaders.at(startDragAtHeader),
@@ -259,6 +261,7 @@ void main() {
 
       testAdjacentSelections(
         'No adjacent selections',
+        startDragAtHeader: 2,
         shiftSelectedHeaders: [const Range(2, 3)],
         modifierSelectedHeaders: [0, 5],
         expectedSelectedRange: const Range(2, 4),
@@ -266,6 +269,7 @@ void main() {
 
       testAdjacentSelections(
         'Adjacent before first selection',
+        startDragAtHeader: 2,
         shiftSelectedHeaders: [const Range(2, 3)],
         modifierSelectedHeaders: [1, 0],
         expectedSelectedRange: const Range(0, 4),
@@ -280,14 +284,15 @@ void main() {
 
       testAdjacentSelections(
         'Adjacent with random selection order',
+        startDragAtHeader: 2,
         shiftSelectedHeaders: [const Range(2, 3)],
         modifierSelectedHeaders: [5, 1, 3, 2, 4],
         expectedSelectedRange: const Range(1, 6),
       );
 
       testAdjacentSelections(
-        'Adjacent overlapping shift selections',
-        startDragAtHeader: 3, // Use a header from the smaller range.
+        'Overlapping shift selections',
+        startDragAtHeader: 2, // Use a header from the smaller range.
         shiftSelectedHeaders: [const Range(2, 3), const Range(0, 5)],
         modifierSelectedHeaders: [],
         expectedSelectedRange: const Range(0, 6),
@@ -331,14 +336,14 @@ extension _TesterGestureExtensions on WidgetTester {
         Platform.isMacOS ? LogicalKeyboardKey.meta : LogicalKeyboardKey.control;
     final headers = findColumnHeaders();
 
-    await sendKeyDownEvent(modifier);
     for (final range in ranges) {
+      await sendKeyDownEvent(modifier);
       await shiftSelectHeaders(
         from: headers.at(range.start),
         to: headers.at(range.end),
       );
+      await sendKeyUpEvent(modifier);
     }
-    await sendKeyUpEvent(modifier);
   }
 
   /// Finds all column headers and returns all in a Finder object.

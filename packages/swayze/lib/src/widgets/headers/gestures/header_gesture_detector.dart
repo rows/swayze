@@ -287,7 +287,6 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
     /// a drag action, making the user think that something went wrong with the
     /// action.
     setCursorState(SystemMouseCursors.basic);
-
     Actions.invoke(
       context,
       HeaderDragStartIntent(
@@ -350,10 +349,11 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
   /// Returns null if position header is not selected.
   HeaderUserSelectionModel? hoverSelection(int position, Axis axis) {
     final selectionController = internalScope.controller.selection;
-    final selections = selectionController.userSelectionState.selections;
+    final selections = selectionController.userSelectionState.selections
+        .whereType<HeaderUserSelectionModel>();
 
     for (final selection in selections) {
-      if (selection is HeaderUserSelectionModel && selection.axis == axis) {
+      if (selection.axis == axis) {
         final range = Range(selection.start, selection.end);
         if (range.contains(position)) {
           return selection;
@@ -382,9 +382,10 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
 
     final selectionIndex = sortedSelections.indexOf(referenceSelection);
 
-    void checkForAdjacentSelection(HeaderUserSelectionModel selection) {
+    void updateAdjacentSelection(HeaderUserSelectionModel selection) {
       if (selection.end == selectionRange.start ||
-          selection.start == selectionRange.end) {
+          selection.start == selectionRange.end ||
+          (selection & selectionRange).isNotNil) {
         selectionRange = Range(
           min(selectionRange.start, selection.start),
           max(selectionRange.end, selection.end),
@@ -393,10 +394,10 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
     }
 
     for (var i = selectionIndex; i >= 0; i--) {
-      checkForAdjacentSelection(sortedSelections.elementAt(i));
+      updateAdjacentSelection(sortedSelections.elementAt(i));
     }
     for (var i = selectionIndex; i < sortedSelections.length; i++) {
-      checkForAdjacentSelection(sortedSelections.elementAt(i));
+      updateAdjacentSelection(sortedSelections.elementAt(i));
     }
     return selectionRange;
   }
@@ -448,6 +449,7 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                   headerGestureDetails.headerPosition,
                   widget.axis,
                 );
+
                 if (selection != null &&
                     internalScope.config.isHeaderDragAndDropEnabled) {
                   final range = headerSelectionRange(selection);
