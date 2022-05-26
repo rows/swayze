@@ -18,21 +18,10 @@ import '../../../test_utils/create_swayze_controller.dart';
 import '../../../test_utils/create_table_data.dart';
 import '../../../test_utils/create_test_victim.dart';
 
-class _MockDragEndAction extends Mock
-    implements DefaultSwayzeAction<HeaderDragEndIntent> {
+class _MockAction<T extends SwayzeIntent> extends Mock
+    implements DefaultSwayzeAction<T> {
   @override
-  bool isEnabled(HeaderDragEndIntent intent) => true;
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.debug}) {
-    return super.toString();
-  }
-}
-
-class _MockDragCancelAction extends Mock
-    implements DefaultSwayzeAction<HeaderDragCancelIntent> {
-  @override
-  bool isEnabled(HeaderDragCancelIntent intent) => true;
+  bool isEnabled(T intent) => true;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.debug}) {
@@ -41,13 +30,13 @@ class _MockDragCancelAction extends Mock
 }
 
 void main() {
-  late _MockDragEndAction dragEndAction;
-  late _MockDragCancelAction dragCancelAction;
+  late _MockAction<HeaderDragEndIntent> dragEndAction;
+  late _MockAction<HeaderDragCancelIntent> dragCancelAction;
   late TestSwayzeController swayzeController;
 
   setUp(() {
-    dragEndAction = _MockDragEndAction();
-    dragCancelAction = _MockDragCancelAction();
+    dragEndAction = _MockAction<HeaderDragEndIntent>();
+    dragCancelAction = _MockAction<HeaderDragCancelIntent>();
     swayzeController = createSwayzeController(
       tableDataController: createTableController(
         tableColumnCount: 10,
