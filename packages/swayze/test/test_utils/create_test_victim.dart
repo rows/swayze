@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:swayze/controller.dart';
 import 'package:swayze/widgets.dart';
 import 'package:swayze_math/swayze_math.dart';
@@ -33,6 +32,7 @@ class TestTableWrapper extends StatefulWidget {
 
   final SwayzeController? swayzeController;
   final InlineEditorBuilder? editorBuilder;
+  final SwayzeConfig? config;
 
   final Widget? header;
 
@@ -43,6 +43,7 @@ class TestTableWrapper extends StatefulWidget {
     this.header,
     this.swayzeController,
     this.editorBuilder,
+    this.config,
   })  : verticalScrollController =
             verticalScrollController ?? ScrollController(),
         autofocus = autofocus ?? false,
@@ -69,6 +70,7 @@ class _TestTableWrapperState extends State<TestTableWrapper> {
       stickyHeaderSize: 70.0,
       inlineEditorBuilder: widget.editorBuilder ?? defaultCellEditorBuilder,
       verticalScrollController: widget.verticalScrollController,
+      config: widget.config,
     );
   }
 }
