@@ -12,8 +12,7 @@ import '../../../core/viewport_context/viewport_context.dart';
 import '../../../core/viewport_context/viewport_context_provider.dart';
 import '../../../helpers/scroll/auto_scroll.dart';
 import '../../internal_scope.dart';
-import '../../table.dart';
-import 'resize_header/resize_header_mouse_region.dart';
+import 'resize_header/resize_header_details_notifier.dart';
 
 /// A transport class for auxiliary data about a header gesture and it's
 /// position.
@@ -90,13 +89,11 @@ _HeaderGestureDetails _getHeaderLocalPositionGestureDetails({
 class HeaderGestureDetector extends StatefulWidget {
   final Axis axis;
   final double displacement;
-  final OnHeaderExtentChanged? onHeaderExtentChanged;
 
   const HeaderGestureDetector({
     Key? key,
     required this.axis,
     required this.displacement,
-    this.onHeaderExtentChanged,
   }) : super(key: key);
 
   @override
@@ -106,8 +103,7 @@ class HeaderGestureDetector extends StatefulWidget {
 class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
   late final internalScope = InternalScope.of(context);
   late final viewportContext = ViewportContextProvider.of(context);
-  late final viewportAxisContext =
-      viewportContext.getAxisContextFor(axis: widget.axis);
+  late final resizeNotifier = ResizeHeaderDetailsNotifier.of(context);
 
   /// Cache to make the position of the start of a drag gesture acessible in
   /// the drag updates.
@@ -123,12 +119,16 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
   void initState() {
     super.initState();
 
-    viewportAxisContext.addListener(onRangesChanged);
+    viewportContext
+        .getAxisContextFor(axis: widget.axis)
+        .addListener(onRangesChanged);
   }
 
   @override
   void dispose() {
-    viewportAxisContext.removeListener(onRangesChanged);
+    viewportContext
+        .getAxisContextFor(axis: widget.axis)
+        .removeListener(onRangesChanged);
 
     super.dispose();
   }
@@ -150,6 +150,10 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
       return;
     }
 
+    final headerNotifier = viewportContext.getAxisContextFor(
+      axis: widget.axis,
+    );
+
     final scrollPosition =
         scrollController.getScrollControllerFor(axis: widget.axis)!.position;
 
@@ -158,7 +162,7 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
         axis: widget.axis,
         focus: scrollPosition.userScrollDirection != ScrollDirection.idle
             ? _getRangeEdgeOnAutoScroll(
-                viewportAxisContext.value.scrollableRange,
+                headerNotifier.value.scrollableRange,
                 scrollPosition.userScrollDirection,
               )
             : primarySelection.focus,

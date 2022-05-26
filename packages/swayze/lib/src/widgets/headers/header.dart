@@ -28,14 +28,12 @@ class Header extends StatelessWidget {
   final Axis axis;
   final double displacement;
   final WrapHeaderBuilder? wrapHeader;
-  final OnHeaderExtentChanged? onHeaderExtentChanged;
 
   const Header({
     Key? key,
     required this.axis,
     required this.displacement,
     required this.wrapHeader,
-    required this.onHeaderExtentChanged,
   }) : super(key: key);
 
   @override
@@ -56,7 +54,6 @@ class Header extends StatelessWidget {
       rangeNotifier: rangeNotifier,
       displacement: displacement,
       background: style.defaultHeaderPalette.background,
-      onHeaderExtentChanged: onHeaderExtentChanged,
     );
 
     if (wrapHeader != null) {
@@ -385,7 +382,6 @@ class _HeaderRangeSubscriberState extends State<_HeaderRangeSubscriber> {
         HeaderGestureDetector(
           axis: widget.axis,
           displacement: widget.displacement,
-          onHeaderExtentChanged: widget.onHeaderExtentChanged,
         ),
       ],
     );

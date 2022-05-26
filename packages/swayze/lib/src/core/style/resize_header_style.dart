@@ -9,13 +9,9 @@ class ResizeHeaderStyle {
   /// The color of the resize line.
   final Color lineColor;
 
-  /// The thickness of the line.
-  final double lineThickness;
-
   const ResizeHeaderStyle({
     required this.fillColor,
     required this.lineColor,
-    required this.lineThickness,
   });
 
   @override
@@ -26,11 +22,9 @@ class ResizeHeaderStyle {
 
     return other is ResizeHeaderStyle &&
         other.fillColor == fillColor &&
-        other.lineColor == lineColor &&
-        other.lineThickness == lineThickness;
+        other.lineColor == lineColor;
   }
 
   @override
-  int get hashCode =>
-      fillColor.hashCode ^ lineColor.hashCode ^ lineThickness.hashCode;
+  int get hashCode => fillColor.hashCode ^ lineColor.hashCode;
 }

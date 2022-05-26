@@ -4,6 +4,7 @@ import '../config.dart' as config;
 import '../core/scrolling/sliver_scrolling_data_builder.dart';
 import '../core/viewport_context/viewport_context_provider.dart';
 import '../core/virtualization/virtualization_calculator.dart';
+import 'headers/gestures/resize_header/header_edge_mouse_listener.dart';
 import 'headers/header.dart';
 import 'table.dart';
 import 'table_body/table_body.dart';
@@ -104,36 +105,37 @@ class _TableScaffoldState extends State<TableScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomMultiChildLayout(
-      delegate: _TableScaffoldDelegate(rowHeaderWidth, columnHeaderHeight),
-      children: [
-        LayoutId(
-          id: _TableScaffoldSlot.columnHeaders,
-          child: Header(
-            axis: Axis.horizontal,
-            displacement: widget.horizontalDisplacement,
-            wrapHeader: widget.wrapHeader,
-            onHeaderExtentChanged: widget.onHeaderExtentChanged,
+    return HeaderEdgeMouseListener(
+      onHeaderExtentChanged: widget.onHeaderExtentChanged,
+      child: CustomMultiChildLayout(
+        delegate: _TableScaffoldDelegate(rowHeaderWidth, columnHeaderHeight),
+        children: [
+          LayoutId(
+            id: _TableScaffoldSlot.columnHeaders,
+            child: Header(
+              axis: Axis.horizontal,
+              displacement: widget.horizontalDisplacement,
+              wrapHeader: widget.wrapHeader,
+            ),
           ),
-        ),
-        LayoutId(
-          id: _TableScaffoldSlot.rowsHeaders,
-          child: Header(
-            axis: Axis.vertical,
-            displacement: widget.verticalDisplacement,
-            wrapHeader: widget.wrapHeader,
-            onHeaderExtentChanged: widget.onHeaderExtentChanged,
+          LayoutId(
+            id: _TableScaffoldSlot.rowsHeaders,
+            child: Header(
+              axis: Axis.vertical,
+              displacement: widget.verticalDisplacement,
+              wrapHeader: widget.wrapHeader,
+            ),
           ),
-        ),
-        LayoutId(
-          id: _TableScaffoldSlot.tableBody,
-          child: TableBody(
-            horizontalDisplacement: widget.horizontalDisplacement,
-            verticalDisplacement: widget.verticalDisplacement,
-            wrapTableBody: widget.wrapTableBody,
+          LayoutId(
+            id: _TableScaffoldSlot.tableBody,
+            child: TableBody(
+              horizontalDisplacement: widget.horizontalDisplacement,
+              verticalDisplacement: widget.verticalDisplacement,
+              wrapTableBody: widget.wrapTableBody,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
