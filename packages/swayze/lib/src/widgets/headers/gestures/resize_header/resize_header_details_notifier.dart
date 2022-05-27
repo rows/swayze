@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import 'header_edge_info.dart';
+
 class ResizeHeaderDetailsNotifier
     extends InheritedNotifier<ValueNotifier<ResizeHeaderDetails?>> {
   const ResizeHeaderDetailsNotifier({
@@ -17,23 +19,31 @@ class ResizeHeaderDetailsNotifier
 
 @immutable
 class ResizeHeaderDetails {
-  final int index;
+  final HeaderEdgeInfo edgeInfo;
   final Axis axis;
+  final double? initialOffset;
+  final double? minOffset;
   final double? offset;
 
   const ResizeHeaderDetails({
-    required this.index,
+    required this.edgeInfo,
     required this.axis,
+    this.initialOffset,
+    this.minOffset,
     this.offset,
   });
 
   ResizeHeaderDetails copyWith({
-    int? index,
+    HeaderEdgeInfo? edgeInfo,
+    double? initialOffset,
+    double? minOffset,
     double? offset,
   }) {
     return ResizeHeaderDetails(
-      index: index ?? this.index,
+      edgeInfo: edgeInfo ?? this.edgeInfo,
       axis: axis,
+      initialOffset: initialOffset ?? this.initialOffset,
+      minOffset: minOffset ?? this.minOffset,
       offset: offset ?? this.offset,
     );
   }
@@ -45,11 +55,19 @@ class ResizeHeaderDetails {
     }
 
     return other is ResizeHeaderDetails &&
-        other.index == index &&
-        other.offset == offset &&
-        other.axis == axis;
+        other.edgeInfo == edgeInfo &&
+        other.axis == axis &&
+        other.initialOffset == initialOffset &&
+        other.minOffset == minOffset &&
+        other.offset == offset;
   }
 
   @override
-  int get hashCode => index.hashCode ^ offset.hashCode ^ axis.hashCode;
+  int get hashCode {
+    return edgeInfo.hashCode ^
+        axis.hashCode ^
+        initialOffset.hashCode ^
+        minOffset.hashCode ^
+        offset.hashCode;
+  }
 }

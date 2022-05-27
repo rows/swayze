@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/widgets.dart';
 
 import '../../../internal_scope.dart';
@@ -50,12 +52,15 @@ class ResizeLineOverlayManager {
             double left;
             double top;
 
+            final offset = resizeDetails.offset!;
+            final minOffset = resizeDetails.minOffset!;
+
             if (axis == Axis.horizontal) {
-              left = resizeDetails.offset! + target.dx;
+              left = max(offset, minOffset) + target.dx;
               top = target.dy;
             } else {
               left = target.dx;
-              top = resizeDetails.offset! + target.dy;
+              top = max(offset, minOffset) + target.dy;
             }
 
             return Positioned(

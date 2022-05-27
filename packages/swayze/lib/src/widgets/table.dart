@@ -27,8 +27,8 @@ export 'inline_editor/inline_editor.dart' show InlineEditorBuilder;
 typedef OnHeaderExtentChanged = Function(
   int index,
   Axis axis,
-  double oldValue,
-  double newValue,
+  double oldExtent,
+  double newExtent,
 );
 
 /// Padding to add to the right side of the sticky header when the sticky header

@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:swayze_math/swayze_math.dart';
 
+import '../../widgets/headers/gestures/resize_header/header_edge_info.dart';
 import '../../widgets/internal_scope.dart';
 import '../virtualization/virtualization_calculator.dart'
     show VirtualizationCalculator, VirtualizationState;
@@ -140,7 +141,7 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
     final headerController = tableController.getHeaderControllerFor(axis: axis);
     final scrollableRange = rangeNotifier.value;
 
-    final headersEdgesOffsets = <double, int>{};
+    final headersEdgesOffsets = <double, HeaderEdgeInfo>{};
 
     // Frozen
     final frozenSizes = <double>[];
@@ -155,7 +156,14 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
       final size = headerController.value.getHeaderExtentFor(index: index);
       frozenSizes.add(size);
       frozenExtentAcc += size;
-      _addHeaderEdge(headersEdgesOffsets, key: frozenExtentAcc, value: index);
+
+      _addHeaderEdge(
+        headersEdgesOffsets,
+        offset: frozenExtentAcc,
+        index: index,
+        size: size,
+      );
+
       if (size > 0) {
         visibleFrozenHeaders.add(index);
       }
@@ -172,7 +180,14 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
       final size = headerController.value.getHeaderExtentFor(index: index);
       sizes.add(size);
       extentAcc += size;
-      _addHeaderEdge(headersEdgesOffsets, key: extentAcc, value: index);
+
+      _addHeaderEdge(
+        headersEdgesOffsets,
+        offset: extentAcc,
+        index: index,
+        size: size,
+      );
+
       if (size > 0) {
         visibleHeaders.add(index);
       }
@@ -219,12 +234,18 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
   /// to the left or right of the edge, we save a range of positions and map
   /// them to the right header index.
   void _addHeaderEdge(
-    Map<double, int> headersEdgesOffsets, {
-    required double key,
-    required int value,
+    Map<double, HeaderEdgeInfo> headersEdgesOffsets, {
+    required double offset,
+    required int index,
+    required double size,
   }) {
     for (var i = -2; i <= 2; i++) {
-      headersEdgesOffsets[key.ceilToDouble() + i] = value;
+      headersEdgesOffsets[offset.ceilToDouble() + i] = HeaderEdgeInfo(
+        index: index,
+        width: size,
+        displacement: -i,
+        offset: offset,
+      );
     }
   }
 

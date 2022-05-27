@@ -108,6 +108,9 @@ class _RenderResizeHeaderLine extends RenderBox {
   );
 
   @override
+  bool get isRepaintBoundary => true;
+
+  @override
   bool get sizedByParent => true;
 
   @override

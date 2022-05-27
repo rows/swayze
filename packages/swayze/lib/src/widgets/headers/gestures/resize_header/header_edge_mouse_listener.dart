@@ -34,14 +34,12 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
     resizeNotifier: resizeNotifier,
   );
 
-  double? _initialOffset;
-
-  MouseCursor _getMouseCursor() {
-    if (resizeNotifier.value == null) {
+  MouseCursor _getMouseCursor(ResizeHeaderDetails? resizeHeaderDetails) {
+    if (resizeHeaderDetails == null) {
       return MouseCursor.defer;
     }
 
-    return resizeNotifier.value!.axis == Axis.horizontal
+    return resizeHeaderDetails.axis == Axis.horizontal
         ? SystemMouseCursors.resizeColumn
         : SystemMouseCursors.resizeRow;
   }
@@ -57,30 +55,26 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
   void _handleOnHover(PointerHoverEvent event) {
     Axis? axis;
 
-    final isRowHeaderBeingHovered =
-        event.localPosition.dy > kColumnHeaderHeight &&
-            event.localPosition.dx < kRowHeaderWidth;
-
-    final isColumnHeaderBeingHovered =
-        event.localPosition.dy < kColumnHeaderHeight;
-
-    if (isRowHeaderBeingHovered) {
+    // vertical header is being hovered
+    if (event.localPosition.dy > kColumnHeaderHeight &&
+        event.localPosition.dx < kRowHeaderWidth) {
       axis = Axis.vertical;
-    } else if (isColumnHeaderBeingHovered) {
+    }
+
+    // horizontal header is being hovered
+    if (event.localPosition.dy < kColumnHeaderHeight) {
       axis = Axis.horizontal;
     }
 
-    if (axis == null) {
-      return resizeNotifier.value = null;
-    }
+    if (axis != null) {
+      final result = _updateHeaderEdgeDetails(
+        localPosition: event.localPosition,
+        axis: axis,
+      );
 
-    final result = _updateHeaderEdgeDetails(
-      localPosition: event.localPosition,
-      axis: axis,
-    );
-
-    if (result) {
-      return;
+      if (result) {
+        return;
+      }
     }
 
     resizeNotifier.value = null;
@@ -117,10 +111,10 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
     final offsets = axisContext.value.headersEdgesOffsets;
 
     if (offsets.containsKey(localPixelOffset)) {
-      final index = offsets[localPixelOffset]!;
+      final headerEdgeInfo = offsets[localPixelOffset]!;
 
       resizeNotifier.value = ResizeHeaderDetails(
-        index: index,
+        edgeInfo: headerEdgeInfo,
         axis: axis,
       );
 
@@ -130,17 +124,27 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
     return false;
   }
 
+  double minExtent(Axis axis) =>
+      axis == Axis.horizontal ? kDefaultCellWidth : kDefaultCellHeight;
+
   void _handleOnPointerDown(PointerDownEvent event) {
     if (!isResizingEnabled) {
       return;
     }
 
-    final axis = resizeNotifier.value!.axis;
+    final details = resizeNotifier.value!;
+    final axis = details.axis;
 
-    _initialOffset = _getOffsetPositionForAxis(event.localPosition, axis);
+    final initialOffset = _getOffsetPositionForAxis(event.localPosition, axis) +
+        details.edgeInfo.displacement;
 
-    resizeNotifier.value = resizeNotifier.value!.copyWith(
-      offset: _initialOffset,
+    final minOffset =
+        initialOffset - (details.edgeInfo.width - minExtent(axis));
+
+    resizeNotifier.value = details.copyWith(
+      offset: initialOffset,
+      initialOffset: initialOffset,
+      minOffset: minOffset,
     );
 
     resizeLineOverlayManager.insertEntries(context);
@@ -151,33 +155,13 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
       return;
     }
 
-    final value = resizeNotifier.value!;
-    final axis = value.axis;
+    final details = resizeNotifier.value!;
+    final axis = details.axis;
+    final offset = details.offset!;
 
-    final newOffset =
-        value.offset! + _getOffsetPositionForAxis(event.delta, axis);
+    final newOffset = offset + _getOffsetPositionForAxis(event.delta, axis);
 
-    final minWidth =
-        axis == Axis.horizontal ? kDefaultCellWidth : kDefaultCellHeight;
-
-    final width = internalScope.controller.tableDataController
-        .getHeaderControllerFor(axis: axis)
-        .value
-        .getHeaderExtentFor(index: value.index);
-
-    double minGlobalPixelOffset;
-
-    if (width > minWidth) {
-      minGlobalPixelOffset = _initialOffset! - (width - minWidth);
-    } else {
-      minGlobalPixelOffset = _initialOffset!;
-    }
-
-    if (newOffset < minGlobalPixelOffset) {
-      return;
-    }
-
-    resizeNotifier.value = value.copyWith(offset: newOffset);
+    resizeNotifier.value = details.copyWith(offset: newOffset);
   }
 
   void _handleOnPointerUp(PointerUpEvent event) {
@@ -191,39 +175,34 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
     final headerController = internalScope.controller.tableDataController
         .getHeaderControllerFor(axis: axis);
 
-    final index = value.index;
-    final initialOffset = _initialOffset!;
+    final index = value.edgeInfo.index;
+    final initialOffset = value.initialOffset!;
     final offset = value.offset!;
-    final extent = headerController.value.getHeaderExtentFor(index: index);
+    final extent = value.edgeInfo.width;
 
-    double newWidth;
+    double newExtent;
 
     if (offset < initialOffset) {
-      newWidth = max(minSize, extent - (initialOffset - offset));
+      newExtent = max(minExtent(axis), extent - (initialOffset - offset));
     } else {
-      newWidth = extent + (offset - initialOffset);
+      newExtent = extent + (offset - initialOffset);
     }
 
     headerController.updateState(
       (previousState) => headerController.value.setHeaderExtent(
         index,
-        newWidth,
+        newExtent,
       ),
     );
 
-    widget.onHeaderExtentChanged?.call(index, axis, extent, newWidth);
+    widget.onHeaderExtentChanged?.call(index, axis, extent, newExtent);
 
     resizeNotifier.value = null;
 
     resizeLineOverlayManager.removeEntries();
   }
 
-  /// The minimum size that an header can have.
-  double get minSize => resizeNotifier.value?.axis == Axis.horizontal
-      ? kDefaultCellWidth
-      : kDefaultCellHeight;
-
-  bool get isResizingEnabled => resizeNotifier.value?.index != null;
+  bool get isResizingEnabled => resizeNotifier.value?.edgeInfo.index != null;
 
   bool get didResizingStart => resizeNotifier.value?.offset != null;
 
@@ -235,9 +214,16 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
         onPointerDown: _handleOnPointerDown,
         onPointerMove: _handleOnPointerMove,
         onPointerUp: _handleOnPointerUp,
-        child: MouseRegion(
-          cursor: _getMouseCursor(),
-          onHover: _handleOnHover,
+        // TODO(nfsxreloader): optimize builds
+        child: ValueListenableBuilder<ResizeHeaderDetails?>(
+          valueListenable: resizeNotifier,
+          builder: (context, resizeHeaderDetails, child) {
+            return MouseRegion(
+              cursor: _getMouseCursor(resizeHeaderDetails),
+              onHover: _handleOnHover,
+              child: child,
+            );
+          },
           child: widget.child,
         ),
       ),

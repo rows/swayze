@@ -3,12 +3,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:swayze_math/swayze_math.dart';
 
+import '../../widgets/headers/gestures/resize_header/header_edge_info.dart';
 import '../virtualization/virtualization_calculator.dart';
 import 'viewport_context_provider.dart';
 
 const _kDoubleListEquality = ListEquality<double>();
 const _kIntIterableEquality = IterableEquality<int>();
-const _kDoubleIntMapEquality = MapEquality<double, int>();
+const _kDoubleHeaderEdgeInfoMapEquality = MapEquality<double, HeaderEdgeInfo>();
 
 /// Interface that provides information about the visible rows and columns:
 /// Their sizes, which space in the viewport each one occupies and their
@@ -172,7 +173,7 @@ class ViewportAxisContextState {
   ///
   /// Useful to show the correct cursor when hovering the edge of an header
   /// for resizing purposes.
-  final Map<double, int> headersEdgesOffsets;
+  final Map<double, HeaderEdgeInfo> headersEdgesOffsets;
 
   const ViewportAxisContextState({
     required this.scrollableRange,
@@ -211,7 +212,7 @@ class ViewportAxisContextState {
             visibleFrozenIndices,
             other.visibleFrozenIndices,
           ) &&
-          _kDoubleIntMapEquality.equals(
+          _kDoubleHeaderEdgeInfoMapEquality.equals(
             headersEdgesOffsets,
             other.headersEdgesOffsets,
           );
