@@ -224,7 +224,9 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
       ),
     );
 
-    widget.onHeaderExtentChanged?.call(index, axis, extent, newExtent);
+    if (extent != newExtent) {
+      widget.onHeaderExtentChanged?.call(index, axis, extent, newExtent);
+    }
 
     resizeNotifier.value = null;
 
