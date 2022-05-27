@@ -240,7 +240,7 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
     required double size,
   }) {
     for (var i = -2; i <= 2; i++) {
-      headersEdgesOffsets[offset.ceilToDouble() + i] = HeaderEdgeInfo(
+      headersEdgesOffsets[offset.floorToDouble() + i] = HeaderEdgeInfo(
         index: index,
         width: size,
         displacement: -i,

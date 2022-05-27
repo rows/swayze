@@ -135,7 +135,7 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
       localPixelOffset += displacement.abs();
     }
 
-    localPixelOffset = localPixelOffset.ceilToDouble();
+    localPixelOffset = localPixelOffset.floorToDouble();
 
     final offsets = axisContext.value.headersEdgesOffsets;
 
