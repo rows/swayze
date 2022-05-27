@@ -54,7 +54,7 @@ class TableBody extends StatelessWidget {
     Widget tableBody = MouseHoverTableBody(
       child: ExpandAll(
         children: [
-          // There is 5 possible areas of content in the table body.
+          // There are 5 possible areas of content in the table body.
 
           // There is the always present scrollable area
           _TableBodyScrollableArea(
