@@ -2,17 +2,26 @@ import 'package:flutter/widgets.dart';
 
 import 'header_edge_info.dart';
 
-class ResizeHeaderDetailsNotifier
-    extends InheritedNotifier<ValueNotifier<ResizeHeaderDetails?>> {
-  const ResizeHeaderDetailsNotifier({
+class ResizeHeaderDetailsNotifier extends ValueNotifier<ResizeHeaderDetails?> {
+  ResizeHeaderDetailsNotifier(ResizeHeaderDetails? value) : super(value);
+
+  bool get isHoveringHeaderEdge => value?.edgeInfo.index != null;
+
+  bool get isResizingHeader => value?.offset != null;
+}
+
+class ResizeHeaderDetailsNotifierProvider
+    extends InheritedNotifier<ResizeHeaderDetailsNotifier> {
+  const ResizeHeaderDetailsNotifierProvider({
     Key? key,
-    required ValueNotifier<ResizeHeaderDetails?>? notifier,
+    required ResizeHeaderDetailsNotifier? notifier,
     required Widget child,
   }) : super(key: key, notifier: notifier, child: child);
 
-  static ValueNotifier<ResizeHeaderDetails?> of(BuildContext context) {
+  static ResizeHeaderDetailsNotifier of(BuildContext context) {
     return context
-        .dependOnInheritedWidgetOfExactType<ResizeHeaderDetailsNotifier>()!
+        .dependOnInheritedWidgetOfExactType<
+            ResizeHeaderDetailsNotifierProvider>()!
         .notifier!;
   }
 }

@@ -25,7 +25,7 @@ class HeaderEdgeMouseListener extends StatefulWidget {
 }
 
 class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
-  late final resizeNotifier = ValueNotifier<ResizeHeaderDetails?>(null);
+  late final resizeNotifier = ResizeHeaderDetailsNotifier(null);
   late final internalScope = InternalScope.of(context);
   late final viewportContext = ViewportContextProvider.of(context);
 
@@ -34,12 +34,41 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
     resizeNotifier: resizeNotifier,
   );
 
-  MouseCursor _getMouseCursor(ResizeHeaderDetails? resizeHeaderDetails) {
-    if (resizeHeaderDetails == null) {
+  bool _showResizeCursor = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    resizeNotifier.addListener(_didHoverHeaderEdge);
+    _didHoverHeaderEdge();
+  }
+
+  @override
+  void dispose() {
+    resizeNotifier.removeListener(_didHoverHeaderEdge);
+
+    super.dispose();
+  }
+
+  void _didHoverHeaderEdge() {
+    final showResizeCursor = resizeNotifier.value != null;
+
+    if (showResizeCursor == _showResizeCursor) {
+      return;
+    }
+
+    setState(() {
+      _showResizeCursor = showResizeCursor;
+    });
+  }
+
+  MouseCursor _getMouseCursor() {
+    if (!_showResizeCursor) {
       return MouseCursor.defer;
     }
 
-    return resizeHeaderDetails.axis == Axis.horizontal
+    return resizeNotifier.value!.axis == Axis.horizontal
         ? SystemMouseCursors.resizeColumn
         : SystemMouseCursors.resizeRow;
   }
@@ -128,7 +157,7 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
       axis == Axis.horizontal ? kDefaultCellWidth : kDefaultCellHeight;
 
   void _handleOnPointerDown(PointerDownEvent event) {
-    if (!isResizingEnabled) {
+    if (!resizeNotifier.isHoveringHeaderEdge) {
       return;
     }
 
@@ -151,7 +180,7 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
   }
 
   void _handleOnPointerMove(PointerMoveEvent event) {
-    if (!didResizingStart) {
+    if (!resizeNotifier.isResizingHeader) {
       return;
     }
 
@@ -165,7 +194,7 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
   }
 
   void _handleOnPointerUp(PointerUpEvent event) {
-    if (!didResizingStart) {
+    if (!resizeNotifier.isResizingHeader) {
       return;
     }
 
@@ -202,28 +231,17 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
     resizeLineOverlayManager.removeEntries();
   }
 
-  bool get isResizingEnabled => resizeNotifier.value?.edgeInfo.index != null;
-
-  bool get didResizingStart => resizeNotifier.value?.offset != null;
-
   @override
   Widget build(BuildContext context) {
-    return ResizeHeaderDetailsNotifier(
+    return ResizeHeaderDetailsNotifierProvider(
       notifier: resizeNotifier,
       child: Listener(
         onPointerDown: _handleOnPointerDown,
         onPointerMove: _handleOnPointerMove,
         onPointerUp: _handleOnPointerUp,
-        // TODO(nfsxreloader): optimize builds
-        child: ValueListenableBuilder<ResizeHeaderDetails?>(
-          valueListenable: resizeNotifier,
-          builder: (context, resizeHeaderDetails, child) {
-            return MouseRegion(
-              cursor: _getMouseCursor(resizeHeaderDetails),
-              onHover: _handleOnHover,
-              child: child,
-            );
-          },
+        child: MouseRegion(
+          cursor: _getMouseCursor(),
+          onHover: _handleOnHover,
           child: widget.child,
         ),
       ),
