@@ -217,10 +217,12 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
       newExtent = extent + (offset - initialOffset);
     }
 
+    newExtent = newExtent.floorToDouble();
+
     headerController.updateState(
       (previousState) => headerController.value.setHeaderExtent(
         index,
-        newExtent.floorToDouble(),
+        newExtent,
       ),
     );
 
