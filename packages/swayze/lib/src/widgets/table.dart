@@ -175,6 +175,7 @@ class SliverSwayzeTableState extends State<SliverSwayzeTable> {
                 horizontalDisplacement: horizontalDisplacement,
                 wrapTableBody: widget.wrapTableBody,
                 wrapHeader: widget.wrapHeader,
+                onHeaderExtentChanged: widget.onHeaderExtentChanged,
               );
 
         return TableShortcuts(
