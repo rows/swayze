@@ -79,18 +79,13 @@ class SwayzeSelectionController extends Listenable implements ControllerBase {
   }
 
   /// Check if the index [headerIndex] is covered by any header selection.
-  bool isHeaderSelected(int headerIndex, Axis axis) {
-    final selections =
-        userSelectionState.selections.whereType<HeaderUserSelectionModel>();
-
-    for (final headerSelection in selections) {
-      if (headerSelection.axis == axis &&
-          headerSelection.contains(headerIndex)) {
-        return true;
-      }
-    }
-    return false;
-  }
+  bool isHeaderSelected(int headerIndex, Axis axis) =>
+      userSelectionState.selections.any(
+        (selection) =>
+            selection is HeaderUserSelectionModel &&
+            selection.axis == axis &&
+            selection.contains(headerIndex),
+      );
 
   @override
   void addListener(VoidCallback listener) {

@@ -67,9 +67,11 @@ class SwayzeStyle {
         offset: Offset(2, 2),
       ),
     ],
-    dragNDropPreviewLineColor: Colors.amberAccent,
-    dragNDropPreviewHeadersColor: Colors.black26,
-    dragNDropPreviewLineWidth: 2.0,
+    dragAndDropStyle: const SwayzeHeaderDragAndDropStyle(
+      previewHeadersColor: Colors.black26,
+      previewLineColor: Colors.amberAccent,
+      previewLineWidth: 2.0,
+    ),
   );
 
   // Headers
@@ -108,14 +110,7 @@ class SwayzeStyle {
 
   final List<BoxShadow> inlineEditorShadow;
 
-  /// The color of the line that previews where dragged headers will be dropped.
-  final Color dragNDropPreviewLineColor;
-
-  /// Width of the line that previews where dragged headers will be dropped.
-  final double dragNDropPreviewLineWidth;
-
-  /// The color of the preview headers that are being dragged.
-  final Color dragNDropPreviewHeadersColor;
+  final SwayzeHeaderDragAndDropStyle dragAndDropStyle;
 
   const SwayzeStyle({
     required this.defaultHeaderPalette,
@@ -129,9 +124,7 @@ class SwayzeStyle {
     required this.userSelectionStyle,
     required this.selectionAnimationDuration,
     required this.inlineEditorShadow,
-    required this.dragNDropPreviewLineColor,
-    required this.dragNDropPreviewHeadersColor,
-    required this.dragNDropPreviewLineWidth,
+    required this.dragAndDropStyle,
   });
 
   /// Copy an instance of [SwayzeStyle] with certain modifications.
@@ -149,9 +142,7 @@ class SwayzeStyle {
     SelectionStyle? userSelectionStyle,
     Duration? selectionAnimationDuration,
     List<BoxShadow>? inlineEditorShadow,
-    Color? dragNDropPreviewLineColor,
-    Color? dragNDropPreviewHeadersColor,
-    double? dragNDropPreviewLineWidth,
+    SwayzeHeaderDragAndDropStyle? dragAndDropStyle,
   }) {
     return SwayzeStyle(
       defaultHeaderPalette: defaultHeaderPalette ?? this.defaultHeaderPalette,
@@ -170,12 +161,7 @@ class SwayzeStyle {
       selectionAnimationDuration:
           selectionAnimationDuration ?? this.selectionAnimationDuration,
       inlineEditorShadow: inlineEditorShadow ?? this.inlineEditorShadow,
-      dragNDropPreviewLineColor:
-          dragNDropPreviewLineColor ?? this.dragNDropPreviewLineColor,
-      dragNDropPreviewHeadersColor:
-          dragNDropPreviewHeadersColor ?? this.dragNDropPreviewHeadersColor,
-      dragNDropPreviewLineWidth:
-          dragNDropPreviewLineWidth ?? this.dragNDropPreviewLineWidth,
+      dragAndDropStyle: dragAndDropStyle ?? this.dragAndDropStyle,
     );
   }
 
@@ -194,9 +180,7 @@ class SwayzeStyle {
           userSelectionStyle == other.userSelectionStyle &&
           selectionAnimationDuration == other.selectionAnimationDuration &&
           inlineEditorShadow == other.inlineEditorShadow &&
-          dragNDropPreviewLineColor == other.dragNDropPreviewLineColor &&
-          dragNDropPreviewHeadersColor == other.dragNDropPreviewHeadersColor &&
-          dragNDropPreviewLineWidth == other.dragNDropPreviewLineWidth;
+          dragAndDropStyle == other.dragAndDropStyle;
 
   @override
   int get hashCode =>
@@ -209,7 +193,39 @@ class SwayzeStyle {
       defaultCellBackground.hashCode ^
       userSelectionStyle.hashCode ^
       inlineEditorShadow.hashCode ^
-      dragNDropPreviewLineColor.hashCode ^
-      dragNDropPreviewLineWidth.hashCode ^
-      dragNDropPreviewHeadersColor.hashCode;
+      dragAndDropStyle.hashCode;
+}
+
+/// Style for header drag and drop preview widgets.
+@immutable
+class SwayzeHeaderDragAndDropStyle {
+  /// The color of the line that previews where dragged headers will be dropped.
+  final Color previewLineColor;
+
+  /// Width of the line that previews where dragged headers will be dropped.
+  final double previewLineWidth;
+
+  /// The color of the preview headers that are being dragged.
+  final Color previewHeadersColor;
+
+  const SwayzeHeaderDragAndDropStyle({
+    required this.previewLineColor,
+    required this.previewLineWidth,
+    required this.previewHeadersColor,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SwayzeHeaderDragAndDropStyle &&
+          runtimeType == other.runtimeType &&
+          previewLineColor == other.previewLineColor &&
+          previewLineWidth == other.previewLineWidth &&
+          previewHeadersColor == other.previewHeadersColor;
+
+  @override
+  int get hashCode =>
+      previewLineColor.hashCode ^
+      previewLineWidth.hashCode ^
+      previewHeadersColor.hashCode;
 }

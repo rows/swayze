@@ -18,8 +18,8 @@ class HeaderDragAndDropPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lineColor = swayzeStyle.dragNDropPreviewLineColor;
-    final lineWidth = swayzeStyle.dragNDropPreviewLineWidth;
+    final lineColor = swayzeStyle.dragAndDropStyle.previewLineColor;
+    final lineWidth = swayzeStyle.dragAndDropStyle.previewLineWidth;
 
     final viewportContext = ViewportContextProvider.of(context);
     final header = viewportContext.getAxisContextFor(axis: axis);
@@ -61,7 +61,7 @@ class HeaderDragAndDropPreview extends StatelessWidget {
           pointerPosition: dragState.position,
           headerPosition: headerPosition,
           headerExtent: headerExtent,
-          color: swayzeStyle.dragNDropPreviewHeadersColor,
+          color: swayzeStyle.dragAndDropStyle.previewHeadersColor,
         ),
         if (!blockedRange.contains(currentHeaderIndex))
           _PreviewLine(
