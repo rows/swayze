@@ -23,6 +23,7 @@ class ResizeHeaderLine extends StatelessWidget {
       axis: axis,
       fillColor: style.resizeHeaderStyle.fillColor,
       lineColor: style.resizeHeaderStyle.lineColor,
+      thickness: style.cellSeparatorStrokeWidth,
     );
   }
 }
@@ -36,16 +37,18 @@ class _ResizeHeaderLine extends LeafRenderObjectWidget {
   final Axis axis;
   final Color lineColor;
   final Color fillColor;
+  final double thickness;
 
   const _ResizeHeaderLine({
     required this.axis,
     required this.lineColor,
     required this.fillColor,
+    required this.thickness,
   });
 
   @override
   RenderObject createRenderObject(BuildContext context) {
-    return _RenderResizeHeaderLine(axis, lineColor, fillColor);
+    return _RenderResizeHeaderLine(axis, lineColor, fillColor, thickness);
   }
 
   @override
@@ -56,7 +59,8 @@ class _ResizeHeaderLine extends LeafRenderObjectWidget {
     renderObject
       ..axis = axis
       ..lineColor = lineColor
-      ..fillColor = fillColor;
+      ..fillColor = fillColor
+      ..thickness = thickness;
   }
 }
 
@@ -101,10 +105,24 @@ class _RenderResizeHeaderLine extends RenderBox {
     markNeedsPaint();
   }
 
+  double _thickness;
+
+  double get thickness => _thickness;
+
+  set thickness(double value) {
+    if (_thickness == value) {
+      return;
+    }
+
+    _thickness = value;
+    markNeedsPaint();
+  }
+
   _RenderResizeHeaderLine(
     this._axis,
     this._lineColor,
     this._fillColor,
+    this._thickness,
   );
 
   @override
@@ -122,9 +140,12 @@ class _RenderResizeHeaderLine extends RenderBox {
     () {
       return Paint()
         ..color = lineColor
+        ..strokeWidth = thickness
         ..style = PaintingStyle.stroke;
     },
-  ).withDependency<Color?>(() => lineColor);
+  )
+      .withDependency<Color?>(() => lineColor)
+      .withDependency<double?>(() => thickness);
 
   late final lineFillPaintCache = CachedValue(
     () {

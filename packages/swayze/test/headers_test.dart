@@ -7,6 +7,7 @@ import 'package:swayze/src/widgets/headers/header.dart';
 import 'package:swayze/src/widgets/headers/header_item.dart';
 import 'package:swayze/src/widgets/table_body/selections/primary_selection/primary_selection.dart';
 import 'package:swayze/src/widgets/table_body/selections/secondary_selections/secondary_selections.dart';
+import 'package:swayze/widgets.dart';
 import 'package:swayze_math/swayze_math.dart';
 
 import 'test_utils/create_swayze_controller.dart';
@@ -311,6 +312,7 @@ void main() async {
                   frozenRows: frozenRows,
                 ),
               ),
+              config: const SwayzeConfig(isResizingHeadersEnabled: true),
             ),
           ],
         ),
