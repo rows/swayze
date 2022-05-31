@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../../internal_scope.dart';
 import 'header_edge_info.dart';
 
 class ResizeHeaderDetailsNotifier extends ValueNotifier<ResizeHeaderDetails?> {
@@ -18,11 +19,17 @@ class ResizeHeaderDetailsNotifierProvider
     required Widget child,
   }) : super(key: key, notifier: notifier, child: child);
 
-  static ResizeHeaderDetailsNotifier of(BuildContext context) {
+  static ResizeHeaderDetailsNotifier? of(BuildContext context) {
+    final internalScope = InternalScope.of(context);
+
+    if (!internalScope.config.isResizingHeadersEnabled) {
+      return null;
+    }
+
     return context
         .dependOnInheritedWidgetOfExactType<
-            ResizeHeaderDetailsNotifierProvider>()!
-        .notifier!;
+            ResizeHeaderDetailsNotifierProvider>()
+        ?.notifier;
   }
 }
 

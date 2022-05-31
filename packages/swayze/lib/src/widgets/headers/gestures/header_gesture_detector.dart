@@ -103,8 +103,7 @@ class HeaderGestureDetector extends StatefulWidget {
 class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
   late final internalScope = InternalScope.of(context);
   late final viewportContext = ViewportContextProvider.of(context);
-
-  ResizeHeaderDetailsNotifier? resizeNotifier;
+  late final resizeNotifier = ResizeHeaderDetailsNotifierProvider.of(context);
 
   /// Cache to make the position of the start of a drag gesture acessible in
   /// the drag updates.
@@ -119,10 +118,6 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
   @override
   void initState() {
     super.initState();
-
-    if (internalScope.config.isResizingHeadersEnabled) {
-      resizeNotifier = ResizeHeaderDetailsNotifierProvider.of(context);
-    }
 
     viewportContext
         .getAxisContextFor(axis: widget.axis)
