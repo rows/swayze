@@ -8,7 +8,6 @@ import '../../core/viewport_context/viewport_context.dart';
 import '../../core/viewport_context/viewport_context_provider.dart';
 import '../internal_scope.dart';
 import '../shared/expand_all.dart';
-import '../table.dart';
 import '../wrappers.dart';
 import 'gestures/header_gesture_detector.dart';
 import 'header_displacer.dart';
