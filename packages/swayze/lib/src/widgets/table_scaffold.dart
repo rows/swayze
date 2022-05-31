@@ -6,6 +6,7 @@ import '../core/viewport_context/viewport_context_provider.dart';
 import '../core/virtualization/virtualization_calculator.dart';
 import 'headers/gestures/resize_header/header_edge_mouse_listener.dart';
 import 'headers/header.dart';
+import 'internal_scope.dart';
 import 'table.dart';
 import 'table_body/table_body.dart';
 import 'wrappers.dart';
@@ -66,6 +67,7 @@ class _TableScaffoldState extends State<TableScaffold> {
   late final viewportContext = ViewportContextProvider.of(context);
   late final verticalRangeNotifier =
       viewportContext.rows.virtualizationState.rangeNotifier;
+  late final internalScope = InternalScope.of(context);
 
   // The state for sizes of headers
   final double columnHeaderHeight = config.kColumnHeaderHeight;
@@ -105,38 +107,44 @@ class _TableScaffoldState extends State<TableScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    return HeaderEdgeMouseListener(
-      onHeaderExtentChanged: widget.onHeaderExtentChanged,
-      child: CustomMultiChildLayout(
-        delegate: _TableScaffoldDelegate(rowHeaderWidth, columnHeaderHeight),
-        children: [
-          LayoutId(
-            id: _TableScaffoldSlot.columnHeaders,
-            child: Header(
-              axis: Axis.horizontal,
-              displacement: widget.horizontalDisplacement,
-              wrapHeader: widget.wrapHeader,
-            ),
+    final child = CustomMultiChildLayout(
+      delegate: _TableScaffoldDelegate(rowHeaderWidth, columnHeaderHeight),
+      children: [
+        LayoutId(
+          id: _TableScaffoldSlot.columnHeaders,
+          child: Header(
+            axis: Axis.horizontal,
+            displacement: widget.horizontalDisplacement,
+            wrapHeader: widget.wrapHeader,
           ),
-          LayoutId(
-            id: _TableScaffoldSlot.rowsHeaders,
-            child: Header(
-              axis: Axis.vertical,
-              displacement: widget.verticalDisplacement,
-              wrapHeader: widget.wrapHeader,
-            ),
+        ),
+        LayoutId(
+          id: _TableScaffoldSlot.rowsHeaders,
+          child: Header(
+            axis: Axis.vertical,
+            displacement: widget.verticalDisplacement,
+            wrapHeader: widget.wrapHeader,
           ),
-          LayoutId(
-            id: _TableScaffoldSlot.tableBody,
-            child: TableBody(
-              horizontalDisplacement: widget.horizontalDisplacement,
-              verticalDisplacement: widget.verticalDisplacement,
-              wrapTableBody: widget.wrapTableBody,
-            ),
+        ),
+        LayoutId(
+          id: _TableScaffoldSlot.tableBody,
+          child: TableBody(
+            horizontalDisplacement: widget.horizontalDisplacement,
+            verticalDisplacement: widget.verticalDisplacement,
+            wrapTableBody: widget.wrapTableBody,
           ),
-        ],
-      ),
+        ),
+      ],
     );
+
+    if (internalScope.config.isResizingHeadersEnabled) {
+      return HeaderEdgeMouseListener(
+        onHeaderExtentChanged: widget.onHeaderExtentChanged,
+        child: child,
+      );
+    }
+
+    return child;
   }
 }
 

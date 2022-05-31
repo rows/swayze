@@ -103,7 +103,8 @@ class HeaderGestureDetector extends StatefulWidget {
 class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
   late final internalScope = InternalScope.of(context);
   late final viewportContext = ViewportContextProvider.of(context);
-  late final resizeNotifier = ResizeHeaderDetailsNotifierProvider.of(context);
+
+  ResizeHeaderDetailsNotifier? resizeNotifier;
 
   /// Cache to make the position of the start of a drag gesture acessible in
   /// the drag updates.
@@ -118,6 +119,10 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
   @override
   void initState() {
     super.initState();
+
+    if (internalScope.config.isResizingHeadersEnabled) {
+      resizeNotifier = ResizeHeaderDetailsNotifierProvider.of(context);
+    }
 
     viewportContext
         .getAxisContextFor(axis: widget.axis)
@@ -441,7 +446,7 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
             () => PanGestureRecognizer(debugOwner: this),
             (PanGestureRecognizer instance) {
               instance.onStart = (DragStartDetails details) {
-                if (resizeNotifier.isHoveringHeaderEdge) {
+                if (resizeNotifier?.isHoveringHeaderEdge ?? false) {
                   return;
                 }
 
@@ -467,7 +472,7 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                 dragOriginOffsetCache = headerGestureDetails.localPosition;
               };
               instance.onUpdate = (DragUpdateDetails details) {
-                if (resizeNotifier.isResizingHeader) {
+                if (resizeNotifier?.isResizingHeader ?? false) {
                   return;
                 }
 
@@ -490,7 +495,7 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                 handleUpdateSelection(headerGestureDetails);
               };
               instance.onEnd = (DragEndDetails details) {
-                if (resizeNotifier.isResizingHeader) {
+                if (resizeNotifier?.isResizingHeader ?? false) {
                   return;
                 }
 
@@ -509,7 +514,7 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                 }
               };
               instance.onCancel = () {
-                if (resizeNotifier.isResizingHeader) {
+                if (resizeNotifier?.isResizingHeader ?? false) {
                   return;
                 }
 
@@ -527,7 +532,7 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
             () => TapGestureRecognizer(debugOwner: this),
             (TapGestureRecognizer instance) {
               instance.onTapUp = (TapUpDetails details) {
-                if (resizeNotifier.isHoveringHeaderEdge) {
+                if (resizeNotifier?.isHoveringHeaderEdge ?? false) {
                   return;
                 }
 
