@@ -441,6 +441,10 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
             () => PanGestureRecognizer(debugOwner: this),
             (PanGestureRecognizer instance) {
               instance.onStart = (DragStartDetails details) {
+                if (resizeNotifier.isHoveringHeaderEdge) {
+                  return;
+                }
+
                 final headerGestureDetails = _getHeaderGestureDetails(
                   axis: widget.axis,
                   context: context,
@@ -463,6 +467,10 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                 dragOriginOffsetCache = headerGestureDetails.localPosition;
               };
               instance.onUpdate = (DragUpdateDetails details) {
+                if (resizeNotifier.isResizingHeader) {
+                  return;
+                }
+
                 final headerGestureDetails = _getHeaderGestureDetails(
                   axis: widget.axis,
                   context: context,
@@ -482,6 +490,10 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                 handleUpdateSelection(headerGestureDetails);
               };
               instance.onEnd = (DragEndDetails details) {
+                if (resizeNotifier.isResizingHeader) {
+                  return;
+                }
+
                 dragOriginOffsetCache = null;
                 internalScope.controller.scroll.stopAutoScroll(widget.axis);
 
@@ -497,6 +509,10 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                 }
               };
               instance.onCancel = () {
+                if (resizeNotifier.isResizingHeader) {
+                  return;
+                }
+
                 dragOriginOffsetCache = null;
                 internalScope.controller.scroll.stopAutoScroll(widget.axis);
 
@@ -511,6 +527,10 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
             () => TapGestureRecognizer(debugOwner: this),
             (TapGestureRecognizer instance) {
               instance.onTapUp = (TapUpDetails details) {
+                if (resizeNotifier.isHoveringHeaderEdge) {
+                  return;
+                }
+
                 final headerGestureDetails = _getHeaderGestureDetails(
                   axis: widget.axis,
                   context: context,
