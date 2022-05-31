@@ -176,7 +176,6 @@ class _HeaderRangeSubscriber extends StatefulWidget {
   final double displacement;
   final ValueListenable<ViewportAxisContextState> rangeNotifier;
   final Color background;
-  final OnHeaderExtentChanged? onHeaderExtentChanged;
 
   const _HeaderRangeSubscriber({
     Key? key,
@@ -184,7 +183,6 @@ class _HeaderRangeSubscriber extends StatefulWidget {
     required this.rangeNotifier,
     required this.displacement,
     required this.background,
-    this.onHeaderExtentChanged,
   }) : super(key: key);
 
   @override
