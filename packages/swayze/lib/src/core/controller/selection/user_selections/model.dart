@@ -183,11 +183,10 @@ class HeaderUserSelectionModel extends AxisBoundedSelection
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      super == other &&
+      (super == other &&
           other is HeaderUserSelectionModel &&
           runtimeType == other.runtimeType &&
-          id == other.id &&
-          style == other.style;
+          style == other.style);
 
   @override
   int get hashCode => super.hashCode ^ id.hashCode ^ style.hashCode;
