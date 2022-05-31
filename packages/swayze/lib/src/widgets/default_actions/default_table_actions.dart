@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../../core/intents/intents.dart';
 import '../../core/viewport_context/viewport_context_provider.dart';
 import '../internal_scope.dart';
+import 'drag_n_drop_actions.dart';
 import 'inline_editor_actions.dart';
 import 'selection_actions.dart';
 
@@ -76,6 +77,22 @@ class _DefaultActionsState extends State<DefaultActions> {
           viewportContext,
         ).overridable(context),
         HeaderSelectionUpdateIntent: HeaderSelectionUpdateAction(
+          internalScope,
+          viewportContext,
+        ).overridable(context),
+        HeaderDragStartIntent: HeaderDragStartAction(
+          internalScope,
+          viewportContext,
+        ).overridable(context),
+        HeaderDragEndIntent: HeaderDragEndAction(
+          internalScope,
+          viewportContext,
+        ).overridable(context),
+        HeaderDragUpdateIntent: HeaderDragUpdateAction(
+          internalScope,
+          viewportContext,
+        ).overridable(context),
+        HeaderDragCancelIntent: HeaderDragCancelAction(
           internalScope,
           viewportContext,
         ).overridable(context),

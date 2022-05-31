@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
 
 import '../controller.dart';
+
 export 'model/selection.dart';
 export 'model/selection_style.dart';
 export 'user_selections/model.dart';
@@ -75,6 +77,15 @@ class SwayzeSelectionController extends Listenable implements ControllerBase {
   ) {
     userSelections.value = stateUpdate(userSelections.value);
   }
+
+  /// Check if the index [headerIndex] is covered by any header selection.
+  bool isHeaderSelected(int headerIndex, Axis axis) =>
+      userSelectionState.selections.any(
+        (selection) =>
+            selection is HeaderUserSelectionModel &&
+            selection.axis == axis &&
+            selection.contains(headerIndex),
+      );
 
   @override
   void addListener(VoidCallback listener) {

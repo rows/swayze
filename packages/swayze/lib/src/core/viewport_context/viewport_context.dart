@@ -162,6 +162,10 @@ class ViewportAxisContextState {
   /// Just like [visibleIndices] but for the [frozenRange]
   final Iterable<int> visibleFrozenIndices;
 
+  /// Holds the current header drag state if there is an ongoing drag and drop
+  /// action.
+  final ViewportHeaderDragContextState? headerDragState;
+
   const ViewportAxisContextState({
     required this.scrollableRange,
     required this.frozenRange,
@@ -173,7 +177,11 @@ class ViewportAxisContextState {
     required this.frozenSizes,
     required this.visibleIndices,
     required this.visibleFrozenIndices,
+    this.headerDragState,
   });
+
+  /// True if there is an ongoing drag and drop action.
+  bool get isDragging => headerDragState != null;
 
   @override
   bool operator ==(Object other) =>
@@ -184,6 +192,7 @@ class ViewportAxisContextState {
           frozenRange == other.frozenRange &&
           extent == other.extent &&
           frozenExtent == other.frozenExtent &&
+          headerDragState == other.headerDragState &&
           _kDoubleListEquality.equals(offsets, other.offsets) &&
           _kDoubleListEquality.equals(frozenOffsets, other.frozenOffsets) &&
           _kDoubleListEquality.equals(sizes, other.sizes) &&
@@ -205,7 +214,49 @@ class ViewportAxisContextState {
       sizes.hashCode ^
       frozenSizes.hashCode ^
       visibleIndices.hashCode ^
-      visibleFrozenIndices.hashCode;
+      visibleFrozenIndices.hashCode ^
+      headerDragState.hashCode;
+}
+
+/// Holds the state of an ongoing header drag and drop action.
+@immutable
+class ViewportHeaderDragContextState {
+  /// Headers that are being dragged.
+  final Range headers;
+
+  /// Current dragging reference, eg, the current header that [position]
+  /// is hovering.
+  final int dropAtIndex;
+
+  /// Current dragging position.
+  final Offset position;
+
+  /// Extent of all headers being dragged.
+  final double headersExtent;
+
+  const ViewportHeaderDragContextState({
+    required this.headers,
+    required this.dropAtIndex,
+    required this.position,
+    required this.headersExtent,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ViewportHeaderDragContextState &&
+          runtimeType == other.runtimeType &&
+          headers == other.headers &&
+          dropAtIndex == other.dropAtIndex &&
+          position == other.position &&
+          headersExtent == other.headersExtent;
+
+  @override
+  int get hashCode =>
+      headers.hashCode ^
+      position.hashCode ^
+      headersExtent.hashCode ^
+      dropAtIndex.hashCode;
 }
 
 /// A result of a conversion of a pixel offset into column/row index.
