@@ -6,6 +6,8 @@ import '../../../internal_scope.dart';
 import 'resize_header_details_notifier.dart';
 import 'resize_header_line.dart';
 
+/// An overlay manager that creates a backdrop overlay entry to disable scroll
+/// when resizing an header and another overlay entry for the resize line.
 class ResizeLineOverlayManager {
   final InternalScope internalScope;
   final ValueNotifier<ResizeHeaderDetails?> resizeNotifier;

@@ -30,8 +30,14 @@ class ResizeHeaderDetailsNotifierProvider
 class ResizeHeaderDetails {
   final HeaderEdgeInfo edgeInfo;
   final Axis axis;
+
+  /// The offset when the user has started resizing the header.
   final double? initialOffset;
+
+  /// The minimum offset that the resize line can go to.
   final double? minOffset;
+
+  /// The current offset of the resize line.
   final double? offset;
 
   const ResizeHeaderDetails({

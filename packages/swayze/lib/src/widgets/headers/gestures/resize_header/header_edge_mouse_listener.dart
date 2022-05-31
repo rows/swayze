@@ -9,6 +9,14 @@ import '../../../internal_scope.dart';
 import 'resize_header_details_notifier.dart';
 import 'resize_line_overlay_manager.dart';
 
+/// A class that returns a mouse region that changes the mouse cursor to
+/// [SystemMouseCursors.resizeColumn] or [SystemMouseCursors.resizeRow],
+/// depending on the axis, when the user is hovering an header edge.
+///
+/// It also has a listener that takes care of showing the resize line when
+/// the user taps the mouse button. Updating the resize line when the user
+/// moves the mouse cursor. Updating the header extent when the user lets go
+/// the mouse button.
 class HeaderEdgeMouseListener extends StatefulWidget {
   final OnHeaderExtentChanged? onHeaderExtentChanged;
   final Widget child;
@@ -51,6 +59,7 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
     super.dispose();
   }
 
+  /// Update the resize cursor if the user is hovering an header edge.
   void _didHoverHeaderEdge() {
     final showResizeCursor = resizeNotifier.value != null;
 
@@ -79,8 +88,6 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
   }
 
   /// Checks if the mouse coordinates are at an header edge.
-  ///
-  /// In case it does, it updates [_resizeNotifier.value].
   void _handleOnHover(PointerHoverEvent event) {
     Axis? axis;
 
@@ -109,6 +116,10 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
     resizeNotifier.value = null;
   }
 
+  /// Updates [resizeNotifier.value] if the user is hovering an headers edge.
+  ///
+  /// Returns `true` if [resizeNotifier.value] has been updated and `false`
+  /// otherwise.
   bool _updateHeaderEdgeDetails({
     required Offset localPosition,
     required Axis axis,
@@ -117,6 +128,10 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
 
     final axisContext = viewportContext.getAxisContextFor(axis: axis);
 
+    // since this widget will be placed at a table, we need to take into account
+    // that from `0` to `kRowHeaderWidth` or `kColumnHeaderHeight` (depending on
+    // the axis), there's an empty space. Since the `localPosition` will still
+    // count that into it's offset, we subtract that extent.
     if (axis == Axis.horizontal) {
       localPixelOffset -= kRowHeaderWidth;
     } else {
@@ -131,6 +146,8 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
         displacement < 0 &&
         localPixelOffset < frozenExtent + 2;
 
+    // we need to ignore the `displacement` in frozen headers since they are
+    // fixed when we scroll.
     if (!ignoreDisplacement) {
       localPixelOffset += displacement.abs();
     }
@@ -156,6 +173,8 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
   double minExtent(Axis axis) =>
       axis == Axis.horizontal ? kDefaultCellWidth : kDefaultCellHeight;
 
+  /// Inserts an [OverlayEntry] to the current [OverlayState] with resize line
+  /// on it at the header edge that is being hovered.
   void _handleOnPointerDown(PointerDownEvent event) {
     if (!resizeNotifier.isHoveringHeaderEdge) {
       return;
@@ -179,6 +198,8 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
     resizeLineOverlayManager.insertEntries(context);
   }
 
+  /// Updates the resize line position by adding [event.delta] to
+  /// its current position.
   void _handleOnPointerMove(PointerMoveEvent event) {
     if (!resizeNotifier.isResizingHeader) {
       return;
@@ -193,6 +214,8 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
     resizeNotifier.value = details.copyWith(offset: newOffset);
   }
 
+  /// Sets the header extent of the header that has been resized and removes the
+  /// [OverlayEntry] that contains the resize line.
   void _handleOnPointerUp(PointerUpEvent event) {
     if (!resizeNotifier.isResizingHeader) {
       return;
