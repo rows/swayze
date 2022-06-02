@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../../../../helpers.dart';
 import '../../../internal_scope.dart';
 import 'header_edge_info.dart';
 
@@ -57,16 +58,17 @@ class ResizeHeaderDetails {
 
   ResizeHeaderDetails copyWith({
     HeaderEdgeInfo? edgeInfo,
-    double? initialOffset,
-    double? minOffset,
-    double? offset,
+    Wrapped<double?>? initialOffset,
+    Wrapped<double?>? minOffset,
+    Wrapped<double?>? offset,
   }) {
     return ResizeHeaderDetails(
       edgeInfo: edgeInfo ?? this.edgeInfo,
       axis: axis,
-      initialOffset: initialOffset ?? this.initialOffset,
-      minOffset: minOffset ?? this.minOffset,
-      offset: offset ?? this.offset,
+      initialOffset:
+          initialOffset != null ? initialOffset.value : this.initialOffset,
+      minOffset: minOffset != null ? minOffset.value : this.minOffset,
+      offset: offset != null ? offset.value : this.offset,
     );
   }
 

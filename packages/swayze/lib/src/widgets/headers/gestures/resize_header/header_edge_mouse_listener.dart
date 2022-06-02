@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../../../../helpers.dart';
 import '../../../../../widgets.dart';
 import '../../../../core/viewport_context/viewport_context_provider.dart';
 import '../../../internal_scope.dart';
@@ -190,9 +191,9 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
         initialOffset - (details.edgeInfo.width - minExtent(axis));
 
     resizeNotifier.value = details.copyWith(
-      offset: initialOffset,
-      initialOffset: initialOffset,
-      minOffset: minOffset,
+      offset: Wrapped.value(initialOffset),
+      initialOffset: Wrapped.value(initialOffset),
+      minOffset: Wrapped.value(minOffset),
     );
 
     resizeLineOverlayManager.insertEntries(context);
@@ -211,7 +212,7 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
 
     final newOffset = offset + _getOffsetPositionForAxis(event.delta, axis);
 
-    resizeNotifier.value = details.copyWith(offset: newOffset);
+    resizeNotifier.value = details.copyWith(offset: Wrapped.value(newOffset));
   }
 
   /// Sets the header extent of the header that has been resized and removes the
