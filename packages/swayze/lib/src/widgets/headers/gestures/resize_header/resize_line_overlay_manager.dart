@@ -70,12 +70,13 @@ class ResizeLineOverlayManager {
               top: top,
               width: box.size.width,
               height: box.size.height,
-              child: ResizeHeaderLine(
-                style: internalScope.style,
-                axis: resizeDetails.axis,
-              ),
+              child: child!,
             );
           },
+          child: ResizeHeaderLine(
+            style: internalScope.style,
+            axis: resizeNotifier.value!.axis,
+          ),
         );
       },
     );
