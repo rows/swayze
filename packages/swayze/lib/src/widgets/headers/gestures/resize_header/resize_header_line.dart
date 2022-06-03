@@ -170,14 +170,14 @@ class _RenderResizeHeaderLine extends RenderBox {
     if (axis == Axis.horizontal) {
       canvas.drawLine(
         // draw the line after the circle
-        const Offset(0, 5),
+        const Offset(0, radius),
         Offset(0, size.height),
         lineStrokePaintCache.value,
       );
     } else {
       canvas.drawLine(
         // draw the line after the circle
-        const Offset(5, 0),
+        const Offset(radius, 0),
         Offset(size.width, 0),
         lineStrokePaintCache.value,
       );

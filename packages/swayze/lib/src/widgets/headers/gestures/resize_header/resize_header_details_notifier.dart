@@ -20,7 +20,7 @@ class ResizeHeaderDetailsNotifierProvider
     required Widget child,
   }) : super(key: key, notifier: notifier, child: child);
 
-  static ResizeHeaderDetailsNotifier? of(BuildContext context) {
+  static ResizeHeaderDetailsNotifier? maybeOf(BuildContext context) {
     final internalScope = InternalScope.of(context);
 
     if (!internalScope.config.isResizingHeadersEnabled) {

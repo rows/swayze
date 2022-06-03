@@ -132,7 +132,7 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
     // since this widget will be placed at a table, we need to take into account
     // that from `0` to `kRowHeaderWidth` or `kColumnHeaderHeight` (depending on
     // the axis), there's an empty space. Since the `localPosition` will still
-    // count that into it's offset, we subtract that extent.
+    // count that into its offset, we subtract that extent.
     if (axis == Axis.horizontal) {
       localPixelOffset -= kRowHeaderWidth;
     } else {
@@ -145,7 +145,11 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
 
     final ignoreDisplacement = hasFrozenHeaders &&
         displacement < 0 &&
-        localPixelOffset < frozenExtent + 2;
+        // since hovering the last frozen header separator plus
+        // `kMaxEdgeOffsetAdder` also counts as hovering the frozen header,
+        // we take into account the frozen headers extent and
+        // `kMaxEdgeOffsetAdder`.
+        localPixelOffset < frozenExtent + kMaxEdgeOffsetAdder;
 
     // we need to ignore the `displacement` in frozen headers since they are
     // fixed when we scroll.

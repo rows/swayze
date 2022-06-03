@@ -8,6 +8,9 @@ import '../virtualization/virtualization_calculator.dart'
     show VirtualizationCalculator, VirtualizationState;
 import 'viewport_context.dart';
 
+const _kMinEdgeOffsetAdder = -2;
+const kMaxEdgeOffsetAdder = 2;
+
 /// A [StatefulWidget] that detects changes on the two axis
 /// [VirtualizationState.rangeNotifier] to create a [ViewportContext] and
 /// add it to the tree context via [_ViewportContextProviderScope].
@@ -239,7 +242,7 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
     required int index,
     required double size,
   }) {
-    for (var i = -2; i <= 2; i++) {
+    for (var i = _kMinEdgeOffsetAdder; i <= kMaxEdgeOffsetAdder; i++) {
       headersEdgesOffsets[offset.floorToDouble() + i] = HeaderEdgeInfo(
         index: index,
         width: size,
