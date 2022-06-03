@@ -37,6 +37,7 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
   late final resizeNotifier = ResizeHeaderDetailsNotifier(null);
   late final internalScope = InternalScope.of(context);
   late final viewportContext = ViewportContextProvider.of(context);
+  late final table = SliverSwayzeTable.of(context);
 
   late final resizeLineOverlayManager = ResizeLineOverlayManager(
     internalScope: internalScope,
@@ -201,6 +202,8 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
     );
 
     resizeLineOverlayManager.insertEntries(context);
+
+    table.disableShortcuts();
   }
 
   /// Updates the resize line position by adding [event.delta] to
@@ -261,6 +264,8 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
     resizeNotifier.value = null;
 
     resizeLineOverlayManager.removeEntries();
+
+    table.enableShortcuts();
   }
 
   @override

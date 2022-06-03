@@ -142,6 +142,10 @@ class SliverSwayzeTable<CellDataType extends SwayzeCellData>
         ),
         super(key: key);
 
+  static SliverSwayzeTableState of(BuildContext context) {
+    return context.findAncestorStateOfType<SliverSwayzeTableState>()!;
+  }
+
   @override
   SliverSwayzeTableState createState() => SliverSwayzeTableState();
 }
@@ -149,6 +153,16 @@ class SliverSwayzeTable<CellDataType extends SwayzeCellData>
 /// This class is stateful due to its access via
 /// [SwayzeScrollController.ensureTableVisibility].
 class SliverSwayzeTableState extends State<SliverSwayzeTable> {
+  bool _enableShortcuts = true;
+
+  void enableShortcuts() {
+    _enableShortcuts = true;
+  }
+
+  void disableShortcuts() {
+    _enableShortcuts = false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final effectiveHeaderHeight =
@@ -186,6 +200,13 @@ class SliverSwayzeTableState extends State<SliverSwayzeTable> {
               child: Focus(
                 autofocus: widget.autofocus,
                 focusNode: widget.focusNode,
+                onKey: (node, event) {
+                  if (_enableShortcuts) {
+                    return KeyEventResult.ignored;
+                  }
+
+                  return KeyEventResult.handled;
+                },
                 child: InlineEditorPlacer(
                   inlineEditorBuilder: widget.inlineEditorBuilder,
                   child: child,
