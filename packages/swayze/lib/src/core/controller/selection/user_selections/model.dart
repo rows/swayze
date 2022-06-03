@@ -97,8 +97,6 @@ class HeaderUserSelectionModel extends AxisBoundedSelection
   /// Create a [HeaderUserSelectionModel] given its edges
   /// ([anchor] and [focus]).
   ///
-  /// if [id] is omitted, an uuid is generated.
-  ///
   /// Since this selection is simply a [Range], we convert [anchor] and [focus]
   /// into range's [start] and [end] values.
   factory HeaderUserSelectionModel.fromAnchorFocus({
@@ -192,8 +190,6 @@ class CellUserSelectionModel extends BoundedSelection
 
   /// Create a [CellUserSelectionModel] given its opposite corners
   /// ([anchor] and [focus]).
-  ///
-  /// If [id] is omitted, an uuid is generated.
   ///
   /// Since this selection is a [Range2D], we convert [anchor] and [focus]
   /// into range's [leftTop] and [rightBottom] values.
