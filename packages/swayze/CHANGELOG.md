@@ -1,6 +1,6 @@
 # 1.2.0
 
-- Removes `id` property from `UserSelectionModel`.
+- Deprecates `id` property on `UserSelectionModel`.
 
 # 1.1.0
 

@@ -2,13 +2,20 @@ import 'dart:math';
 
 import 'package:flutter/rendering.dart';
 import 'package:swayze_math/swayze_math.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../../helpers/basic_types.dart';
 import '../model/selection.dart';
 import '../model/selection_style.dart';
 
+const _uuid = Uuid();
+
 /// Defines a [Selection] that is controllable by a [UserSelectionState].
 abstract class UserSelectionModel extends Selection {
+  /// Unique identifier of a selection in a [UserSelectionState]
+  @Deprecated('')
+  String get id;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -22,16 +29,22 @@ abstract class UserSelectionModel extends Selection {
 /// It selects the entire table.
 class TableUserSelectionModel implements UserSelectionModel {
   @override
+  @Deprecated('')
+  final String id;
+
+  @override
   final SelectionStyle? style = null;
 
   TableUserSelectionModel._({
+    @Deprecated('') String? id,
     required this.anchorCoordinate,
-  });
+  }) : id = id ?? _uuid.v4();
 
   factory TableUserSelectionModel.fromSelectionModel(
     UserSelectionModel original,
   ) {
     return TableUserSelectionModel._(
+      id: original.id,
       anchorCoordinate: original.anchorCoordinate,
     );
   }
@@ -59,11 +72,12 @@ class TableUserSelectionModel implements UserSelectionModel {
       identical(this, other) ||
       other is TableUserSelectionModel &&
           runtimeType == other.runtimeType &&
+          id == other.id &&
           style == other.style &&
           anchorCoordinate == other.anchorCoordinate;
 
   @override
-  int get hashCode => style.hashCode ^ anchorCoordinate.hashCode;
+  int get hashCode => id.hashCode ^ style.hashCode ^ anchorCoordinate.hashCode;
 }
 
 /// A [UserSelectionModel] that covers entire columns or rows.
@@ -77,17 +91,24 @@ class TableUserSelectionModel implements UserSelectionModel {
 /// It is always constructed via [AxisBoundedSelection.crossAxisUnbounded].
 class HeaderUserSelectionModel extends AxisBoundedSelection
     implements UserSelectionModel {
+  /// See [UserSelectionModel.id]
+  @override
+  @Deprecated('')
+  final String id;
+
   /// See [UserSelectionModel.style]
   @override
   final SelectionStyle? style;
 
-  const HeaderUserSelectionModel._({
+  HeaderUserSelectionModel._({
+    @Deprecated('') String? id,
     required Axis boundedAxis,
     required RangeEdge anchorEdge,
     required int start,
     required int end,
     required this.style,
-  }) : super.crossAxisUnbounded(
+  })  : id = id ?? _uuid.v4(),
+        super.crossAxisUnbounded(
           axis: boundedAxis,
           anchorEdge: anchorEdge,
           start: start,
@@ -97,9 +118,12 @@ class HeaderUserSelectionModel extends AxisBoundedSelection
   /// Create a [HeaderUserSelectionModel] given its edges
   /// ([anchor] and [focus]).
   ///
+  /// if [id] is omitted, an uuid is generated.
+  ///
   /// Since this selection is simply a [Range], we convert [anchor] and [focus]
   /// into range's [start] and [end] values.
   factory HeaderUserSelectionModel.fromAnchorFocus({
+    @Deprecated('') String? id,
     required int anchor,
     required int focus,
     required Axis axis,
@@ -113,6 +137,7 @@ class HeaderUserSelectionModel extends AxisBoundedSelection
     final anchorEdge = anchor <= focus ? RangeEdge.leading : RangeEdge.trailing;
 
     return HeaderUserSelectionModel._(
+      id: id,
       anchorEdge: anchorEdge,
       start: start,
       end: end,
@@ -130,6 +155,7 @@ class HeaderUserSelectionModel extends AxisBoundedSelection
     required Axis axis,
   }) {
     return HeaderUserSelectionModel.fromAnchorFocus(
+      id: original.id,
       anchor: anchor,
       focus: focus,
       axis: axis,
@@ -149,6 +175,7 @@ class HeaderUserSelectionModel extends AxisBoundedSelection
     SelectionStyle? style,
   }) =>
       HeaderUserSelectionModel.fromAnchorFocus(
+        id: id,
         anchor: anchor ?? this.anchor,
         focus: focus ?? this.focus,
         axis: axis ?? this.axis,
@@ -164,7 +191,7 @@ class HeaderUserSelectionModel extends AxisBoundedSelection
           style == other.style);
 
   @override
-  int get hashCode => super.hashCode ^ style.hashCode;
+  int get hashCode => super.hashCode ^ id.hashCode ^ style.hashCode;
 }
 
 /// A [UserSelectionModel] that represents a [Range2D] of cells.
@@ -175,14 +202,20 @@ class HeaderUserSelectionModel extends AxisBoundedSelection
 class CellUserSelectionModel extends BoundedSelection
     implements UserSelectionModel {
   @override
+  @Deprecated('')
+  final String id;
+
+  @override
   final SelectionStyle? style;
 
   CellUserSelectionModel._({
+    @Deprecated('') String? id,
     required IntVector2 leftTop,
     required IntVector2 rightBottom,
     required Corner anchorCorner,
     required this.style,
-  }) : super(
+  })  : id = id ?? _uuid.v4(),
+        super(
           leftTop: leftTop,
           rightBottom: rightBottom,
           anchorCorner: anchorCorner,
@@ -191,9 +224,12 @@ class CellUserSelectionModel extends BoundedSelection
   /// Create a [CellUserSelectionModel] given its opposite corners
   /// ([anchor] and [focus]).
   ///
+  /// If [id] is omitted, an uuid is generated.
+  ///
   /// Since this selection is a [Range2D], we convert [anchor] and [focus]
   /// into range's [leftTop] and [rightBottom] values.
   factory CellUserSelectionModel.fromAnchorFocus({
+    @Deprecated('') String? id,
     required IntVector2 anchor,
     required IntVector2 focus,
     SelectionStyle? style,
@@ -222,6 +258,7 @@ class CellUserSelectionModel extends BoundedSelection
     }
 
     return CellUserSelectionModel._(
+      id: id,
       leftTop: leftTop,
       rightBottom: rightBottom,
       anchorCorner: anchorCorner,
@@ -237,6 +274,7 @@ class CellUserSelectionModel extends BoundedSelection
     required IntVector2 focus,
   }) {
     return CellUserSelectionModel.fromAnchorFocus(
+      id: original.id,
       anchor: anchor,
       focus: focus,
       style: original.style,
@@ -256,6 +294,7 @@ class CellUserSelectionModel extends BoundedSelection
     SelectionStyle? style,
   }) =>
       CellUserSelectionModel.fromAnchorFocus(
+        id: id,
         anchor: anchor ?? this.anchor,
         focus: focus ?? this.focus,
         style: style ?? this.style,
@@ -267,8 +306,9 @@ class CellUserSelectionModel extends BoundedSelection
       super == other &&
           other is CellUserSelectionModel &&
           runtimeType == other.runtimeType &&
+          id == other.id &&
           style == other.style;
 
   @override
-  int get hashCode => super.hashCode ^ style.hashCode;
+  int get hashCode => super.hashCode ^ id.hashCode ^ style.hashCode;
 }
