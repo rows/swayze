@@ -12,7 +12,6 @@ class ResizeLineOverlayManager {
   final InternalScope internalScope;
   final ValueNotifier<ResizeHeaderDetails?> resizeNotifier;
 
-  OverlayEntry? backdrop;
   OverlayEntry? line;
 
   ResizeLineOverlayManager({
@@ -20,7 +19,7 @@ class ResizeLineOverlayManager {
     required this.resizeNotifier,
   });
 
-  void insertEntries(BuildContext context) {
+  void insertResizeLine(BuildContext context) {
     final overlayState = Overlay.of(context);
 
     if (overlayState == null) {
@@ -31,13 +30,6 @@ class ResizeLineOverlayManager {
     final target = box.localToGlobal(
       Offset.zero,
       ancestor: overlayState.context.findRenderObject(),
-    );
-
-    backdrop ??= OverlayEntry(
-      builder: (context) => const MouseRegion(
-        cursor: SystemMouseCursors.grab,
-        child: ColoredBox(color: Color(0x00000000)),
-      ),
     );
 
     line ??= OverlayEntry(
@@ -81,14 +73,34 @@ class ResizeLineOverlayManager {
       },
     );
 
-    overlayState.insertAll([backdrop!, line!]);
+    _insertBackdrop(context);
+
+    overlayState.insert(line!);
   }
 
-  void removeEntries() {
-    backdrop?.remove();
-    line?.remove();
+  /// Pushes a new route to disable keyboard interaction when resizing.
+  void _insertBackdrop(BuildContext context) {
+    Navigator.of(context).push<void>(
+      PageRouteBuilder(
+        opaque: false,
+        pageBuilder: (_, __, ___) => const MouseRegion(
+          cursor: SystemMouseCursors.grab,
+          child: ColoredBox(
+            color: Color(0x00000000),
+          ),
+        ),
+      ),
+    );
+  }
 
-    backdrop = null;
+  void _removeBackdrop(BuildContext context) {
+    Navigator.of(context).pop();
+  }
+
+  void removeResizeLine(BuildContext context) {
+    _removeBackdrop(context);
+
+    line?.remove();
     line = null;
   }
 }
