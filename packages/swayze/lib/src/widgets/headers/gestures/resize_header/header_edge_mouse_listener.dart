@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../../../../helpers.dart';
 import '../../../../../widgets.dart';
+import '../../../../core/internal_state/table_focus/table_focus_provider.dart';
 import '../../../../core/viewport_context/viewport_context_provider.dart';
 import '../../../internal_scope.dart';
 import 'resize_header_details_notifier.dart';
@@ -38,6 +39,7 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
   late final internalScope = InternalScope.of(context);
   late final viewportContext = ViewportContextProvider.of(context);
   late final table = SliverSwayzeTable.of(context);
+  late final tableFocus = TableFocus.of(context);
 
   late final resizeLineOverlayManager = ResizeLineOverlayManager(
     internalScope: internalScope,
@@ -200,6 +202,8 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
       initialOffset: Wrapped.value(initialOffset),
       minOffset: Wrapped.value(minOffset),
     );
+
+    tableFocus.requestFocus();
 
     resizeLineOverlayManager.insertEntries(context);
 
