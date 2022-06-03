@@ -21,9 +21,10 @@ class ResizeLineOverlayManager {
   });
 
   void insertEntries(BuildContext context) {
+    final rootOverlay = Overlay.of(context, rootOverlay: true);
     final overlayState = Overlay.of(context);
 
-    if (overlayState == null) {
+    if (overlayState == null || rootOverlay == null) {
       return;
     }
 
@@ -33,12 +34,7 @@ class ResizeLineOverlayManager {
       ancestor: overlayState.context.findRenderObject(),
     );
 
-    backdrop ??= OverlayEntry(
-      builder: (context) => const MouseRegion(
-        cursor: SystemMouseCursors.grab,
-        child: ColoredBox(color: Color(0x00000000)),
-      ),
-    );
+    backdrop ??= OverlayEntry(builder: (context) => const _Backdrop());
 
     line ??= OverlayEntry(
       builder: (context) {
@@ -81,7 +77,8 @@ class ResizeLineOverlayManager {
       },
     );
 
-    overlayState.insertAll([backdrop!, line!]);
+    rootOverlay.insert(backdrop!);
+    overlayState.insert(line!);
   }
 
   void removeEntries() {
@@ -90,5 +87,34 @@ class ResizeLineOverlayManager {
 
     backdrop = null;
     line = null;
+  }
+}
+
+class _Backdrop extends StatefulWidget {
+  const _Backdrop({Key? key}) : super(key: key);
+
+  @override
+  State<_Backdrop> createState() => __BackdropState();
+}
+
+class __BackdropState extends State<_Backdrop> {
+  late final focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+
+    focusNode.requestFocus();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Focus(
+      focusNode: focusNode,
+      child: const MouseRegion(
+        cursor: SystemMouseCursors.grab,
+        child: ColoredBox(color: Color(0x00000000)),
+      ),
+    );
   }
 }
