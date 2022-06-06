@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,6 +7,7 @@ import 'package:swayze/src/widgets/headers/header.dart';
 import 'package:swayze/src/widgets/headers/header_item.dart';
 import 'package:swayze/src/widgets/table_body/selections/primary_selection/primary_selection.dart';
 import 'package:swayze/src/widgets/table_body/selections/secondary_selections/secondary_selections.dart';
+import 'package:swayze/widgets.dart';
 import 'package:swayze_math/swayze_math.dart';
 
 import 'test_utils/create_swayze_controller.dart';
@@ -288,6 +290,186 @@ void main() async {
       await expectLater(
         find.byType(TestSwayzeVictim),
         matchesGoldenFile('goldens/drag-selection-header-frozen.png'),
+      );
+    });
+  });
+
+  group('resizing headers', () {
+    Future<void> pumpWidget(
+      WidgetTester tester, {
+      int frozenColumns = 0,
+      int frozenRows = 0,
+    }) {
+      return tester.pumpWidget(
+        TestSwayzeVictim(
+          tables: [
+            TestTableWrapper(
+              swayzeController: createSwayzeController(
+                tableDataController: createTableController(
+                  tableColumnCount: 5,
+                  tableRowCount: 5,
+                  frozenColumns: frozenColumns,
+                  frozenRows: frozenRows,
+                ),
+              ),
+              config: const SwayzeConfig(isResizingHeadersEnabled: true),
+            ),
+          ],
+        ),
+      );
+    }
+
+    Future<TestGesture> createResizeColumnGesture(WidgetTester tester) async {
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+
+      await gesture.addPointer(location: Offset.zero);
+      addTearDown(gesture.removePointer);
+
+      await tester.pump();
+
+      // test column header resize
+      final columnHeaders = find.descendant(
+        of: find.byType(Header).at(0),
+        matching: find.byType(HeaderItem),
+      );
+
+      final columnHeader = columnHeaders.at(1);
+
+      await gesture.moveTo(tester.getTopRight(columnHeader));
+      await tester.pump();
+
+      await gesture.down(tester.getTopRight(columnHeader));
+      await tester.pump();
+
+      // drag vertically too to make sure that the resize line only
+      // moves horizontally.
+      await gesture.moveBy(const Offset(200, 100));
+      await tester.pump();
+
+      return gesture;
+    }
+
+    Future<TestGesture> createResizeRowGesture(WidgetTester tester) async {
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+
+      await gesture.addPointer(location: Offset.zero);
+      addTearDown(gesture.removePointer);
+
+      await tester.pump();
+
+      // test row header resize
+      final rowHeaders = find.descendant(
+        of: find.byType(Header).at(1),
+        matching: find.byType(HeaderItem),
+      );
+
+      final rowHeader = rowHeaders.at(1);
+
+      await gesture.moveTo(tester.getBottomLeft(rowHeader));
+      await tester.pump();
+
+      await gesture.down(tester.getBottomLeft(rowHeader));
+      await tester.pump();
+
+      // drag horizontally too to make sure that the resize line only
+      // moves vertically.
+      await gesture.moveBy(const Offset(200, 25));
+      await tester.pump();
+
+      return gesture;
+    }
+
+    group('no freeze panes', () {
+      testWidgets(
+        'works properly in columns',
+        (tester) async {
+          await pumpWidget(tester);
+
+          final gesture = await createResizeColumnGesture(tester);
+
+          await expectLater(
+            find.byType(TestSwayzeVictim),
+            matchesGoldenFile('goldens/column-header-resizing.png'),
+          );
+
+          await gesture.up();
+          await tester.pumpAndSettle();
+
+          await expectLater(
+            find.byType(TestSwayzeVictim),
+            matchesGoldenFile('goldens/column-header-resize.png'),
+          );
+        },
+      );
+
+      testWidgets(
+        'works properly in rows',
+        (tester) async {
+          await pumpWidget(tester);
+
+          final gesture = await createResizeRowGesture(tester);
+
+          await expectLater(
+            find.byType(TestSwayzeVictim),
+            matchesGoldenFile('goldens/row-header-resizing.png'),
+          );
+
+          await gesture.up();
+          await tester.pumpAndSettle();
+
+          await expectLater(
+            find.byType(TestSwayzeVictim),
+            matchesGoldenFile('goldens/row-header-resize.png'),
+          );
+        },
+      );
+    });
+
+    group('with freeze panes', () {
+      testWidgets(
+        'works properly in columns',
+        (tester) async {
+          await pumpWidget(tester, frozenColumns: 5, frozenRows: 5);
+
+          final gesture = await createResizeColumnGesture(tester);
+
+          await expectLater(
+            find.byType(TestSwayzeVictim),
+            matchesGoldenFile(
+              'goldens/column-header-resizing-frozen-panes.png',
+            ),
+          );
+
+          await gesture.up();
+          await tester.pumpAndSettle();
+
+          await expectLater(
+            find.byType(TestSwayzeVictim),
+            matchesGoldenFile('goldens/column-header-resize-frozen-panes.png'),
+          );
+        },
+      );
+
+      testWidgets(
+        'works properly in rows',
+        (tester) async {
+          await pumpWidget(tester, frozenColumns: 5, frozenRows: 5);
+
+          final gesture = await createResizeRowGesture(tester);
+
+          await expectLater(
+            find.byType(TestSwayzeVictim),
+            matchesGoldenFile('goldens/row-header-resizing-frozen-panes.png'),
+          );
+
+          await gesture.up();
+          await tester.pumpAndSettle();
+
+          await expectLater(
+            find.byType(TestSwayzeVictim),
+            matchesGoldenFile('goldens/row-header-resize-frozen-panes.png'),
+          );
+        },
       );
     });
   });

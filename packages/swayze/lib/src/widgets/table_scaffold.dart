@@ -4,7 +4,9 @@ import '../config.dart' as config;
 import '../core/scrolling/sliver_scrolling_data_builder.dart';
 import '../core/viewport_context/viewport_context_provider.dart';
 import '../core/virtualization/virtualization_calculator.dart';
+import 'headers/gestures/resize_header/header_edge_mouse_listener.dart';
 import 'headers/header.dart';
+import 'internal_scope.dart';
 import 'table.dart';
 import 'table_body/table_body.dart';
 import 'wrappers.dart';
@@ -43,12 +45,16 @@ class TableScaffold extends StatefulWidget {
   /// See [SliverSwayzeTable.wrapHeader]
   final WrapHeaderBuilder? wrapHeader;
 
+  /// See [SliverSwayzeTable.onHeaderExtentChanged].
+  final OnHeaderExtentChanged? onHeaderExtentChanged;
+
   const TableScaffold({
     Key? key,
     required this.horizontalDisplacement,
     required this.verticalDisplacement,
     this.wrapTableBody,
     this.wrapHeader,
+    this.onHeaderExtentChanged,
   }) : super(key: key);
 
   @override
@@ -61,6 +67,7 @@ class _TableScaffoldState extends State<TableScaffold> {
   late final viewportContext = ViewportContextProvider.of(context);
   late final verticalRangeNotifier =
       viewportContext.rows.virtualizationState.rangeNotifier;
+  late final internalScope = InternalScope.of(context);
 
   // The state for sizes of headers
   final double columnHeaderHeight = config.kColumnHeaderHeight;
@@ -100,7 +107,7 @@ class _TableScaffoldState extends State<TableScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomMultiChildLayout(
+    final child = CustomMultiChildLayout(
       delegate: _TableScaffoldDelegate(rowHeaderWidth, columnHeaderHeight),
       children: [
         LayoutId(
@@ -129,6 +136,15 @@ class _TableScaffoldState extends State<TableScaffold> {
         ),
       ],
     );
+
+    if (internalScope.config.isResizingHeadersEnabled) {
+      return HeaderEdgeMouseListener(
+        onHeaderExtentChanged: widget.onHeaderExtentChanged,
+        child: child,
+      );
+    }
+
+    return child;
   }
 }
 

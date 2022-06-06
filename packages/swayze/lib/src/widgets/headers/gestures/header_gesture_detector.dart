@@ -12,6 +12,7 @@ import '../../../core/viewport_context/viewport_context.dart';
 import '../../../core/viewport_context/viewport_context_provider.dart';
 import '../../../helpers/scroll/auto_scroll.dart';
 import '../../internal_scope.dart';
+import 'resize_header/resize_header_details_notifier.dart';
 
 /// A transport class for auxiliary data about a header gesture and it's
 /// position.
@@ -102,6 +103,8 @@ class HeaderGestureDetector extends StatefulWidget {
 class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
   late final internalScope = InternalScope.of(context);
   late final viewportContext = ViewportContextProvider.of(context);
+  late final resizeNotifier =
+      ResizeHeaderDetailsNotifierProvider.maybeOf(context);
 
   /// Cache to make the position of the start of a drag gesture acessible in
   /// the drag updates.
@@ -439,6 +442,10 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
             () => PanGestureRecognizer(debugOwner: this),
             (PanGestureRecognizer instance) {
               instance.onStart = (DragStartDetails details) {
+                if (resizeNotifier?.isHoveringHeaderEdge ?? false) {
+                  return;
+                }
+
                 final headerGestureDetails = _getHeaderGestureDetails(
                   axis: widget.axis,
                   context: context,
@@ -461,6 +468,10 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                 dragOriginOffsetCache = headerGestureDetails.localPosition;
               };
               instance.onUpdate = (DragUpdateDetails details) {
+                if (resizeNotifier?.isResizingHeader ?? false) {
+                  return;
+                }
+
                 final headerGestureDetails = _getHeaderGestureDetails(
                   axis: widget.axis,
                   context: context,
@@ -480,6 +491,10 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                 handleUpdateSelection(headerGestureDetails);
               };
               instance.onEnd = (DragEndDetails details) {
+                if (resizeNotifier?.isResizingHeader ?? false) {
+                  return;
+                }
+
                 dragOriginOffsetCache = null;
                 internalScope.controller.scroll.stopAutoScroll(widget.axis);
 
@@ -495,6 +510,10 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
                 }
               };
               instance.onCancel = () {
+                if (resizeNotifier?.isResizingHeader ?? false) {
+                  return;
+                }
+
                 dragOriginOffsetCache = null;
                 internalScope.controller.scroll.stopAutoScroll(widget.axis);
 
@@ -509,6 +528,10 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
             () => TapGestureRecognizer(debugOwner: this),
             (TapGestureRecognizer instance) {
               instance.onTapUp = (TapUpDetails details) {
+                if (resizeNotifier?.isHoveringHeaderEdge ?? false) {
+                  return;
+                }
+
                 final headerGestureDetails = _getHeaderGestureDetails(
                   axis: widget.axis,
                   context: context,

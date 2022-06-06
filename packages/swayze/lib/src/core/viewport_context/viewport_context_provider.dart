@@ -2,10 +2,14 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:swayze_math/swayze_math.dart';
 
+import '../../widgets/headers/gestures/resize_header/header_edge_info.dart';
 import '../../widgets/internal_scope.dart';
 import '../virtualization/virtualization_calculator.dart'
     show VirtualizationCalculator, VirtualizationState;
 import 'viewport_context.dart';
+
+const _kMinEdgeOffsetAdder = -2;
+const kMaxEdgeOffsetAdder = 2;
 
 /// A [StatefulWidget] that detects changes on the two axis
 /// [VirtualizationState.rangeNotifier] to create a [ViewportContext] and
@@ -140,6 +144,8 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
     final headerController = tableController.getHeaderControllerFor(axis: axis);
     final scrollableRange = rangeNotifier.value;
 
+    final headersEdgesOffsets = <double, HeaderEdgeInfo>{};
+
     // Frozen
     final frozenSizes = <double>[];
     final frozenOffsets = <double>[];
@@ -153,6 +159,14 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
       final size = headerController.value.getHeaderExtentFor(index: index);
       frozenSizes.add(size);
       frozenExtentAcc += size;
+
+      _addHeaderEdge(
+        headersEdgesOffsets,
+        offset: frozenExtentAcc,
+        index: index,
+        size: size,
+      );
+
       if (size > 0) {
         visibleFrozenHeaders.add(index);
       }
@@ -169,6 +183,14 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
       final size = headerController.value.getHeaderExtentFor(index: index);
       sizes.add(size);
       extentAcc += size;
+
+      _addHeaderEdge(
+        headersEdgesOffsets,
+        offset: extentAcc,
+        index: index,
+        size: size,
+      );
+
       if (size > 0) {
         visibleHeaders.add(index);
       }
@@ -204,8 +226,30 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
         visibleIndices: visibleHeaders,
         visibleFrozenIndices: visibleFrozenHeaders,
         headerDragState: dragContextState,
+        headersEdgesOffsets: headersEdgesOffsets,
       ),
     );
+  }
+
+  /// Maps the headers edges to the corresponding index.
+  ///
+  /// Since we also want to show the resize cursor when the user hovers a bit
+  /// to the left or right of the edge, we save a range of positions and map
+  /// them to the right header index.
+  void _addHeaderEdge(
+    Map<double, HeaderEdgeInfo> headersEdgesOffsets, {
+    required double offset,
+    required int index,
+    required double size,
+  }) {
+    for (var i = _kMinEdgeOffsetAdder; i <= kMaxEdgeOffsetAdder; i++) {
+      headersEdgesOffsets[offset.floorToDouble() + i] = HeaderEdgeInfo(
+        index: index,
+        width: size,
+        displacement: -i,
+        offset: offset,
+      );
+    }
   }
 
   @override

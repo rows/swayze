@@ -3,11 +3,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:swayze_math/swayze_math.dart';
 
+import '../../widgets/headers/gestures/resize_header/header_edge_info.dart';
 import '../virtualization/virtualization_calculator.dart';
 import 'viewport_context_provider.dart';
 
 const _kDoubleListEquality = ListEquality<double>();
 const _kIntIterableEquality = IterableEquality<int>();
+const _kDoubleHeaderEdgeInfoMapEquality = MapEquality<double, HeaderEdgeInfo>();
 
 /// Interface that provides information about the visible rows and columns:
 /// Their sizes, which space in the viewport each one occupies and their
@@ -86,6 +88,7 @@ class ViewportAxisContext extends ChangeNotifier
     frozenRange: Range.zero,
     visibleIndices: [],
     visibleFrozenIndices: [],
+    headersEdgesOffsets: {},
   );
 
   ViewportAxisContext(this.axis, this.virtualizationState);
@@ -166,6 +169,12 @@ class ViewportAxisContextState {
   /// action.
   final ViewportHeaderDragContextState? headerDragState;
 
+  /// A map that contains the headers edges offsets.
+  ///
+  /// Useful to show the correct cursor when hovering the edge of an header
+  /// for resizing purposes.
+  final Map<double, HeaderEdgeInfo> headersEdgesOffsets;
+
   const ViewportAxisContextState({
     required this.scrollableRange,
     required this.frozenRange,
@@ -177,6 +186,7 @@ class ViewportAxisContextState {
     required this.frozenSizes,
     required this.visibleIndices,
     required this.visibleFrozenIndices,
+    required this.headersEdgesOffsets,
     this.headerDragState,
   });
 
@@ -201,6 +211,10 @@ class ViewportAxisContextState {
           _kIntIterableEquality.equals(
             visibleFrozenIndices,
             other.visibleFrozenIndices,
+          ) &&
+          _kDoubleHeaderEdgeInfoMapEquality.equals(
+            headersEdgesOffsets,
+            other.headersEdgesOffsets,
           );
 
   @override
@@ -215,7 +229,8 @@ class ViewportAxisContextState {
       frozenSizes.hashCode ^
       visibleIndices.hashCode ^
       visibleFrozenIndices.hashCode ^
-      headerDragState.hashCode;
+      headerDragState.hashCode ^
+      headersEdgesOffsets.hashCode;
 }
 
 /// Holds the state of an ongoing header drag and drop action.
