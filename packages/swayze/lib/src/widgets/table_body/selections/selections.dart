@@ -164,7 +164,7 @@ class _TableBodySelectionsState extends State<_TableBodySelections> {
           }
           children.add(
             PrimarySelection(
-              key: ValueKey(primary.id),
+              key: ValueKey(primary),
               selectionModel: primary,
               activeCellRect: activeCellRect,
               xRange: xRange,

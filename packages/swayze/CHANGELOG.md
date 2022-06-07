@@ -1,3 +1,7 @@
+# 1.2.0
+
+- Deprecates `id` property on `UserSelectionModel`.
+
 # 1.1.0
 
 - Bump `swayze_math` from 1.0.0 to 1.1.0
