@@ -38,8 +38,10 @@ class SwayzeTableDataController<ParentType extends SwayzeController>
   /// A [SwayzeHeaderController] for the vertical axis
   final SwayzeHeaderController rows;
 
+  /// The maximum amount of columns allowed in elastic expansion.
   final int? _maxElasticColumns;
 
+  /// The maximum amount of rows allowed in elastic expansion.
   final int? _maxElasticRows;
 
   /// Merged [Listenable] to listen for changes on [columns] and [rows].

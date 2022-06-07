@@ -226,7 +226,6 @@ class SwayzeCellsController<CellDataType extends SwayzeCellData>
     final axis = axisDirectionToAxis(direction);
     final headerController =
         parent.tableDataController.getHeaderControllerFor(axis: axis);
-
     var newCoordinate = originalCoordinate;
 
     bool shouldContinueLookup(IntVector2 curr) {
@@ -247,6 +246,10 @@ class SwayzeCellsController<CellDataType extends SwayzeCellData>
           axis == Axis.horizontal ? newCoordinate.dx : newCoordinate.dy;
 
       final maxPosition = elasticCount != null
+          // in case the user has settled a max elastic count, we should
+          // limit the grid expansion to that count, however, if that limit
+          // is lower than the table size, we should prioritize the table size
+          // over it.
           ? min(position, max(elasticCount - 1, count - 1))
           : position;
 

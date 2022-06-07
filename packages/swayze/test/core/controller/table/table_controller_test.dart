@@ -260,5 +260,77 @@ void main() {
         expect(tableDataController.tableRange, _kTestDefaultTableRange);
       },
     );
+
+    group('elastic grid', () {
+      test('should not expand table beyond elastic limits', () async {
+        final parent = createSwayzeController();
+        final tableDataController = SwayzeTableDataController(
+          parent: parent,
+          id: 'id',
+          columnCount: 5,
+          rowCount: 5,
+          frozenColumns: 1,
+          frozenRows: 2,
+          columns: [],
+          rows: [],
+          maxElasticColumns: 10,
+          maxElasticRows: 10,
+        );
+
+        expect(tableDataController.tableRange, _kTestDefaultTableRange);
+
+        await addUserSelection(
+          parent.selection,
+          CellUserSelectionModel.fromAnchorFocus(
+            anchor: const IntVector2(15, 16),
+            focus: const IntVector2(17, 18),
+          ),
+        );
+
+        expect(
+          tableDataController.tableRange,
+          Range2D.fromLTWH(
+            const IntVector2.symmetric(0),
+            const IntVector2(10, 10),
+          ),
+        );
+      });
+
+      test(
+          'should be able to select any cell of the table when elastic limits '
+          'are lower than table size', () async {
+        final parent = createSwayzeController();
+        final tableDataController = SwayzeTableDataController(
+          parent: parent,
+          id: 'id',
+          columnCount: 5,
+          rowCount: 5,
+          frozenColumns: 1,
+          frozenRows: 2,
+          columns: [],
+          rows: [],
+          maxElasticColumns: 3,
+          maxElasticRows: 3,
+        );
+
+        expect(tableDataController.tableRange, _kTestDefaultTableRange);
+
+        await addUserSelection(
+          parent.selection,
+          CellUserSelectionModel.fromAnchorFocus(
+            anchor: const IntVector2(15, 16),
+            focus: const IntVector2(17, 18),
+          ),
+        );
+
+        expect(
+          tableDataController.tableRange,
+          Range2D.fromLTWH(
+            const IntVector2.symmetric(0),
+            const IntVector2(5, 5),
+          ),
+        );
+      });
+    });
   });
 }

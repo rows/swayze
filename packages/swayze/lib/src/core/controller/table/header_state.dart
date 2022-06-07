@@ -32,6 +32,8 @@ class SwayzeHeaderState {
   /// elastic expansion.
   final int elasticCount;
 
+  /// The maximum amount allowed of headers in this axis that exist only due to
+  /// table's elastic expansion.
   final int? maxElasticCount;
 
   /// The amount of headers in this axis.
