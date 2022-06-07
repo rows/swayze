@@ -226,10 +226,6 @@ class SwayzeCellsController<CellDataType extends SwayzeCellData>
     final axis = axisDirectionToAxis(direction);
     final headerController =
         parent.tableDataController.getHeaderControllerFor(axis: axis);
-    final maxElasticColumns = parent.tableDataController.maxElasticColumns;
-    final maxElasticRows = parent.tableDataController.maxElasticRows;
-    final columnsCount = parent.tableDataController.columns.value.count;
-    final rowsCount = parent.tableDataController.rows.value.count;
 
     var newCoordinate = originalCoordinate;
 
@@ -244,17 +240,19 @@ class SwayzeCellsController<CellDataType extends SwayzeCellData>
     do {
       newCoordinate += _moveVectors[direction]!;
 
-      final dx = maxElasticColumns != null
-          ? min(newCoordinate.dx, max(maxElasticColumns - 1, columnsCount - 1))
-          : newCoordinate.dx;
+      final elasticCount = headerController.value.maxElasticCount;
+      final count = headerController.value.count;
 
-      final dy = maxElasticRows != null
-          ? min(newCoordinate.dy, max(maxElasticRows - 1, rowsCount - 1))
-          : newCoordinate.dy;
+      final position =
+          axis == Axis.horizontal ? newCoordinate.dx : newCoordinate.dy;
+
+      final maxPosition = elasticCount != null
+          ? min(position, max(elasticCount - 1, count - 1))
+          : position;
 
       newCoordinate = IntVector2(
-        axis == Axis.horizontal ? max(0, dx) : newCoordinate.dx,
-        axis == Axis.vertical ? max(0, dy) : newCoordinate.dy,
+        axis == Axis.horizontal ? max(0, maxPosition) : newCoordinate.dx,
+        axis == Axis.vertical ? max(0, maxPosition) : newCoordinate.dy,
       );
     } while (shouldContinueLookup(newCoordinate));
 

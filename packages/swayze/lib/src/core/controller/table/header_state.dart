@@ -32,6 +32,8 @@ class SwayzeHeaderState {
   /// elastic expansion.
   final int elasticCount;
 
+  final int? maxElasticCount;
+
   /// The amount of headers in this axis.
   final int count;
 
@@ -96,6 +98,7 @@ class SwayzeHeaderState {
     required Iterable<SwayzeHeaderData> headerData,
     required int frozenCount,
     int? elasticCount,
+    this.maxElasticCount,
     this.dragState,
   })  : _frozenCount = frozenCount,
         elasticCount = elasticCount ?? 0,
@@ -115,6 +118,7 @@ class SwayzeHeaderState {
     required SplayTreeMap<int, SwayzeHeaderData> sortedHeaderData,
     required int frozenCount,
     this.dragState,
+    this.maxElasticCount,
   })  : _frozenCount = frozenCount,
         _customSizedHeaders = sortedHeaderData;
 
@@ -125,6 +129,7 @@ class SwayzeHeaderState {
   SwayzeHeaderState copyWith({
     int? count,
     int? elasticCount,
+    Wrapped<int?>? maxElasticCount,
     Iterable<SwayzeHeaderData>? headerData,
     int? frozenCount,
     Wrapped<SwayzeHeaderDragState?>? dragState,
@@ -132,6 +137,9 @@ class SwayzeHeaderState {
     if (headerData != null) {
       return SwayzeHeaderState(
         elasticCount: elasticCount ?? this.elasticCount,
+        maxElasticCount: maxElasticCount != null
+            ? maxElasticCount.value
+            : this.maxElasticCount,
         defaultHeaderExtent: defaultHeaderExtent,
         count: count ?? this.count,
         headerData: headerData,
@@ -142,6 +150,9 @@ class SwayzeHeaderState {
 
     return SwayzeHeaderState._fromSortedHeaderData(
       elasticCount: elasticCount ?? this.elasticCount,
+      maxElasticCount: maxElasticCount != null
+          ? maxElasticCount.value
+          : this.maxElasticCount,
       defaultHeaderExtent: defaultHeaderExtent,
       count: count ?? this.count,
       sortedHeaderData: _customSizedHeaders,
@@ -172,6 +183,7 @@ class SwayzeHeaderState {
 
     return SwayzeHeaderState._fromSortedHeaderData(
       elasticCount: elasticCount,
+      maxElasticCount: maxElasticCount,
       defaultHeaderExtent: defaultHeaderExtent,
       count: count,
       sortedHeaderData: _newCustomSizedHeaders,
@@ -193,6 +205,7 @@ class SwayzeHeaderState {
           defaultHeaderExtent == other.defaultHeaderExtent &&
           count == other.count &&
           elasticCount == other.elasticCount &&
+          maxElasticCount == other.maxElasticCount &&
           dragState == other.dragState &&
           _kMapEquality.equals(customSizedHeaders, other.customSizedHeaders);
 
@@ -202,6 +215,7 @@ class SwayzeHeaderState {
       defaultHeaderExtent.hashCode ^
       count.hashCode ^
       elasticCount.hashCode ^
+      maxElasticCount.hashCode ^
       customSizedHeaders.hashCode ^
       dragState.hashCode;
 
@@ -212,6 +226,7 @@ class SwayzeHeaderState {
       defaultHeaderExtent: $defaultHeaderExtent,
       count: $count,
       elasticCount: $elasticCount,
+      maxElasticCount: $maxElasticCount,
       orderedCustomSizedIndices: $orderedCustomSizedIndices,
       hasCustomSizes: $hasCustomSizes,
       customSizedHeaders: $customSizedHeaders,
