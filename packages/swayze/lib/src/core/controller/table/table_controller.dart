@@ -38,6 +38,10 @@ class SwayzeTableDataController<ParentType extends SwayzeController>
   /// A [SwayzeHeaderController] for the vertical axis
   final SwayzeHeaderController rows;
 
+  final int? maxElasticColumns;
+
+  final int? maxElasticRows;
+
   /// Merged [Listenable] to listen for changes on [columns] and [rows].
   late final _columnsAndRowsListenable = Listenable.merge([columns, rows]);
 
@@ -50,6 +54,8 @@ class SwayzeTableDataController<ParentType extends SwayzeController>
     required Iterable<SwayzeHeaderData> rows,
     required int frozenColumns,
     required int frozenRows,
+    this.maxElasticColumns,
+    this.maxElasticRows,
   })  : columns = SwayzeHeaderController._(
           initialState: SwayzeHeaderState(
             defaultHeaderExtent: config.kDefaultCellWidth,
@@ -134,8 +140,12 @@ class SwayzeTableDataController<ParentType extends SwayzeController>
     }
 
     scheduleMicrotask(() {
-      columns.updateElasticCount(elasticEdge.dx);
-      rows.updateElasticCount(elasticEdge.dy);
+      columns.updateElasticCount(
+        min(maxElasticColumns ?? elasticEdge.dx, elasticEdge.dx),
+      );
+      rows.updateElasticCount(
+        min(maxElasticRows ?? elasticEdge.dy, elasticEdge.dy),
+      );
     });
   }
 
