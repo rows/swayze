@@ -1,13 +1,7 @@
-# 1.4.0
-
-- Deprecates `id` property on `UserSelectionModel`.
-
-# 1.3.0
-
-- Allow resizing of columns or rows.
-
 # 1.2.0
 
+- Deprecates `id` property on `UserSelectionModel`.
+- Allow resizing of columns or rows.
 - Add drag and drop for columns and rows.
 
 # 1.1.0
