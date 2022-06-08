@@ -238,9 +238,24 @@ class SwayzeCellsController<CellDataType extends SwayzeCellData>
     // finds the a suitable coordinate.
     do {
       newCoordinate += _moveVectors[direction]!;
+
+      final elasticCount = headerController.value.maxElasticCount;
+      final count = headerController.value.count;
+
+      final position =
+          axis == Axis.horizontal ? newCoordinate.dx : newCoordinate.dy;
+
+      final maxPosition = elasticCount != null
+          // in case the user has set a max elastic count, we should
+          // limit the grid expansion to that count, however, if that limit
+          // is lower than the table size, we should prioritize the table size
+          // over it.
+          ? min(position, max(elasticCount - 1, count - 1))
+          : position;
+
       newCoordinate = IntVector2(
-        axis == Axis.horizontal ? max(0, newCoordinate.dx) : newCoordinate.dx,
-        axis == Axis.vertical ? max(0, newCoordinate.dy) : newCoordinate.dy,
+        axis == Axis.horizontal ? max(0, maxPosition) : newCoordinate.dx,
+        axis == Axis.vertical ? max(0, maxPosition) : newCoordinate.dy,
       );
     } while (shouldContinueLookup(newCoordinate));
 
