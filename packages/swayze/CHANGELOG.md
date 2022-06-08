@@ -1,6 +1,14 @@
-# 1.2.0
+# 1.4.0
 
 - Deprecates `id` property on `UserSelectionModel`.
+
+# 1.3.0
+
+- Allow resizing of columns or rows.
+
+# 1.2.0
+
+- Add drag and drop for columns and rows.
 
 # 1.1.0
 
@@ -8,7 +16,7 @@
 
 # 1.0.3
 
-- Fix `SwayzeSliverTable` using `Navigator`'s `overlay` property instead of fetching the closest 
+- Fix `SwayzeSliverTable` using `Navigator`'s `overlay` property instead of fetching the closest
   `Overlay` ancestor.
 
 # 1.0.2
