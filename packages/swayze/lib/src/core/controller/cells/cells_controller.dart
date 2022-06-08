@@ -246,7 +246,7 @@ class SwayzeCellsController<CellDataType extends SwayzeCellData>
           axis == Axis.horizontal ? newCoordinate.dx : newCoordinate.dy;
 
       final maxPosition = elasticCount != null
-          // in case the user has settled a max elastic count, we should
+          // in case the user has set a max elastic count, we should
           // limit the grid expansion to that count, however, if that limit
           // is lower than the table size, we should prioritize the table size
           // over it.

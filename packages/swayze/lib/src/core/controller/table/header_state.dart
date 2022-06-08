@@ -139,9 +139,7 @@ class SwayzeHeaderState {
     if (headerData != null) {
       return SwayzeHeaderState(
         elasticCount: elasticCount ?? this.elasticCount,
-        maxElasticCount: maxElasticCount != null
-            ? maxElasticCount.value
-            : this.maxElasticCount,
+        maxElasticCount: maxElasticCount?.value ?? this.maxElasticCount,
         defaultHeaderExtent: defaultHeaderExtent,
         count: count ?? this.count,
         headerData: headerData,
@@ -152,9 +150,7 @@ class SwayzeHeaderState {
 
     return SwayzeHeaderState._fromSortedHeaderData(
       elasticCount: elasticCount ?? this.elasticCount,
-      maxElasticCount: maxElasticCount != null
-          ? maxElasticCount.value
-          : this.maxElasticCount,
+      maxElasticCount: maxElasticCount?.value ?? this.maxElasticCount,
       defaultHeaderExtent: defaultHeaderExtent,
       count: count ?? this.count,
       sortedHeaderData: _customSizedHeaders,
