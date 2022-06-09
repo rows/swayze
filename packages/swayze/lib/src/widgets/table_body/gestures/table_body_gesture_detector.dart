@@ -16,10 +16,12 @@ import '../../internal_scope.dart';
 class _TableGestureDetails {
   final Offset localPosition;
   final IntVector2 cellCoordinate;
+  final bool dragAndFill;
 
   const _TableGestureDetails({
     required this.localPosition,
     required this.cellCoordinate,
+    required this.dragAndFill,
   });
 
   @override
@@ -28,10 +30,19 @@ class _TableGestureDetails {
       other is _TableGestureDetails &&
           runtimeType == other.runtimeType &&
           localPosition == other.localPosition &&
-          cellCoordinate == other.cellCoordinate;
+          cellCoordinate == other.cellCoordinate &&
+          dragAndFill == other.dragAndFill;
 
   @override
-  int get hashCode => localPosition.hashCode ^ cellCoordinate.hashCode;
+  int get hashCode =>
+      localPosition.hashCode ^ cellCoordinate.hashCode ^ dragAndFill.hashCode;
+
+  @override
+  String toString() => '_TableGestureDetails{'
+      'localPosition: $localPosition'
+      ', cellCoordinate: $cellCoordinate'
+      ', dragAndFill: $dragAndFill'
+      '}';
 }
 
 /// Given a [globalPosition] it creates a [_TableGestureDetails] with the
@@ -44,21 +55,25 @@ _TableGestureDetails _getTableGestureDetails(
   BuildContext context,
   Offset globalPosition,
 ) {
-  final tableDataController =
-      InternalScope.of(context).controller.tableDataController;
   final viewportContext = ViewportContextProvider.of(context);
+  final internalScope = InternalScope.of(context);
 
-  /// Local function to get cordinates with aditional ofscreen offset in a given
-  /// [axis].
-  int _getCoordinateWithAditionalOffset({
+  final tableDataController = internalScope.controller.tableDataController;
+
+  /// Local function to get coordinates with additional offscreen offset in a
+  /// given [axis].
+  int _getCoordinateWithAdditionalOffset({
     required Axis axis,
-    required PositionResult positionResult,
+    required int position,
+    required OffscreenDetails overflow,
     required double localPosition,
   }) {
-    var result = positionResult.position;
-    if (positionResult.overflow == OffscreenDetails.trailing) {
+    var result = position;
+
+    if (overflow == OffscreenDetails.trailing) {
       final diff = localPosition -
           viewportContext.getAxisContextFor(axis: axis).value.extent;
+
       final defaultExtent = tableDataController
           .getHeaderControllerFor(axis: axis)
           .value
@@ -73,30 +88,27 @@ _TableGestureDetails _getTableGestureDetails(
 
   final box = context.findRenderObject()! as RenderBox;
   final localPosition = box.globalToLocal(globalPosition);
-  final positionResultX = viewportContext.pixelToPosition(
-    localPosition.dx,
-    Axis.horizontal,
-  );
 
-  final positionResultY = viewportContext.pixelToPosition(
-    localPosition.dy,
-    Axis.vertical,
-  );
+  final hoverResult = viewportContext.evaluateHover(localPosition);
 
   return _TableGestureDetails(
     localPosition: localPosition,
-    cellCoordinate: IntVector2(
-      _getCoordinateWithAditionalOffset(
-        axis: Axis.horizontal,
-        positionResult: positionResultX,
-        localPosition: localPosition.dx,
-      ),
-      _getCoordinateWithAditionalOffset(
-        axis: Axis.vertical,
-        positionResult: positionResultY,
-        localPosition: localPosition.dy,
-      ),
-    ),
+    dragAndFill: hoverResult.canFillCell,
+    cellCoordinate: hoverResult.fillCell ??
+        IntVector2(
+          _getCoordinateWithAdditionalOffset(
+            axis: Axis.horizontal,
+            position: hoverResult.cell.dx,
+            overflow: hoverResult.overflowX,
+            localPosition: localPosition.dx,
+          ),
+          _getCoordinateWithAdditionalOffset(
+            axis: Axis.vertical,
+            position: hoverResult.cell.dy,
+            overflow: hoverResult.overflowY,
+            localPosition: localPosition.dy,
+          ),
+        ),
   );
 }
 
@@ -138,6 +150,11 @@ class _TableBodyGestureDetectorState extends State<TableBodyGestureDetector> {
   /// Tracks the latest cell to be hovered during a drag gesture, expected to be
   /// valued during a drag gesture and null otherwise.
   IntVector2? cachedDragCellCoordinate;
+
+  /// Caches the drag gesture, as the tap down may be on a fill handle and
+  /// we should know the correct cell to use as anchor to a fill and drag
+  /// operation.
+  _TableGestureDetails? _cachedDragGestureDetails;
 
   /// Tracks cell to be tapped
   IntVector2? tapDownCoordinateCache;
@@ -289,7 +306,10 @@ class _TableBodyGestureDetectorState extends State<TableBodyGestureDetector> {
   void handleStartSelection(_TableGestureDetails details) {
     Actions.invoke(
       context,
-      TableBodySelectionStartIntent(details.cellCoordinate),
+      TableBodySelectionStartIntent(
+        details.cellCoordinate,
+        fill: details.dragAndFill,
+      ),
     );
   }
 
@@ -299,7 +319,19 @@ class _TableBodyGestureDetectorState extends State<TableBodyGestureDetector> {
     if (cellCoordinate == cachedDragCellCoordinate) {
       return;
     }
-    Actions.invoke(context, TableBodySelectionUpdateIntent(cellCoordinate));
+
+    Actions.invoke(
+      context,
+      TableBodySelectionUpdateIntent(cellCoordinate),
+    );
+  }
+
+  /// Handles the end to a ongoing drag operation.
+  void handleDragEnd() {
+    Actions.invoke(
+      context,
+      const TableBodySelectionEndIntent(),
+    );
   }
 
   @override
@@ -330,6 +362,9 @@ class _TableBodyGestureDetectorState extends State<TableBodyGestureDetector> {
 
             tapDownCoordinateCache = tableGestureDetails.cellCoordinate;
 
+            // Cache the gesture for a possible drag.
+            _cachedDragGestureDetails = tableGestureDetails;
+
             handleStartSelection(tableGestureDetails);
           },
           child: RawGestureDetector(
@@ -340,12 +375,18 @@ class _TableBodyGestureDetectorState extends State<TableBodyGestureDetector> {
                 (PanGestureRecognizer instance) {
                   instance
                     ..onStart = (DragStartDetails details) {
-                      final tableGestureDetails = _getTableGestureDetails(
-                        context,
-                        details.globalPosition,
-                      );
+                      // Uses the cached drag if one exists.
+                      final tableGestureDetails = _cachedDragGestureDetails ??
+                          _getTableGestureDetails(
+                            context,
+                            details.globalPosition,
+                          );
+
                       cachedDragCellCoordinate =
                           tableGestureDetails.cellCoordinate;
+
+                      _cachedDragGestureDetails = tableGestureDetails;
+
                       handleStartSelection(tableGestureDetails);
 
                       dragOriginOffsetCache = tableGestureDetails.localPosition;
@@ -360,6 +401,7 @@ class _TableBodyGestureDetectorState extends State<TableBodyGestureDetector> {
 
                       cachedDragCellCoordinate =
                           tableGestureDetails.cellCoordinate;
+
                       updateDragScroll(
                         localOffset: tableGestureDetails.localPosition,
                         globalOffset: details.globalPosition,
@@ -368,19 +410,9 @@ class _TableBodyGestureDetectorState extends State<TableBodyGestureDetector> {
                       );
                     }
                     ..onEnd = (DragEndDetails details) {
-                      final scrollController = internalScope.controller.scroll;
-                      scrollController.stopAutoScroll(Axis.vertical);
-                      scrollController.stopAutoScroll(Axis.horizontal);
-                      cachedDragCellCoordinate = null;
-                      dragOriginOffsetCache = null;
+                      _endDrag();
                     }
-                    ..onCancel = () {
-                      final scrollController = internalScope.controller.scroll;
-                      scrollController.stopAutoScroll(Axis.vertical);
-                      scrollController.stopAutoScroll(Axis.horizontal);
-                      cachedDragCellCoordinate = null;
-                      dragOriginOffsetCache = null;
-                    };
+                    ..onCancel = _endDrag;
                 },
               ),
               DoubleTapGestureRecognizer: GestureRecognizerFactoryWithHandlers<
@@ -415,5 +447,17 @@ class _TableBodyGestureDetectorState extends State<TableBodyGestureDetector> {
         );
       },
     );
+  }
+
+  void _endDrag() {
+    internalScope.controller.scroll
+      ..stopAutoScroll(Axis.vertical)
+      ..stopAutoScroll(Axis.horizontal);
+
+    cachedDragCellCoordinate = null;
+    dragOriginOffsetCache = null;
+    _cachedDragGestureDetails = null;
+
+    handleDragEnd();
   }
 }

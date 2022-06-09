@@ -73,6 +73,12 @@ class SwayzeStyle {
       previewLineColor: Colors.amberAccent,
       previewLineWidth: 2.0,
     ),
+    dragAndFillStyle: const SwayzeDragAndFillStyle(
+      color: Color(0xFF6F6F6F),
+      handle: SwayzeDragAndFillHandleStyle(
+        color: Color(0xFFFFC800),
+      ),
+    ),
     resizeHeaderStyle: const ResizeHeaderStyle(
       fillColor: Color(0xFFFFF6D4),
       lineColor: Color(0xFFFFC800),
@@ -117,6 +123,8 @@ class SwayzeStyle {
 
   final SwayzeHeaderDragAndDropStyle dragAndDropStyle;
 
+  final SwayzeDragAndFillStyle dragAndFillStyle;
+
   /// The style of the resize header line widget.
   final ResizeHeaderStyle resizeHeaderStyle;
 
@@ -133,6 +141,7 @@ class SwayzeStyle {
     required this.selectionAnimationDuration,
     required this.inlineEditorShadow,
     required this.dragAndDropStyle,
+    required this.dragAndFillStyle,
     required this.resizeHeaderStyle,
   });
 
@@ -152,6 +161,7 @@ class SwayzeStyle {
     Duration? selectionAnimationDuration,
     List<BoxShadow>? inlineEditorShadow,
     SwayzeHeaderDragAndDropStyle? dragAndDropStyle,
+    SwayzeDragAndFillStyle? dragAndFillStyle,
     ResizeHeaderStyle? resizeHeaderStyle,
   }) {
     return SwayzeStyle(
@@ -172,6 +182,7 @@ class SwayzeStyle {
           selectionAnimationDuration ?? this.selectionAnimationDuration,
       inlineEditorShadow: inlineEditorShadow ?? this.inlineEditorShadow,
       dragAndDropStyle: dragAndDropStyle ?? this.dragAndDropStyle,
+      dragAndFillStyle: dragAndFillStyle ?? this.dragAndFillStyle,
       resizeHeaderStyle: resizeHeaderStyle ?? this.resizeHeaderStyle,
     );
   }
@@ -192,6 +203,7 @@ class SwayzeStyle {
           selectionAnimationDuration == other.selectionAnimationDuration &&
           inlineEditorShadow == other.inlineEditorShadow &&
           dragAndDropStyle == other.dragAndDropStyle &&
+          dragAndFillStyle == other.dragAndFillStyle &&
           resizeHeaderStyle == other.resizeHeaderStyle;
 
   @override
@@ -206,6 +218,7 @@ class SwayzeStyle {
       userSelectionStyle.hashCode ^
       inlineEditorShadow.hashCode ^
       dragAndDropStyle.hashCode ^
+      dragAndFillStyle.hashCode ^
       resizeHeaderStyle.hashCode;
 }
 
@@ -241,4 +254,71 @@ class SwayzeHeaderDragAndDropStyle {
       previewLineColor.hashCode ^
       previewLineWidth.hashCode ^
       previewHeadersColor.hashCode;
+}
+
+/// Style for the drag and fill selection.
+@immutable
+class SwayzeDragAndFillStyle {
+  /// The color of the selection.
+  final Color color;
+
+  /// The width of the selection border.
+  ///
+  /// Defaults to `1.0`.
+  final double borderWidth;
+
+  final SwayzeDragAndFillHandleStyle handle;
+
+  const SwayzeDragAndFillStyle({
+    required this.color,
+    this.borderWidth = 1.0,
+    required this.handle,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SwayzeDragAndFillStyle &&
+          runtimeType == other.runtimeType &&
+          color == other.color &&
+          borderWidth == other.borderWidth &&
+          handle == other.handle;
+
+  @override
+  int get hashCode => color.hashCode ^ borderWidth.hashCode ^ handle.hashCode;
+}
+
+/// Style for the drag and fill handle.
+@immutable
+class SwayzeDragAndFillHandleStyle {
+  /// The color of the handle.
+  final Color color;
+
+  /// The size of the handle rectangle.
+  ///
+  /// Defaults to `Size(5.0, 5.0)`.
+  final Size size;
+
+  /// The width of the border.
+  ///
+  /// Defaults to `1.0`.
+  final double borderWidth;
+
+  const SwayzeDragAndFillHandleStyle({
+    required this.color,
+    this.size = const Size(5.0, 5.0),
+    this.borderWidth = 1.0,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SwayzeDragAndFillHandleStyle &&
+          runtimeType == other.runtimeType &&
+          color == other.color &&
+          size == other.size &&
+          borderWidth == other.borderWidth;
+
+  @override
+  int get hashCode => color.hashCode ^ size.hashCode ^ borderWidth.hashCode;
 }

@@ -41,6 +41,21 @@ class ExpandSelectionByBlockIntent extends SwayzeIntent {
   const ExpandSelectionByBlockIntent(this.direction);
 }
 
+/// A [SwayzeIntent] to fill a selection from an anchor.
+///
+/// See also:
+/// - [TableBodyGestureDetector] that triggers this intent
+class FillSelectionIntent extends SwayzeIntent {
+  final Range2D source;
+
+  final Range2D target;
+
+  const FillSelectionIntent({
+    required this.source,
+    required this.target,
+  });
+}
+
 /// A [SwayzeIntent] to start a selection in the table body.
 ///
 /// See also:
@@ -48,7 +63,13 @@ class ExpandSelectionByBlockIntent extends SwayzeIntent {
 class TableBodySelectionStartIntent extends SwayzeIntent {
   final IntVector2 cellCoordinate;
 
-  const TableBodySelectionStartIntent(this.cellCoordinate);
+  /// `true` if this is a selection to be used to fill the cells.
+  final bool fill;
+
+  const TableBodySelectionStartIntent(
+    this.cellCoordinate, {
+    this.fill = false,
+  });
 }
 
 /// A [SwayzeIntent] to start a selection in the table headers.
@@ -73,6 +94,14 @@ class TableBodySelectionUpdateIntent extends SwayzeIntent {
   final IntVector2 cellCoordinate;
 
   const TableBodySelectionUpdateIntent(this.cellCoordinate);
+}
+
+/// A [SwayzeIntent] to end a selection in the table body.
+///
+/// See also:
+/// - [TableBodyGestureDetector] that triggers this intent
+class TableBodySelectionEndIntent extends SwayzeIntent {
+  const TableBodySelectionEndIntent();
 }
 
 /// A [SwayzeIntent] to update a selection in the headers.

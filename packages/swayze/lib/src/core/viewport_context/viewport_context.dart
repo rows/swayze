@@ -56,6 +56,12 @@ abstract class ViewportContext extends Listenable {
   /// Given a cell's coordinates it returns it's [CellPositionResult] which
   /// contains info about it's [Offset] in pixels and it's [Size].
   CellPositionResult getCellPosition(IntVector2 globalPosition);
+
+  /// Checks if the point in the table belongs to a place that should react
+  /// differently, like a drag and fill start position.
+  ///
+  /// The [pixelOffset] is the offset from the leading edge of the table.
+  EvaluateHoverResult evaluateHover(Offset pixelOffset);
 }
 
 /// A [ChangeNotifier] that manages has [ViewportAxisContextState]
@@ -407,4 +413,50 @@ enum OffscreenDetails { noOverflow, leading, trailing }
 extension OverflowViewportMethods on OffscreenDetails {
   /// Defines if a [OffscreenDetails] describes a overflow situation.
   bool get isOffscreen => this != OffscreenDetails.noOverflow;
+}
+
+/// The result of the evaluation of a position on the table.
+///
+/// See also:
+/// - [ViewportContext.evaluateHover] that generates this result.
+@immutable
+class EvaluateHoverResult {
+  /// The coordinate of the cell on the given position.
+  final IntVector2 cell;
+
+  /// The horizontal axis overflow details of [cell].
+  final OffscreenDetails overflowX;
+
+  /// The vertical axis overflow details of [cell].
+  final OffscreenDetails overflowY;
+
+  /// If the position allows a drag and fill operation. This holds the
+  /// coordinate of the anchor cell for the operation.
+  final IntVector2? fillCell;
+
+  const EvaluateHoverResult({
+    required this.cell,
+    required this.overflowX,
+    required this.overflowY,
+    required this.fillCell,
+  });
+
+  bool get canFillCell => fillCell != null;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EvaluateHoverResult &&
+          runtimeType == other.runtimeType &&
+          cell == other.cell &&
+          overflowX == other.overflowX &&
+          overflowY == other.overflowY &&
+          fillCell == other.fillCell;
+
+  @override
+  int get hashCode =>
+      cell.hashCode ^
+      overflowX.hashCode ^
+      overflowY.hashCode ^
+      fillCell.hashCode;
 }

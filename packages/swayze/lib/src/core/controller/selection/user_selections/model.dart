@@ -196,13 +196,24 @@ class HeaderUserSelectionModel extends AxisBoundedSelection
   int get hashCode => super.hashCode ^ id.hashCode ^ style.hashCode;
 }
 
+/// The type of a [CellUserSelectionModel].
+enum CellUserSelectionType {
+  /// A regular selection.
+  regular,
+
+  /// A selection used for a fill operation.
+  fill,
+}
+
 /// A [UserSelectionModel] that represents a [Range2D] of cells.
 ///
-/// Unlike [HeaderUserSelectionModel], the edges of this king of selection are
+/// Unlike [HeaderUserSelectionModel], the edges of this kind of selection are
 /// defined by the coordinates in both axis. The selection only covers the
 /// cells in the axis.
 class CellUserSelectionModel extends BoundedSelection
     implements UserSelectionModel {
+  final CellUserSelectionType type;
+
   @override
   @Deprecated('')
   final String id;
@@ -211,6 +222,7 @@ class CellUserSelectionModel extends BoundedSelection
   final SelectionStyle? style;
 
   CellUserSelectionModel._({
+    this.type = CellUserSelectionType.regular,
     @Deprecated('') String? id,
     required IntVector2 leftTop,
     required IntVector2 rightBottom,
@@ -231,6 +243,7 @@ class CellUserSelectionModel extends BoundedSelection
   /// Since this selection is a [Range2D], we convert [anchor] and [focus]
   /// into range's [leftTop] and [rightBottom] values.
   factory CellUserSelectionModel.fromAnchorFocus({
+    CellUserSelectionType? type,
     @Deprecated('') String? id,
     required IntVector2 anchor,
     required IntVector2 focus,
@@ -260,6 +273,7 @@ class CellUserSelectionModel extends BoundedSelection
     }
 
     return CellUserSelectionModel._(
+      type: type ?? CellUserSelectionType.regular,
       id: id,
       leftTop: leftTop,
       rightBottom: rightBottom,
@@ -274,8 +288,10 @@ class CellUserSelectionModel extends BoundedSelection
     UserSelectionModel original, {
     required IntVector2 anchor,
     required IntVector2 focus,
+    CellUserSelectionType? type,
   }) {
     return CellUserSelectionModel.fromAnchorFocus(
+      type: type ?? (original is CellUserSelectionModel ? original.type : null),
       id: original.id,
       anchor: anchor,
       focus: focus,
@@ -291,11 +307,13 @@ class CellUserSelectionModel extends BoundedSelection
   /// Calling this method on a selection will return a new transformed selection
   /// based on the provided properties.
   CellUserSelectionModel copyWith({
+    CellUserSelectionType? type,
     IntVector2? anchor,
     IntVector2? focus,
     SelectionStyle? style,
   }) =>
       CellUserSelectionModel.fromAnchorFocus(
+        type: type ?? this.type,
         id: id,
         anchor: anchor ?? this.anchor,
         focus: focus ?? this.focus,
@@ -308,9 +326,11 @@ class CellUserSelectionModel extends BoundedSelection
       super == other &&
           other is CellUserSelectionModel &&
           runtimeType == other.runtimeType &&
+          type == other.type &&
           id == other.id &&
           style == other.style;
 
   @override
-  int get hashCode => super.hashCode ^ id.hashCode ^ style.hashCode;
+  int get hashCode =>
+      super.hashCode ^ type.hashCode ^ id.hashCode ^ style.hashCode;
 }

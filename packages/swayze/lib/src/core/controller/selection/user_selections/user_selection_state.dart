@@ -88,13 +88,14 @@ class UserSelectionState {
   }
 
   /// Reset all selections to a single [CellUserSelectionModel] created from
-  /// [anchor] and [focus].
+  /// [anchor] and [focus], with an optional new [type].
   ///
   /// The resulting lone selection copies everything from the [primarySelection]
-  /// besides [anchor] and [focus].
+  /// besides [anchor], [focus] and [type].
   UserSelectionState resetSelectionsToACellSelection({
     required IntVector2 anchor,
     required IntVector2 focus,
+    CellUserSelectionType? type,
   }) {
     final newList = BuiltList<UserSelectionModel>.from(
       <UserSelectionModel>[
@@ -102,6 +103,7 @@ class UserSelectionState {
           primarySelection,
           anchor: anchor,
           focus: focus,
+          type: type,
         ),
       ],
     );
@@ -139,6 +141,7 @@ class UserSelectionState {
   UserSelectionState updateLastSelectionToCellSelection({
     IntVector2? anchor,
     required IntVector2 focus,
+    CellUserSelectionType? type,
   }) {
     final lastSelection = selections.last;
     final effectiveAnchor = anchor ?? lastSelection.anchorCoordinate;
@@ -151,6 +154,7 @@ class UserSelectionState {
           lastSelection,
           anchor: effectiveAnchor,
           focus: focus,
+          type: type,
         ),
       );
     return UserSelectionState._(builder.build());

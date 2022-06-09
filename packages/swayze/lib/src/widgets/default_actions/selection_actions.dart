@@ -356,31 +356,40 @@ class CellSelectionStartAction
       RawKeyboard.instance.keysPressed,
     );
 
+    tableFocus.requestFocus();
+
     if (keysPressed.contains(LogicalKeyboardKey.shift)) {
-      tableFocus.requestFocus();
       selectionController.updateUserSelections(
         (state) => state.updateLastSelectionToCellSelection(
           focus: intent.cellCoordinate,
         ),
       );
-    } else if (keysPressed.containsModifier) {
+
+      return;
+    }
+
+    if (keysPressed.containsModifier) {
       final selection = CellUserSelectionModel.fromAnchorFocus(
         anchor: intent.cellCoordinate,
         focus: intent.cellCoordinate,
       );
-      tableFocus.requestFocus();
+
       selectionController.updateUserSelections(
         (state) => state.addSelection(selection),
       );
-    } else {
-      tableFocus.requestFocus();
-      selectionController.updateUserSelections(
-        (state) => state.resetSelectionsToACellSelection(
-          anchor: intent.cellCoordinate,
-          focus: intent.cellCoordinate,
-        ),
-      );
+
+      return;
     }
+
+    selectionController.updateUserSelections(
+      (state) => state.resetSelectionsToACellSelection(
+        anchor: intent.cellCoordinate,
+        focus: intent.cellCoordinate,
+        type: intent.fill
+            ? CellUserSelectionType.fill
+            : CellUserSelectionType.regular,
+      ),
+    );
   }
 }
 
@@ -441,6 +450,9 @@ class HeaderSelectionStartAction
 
 /// Default [Action] for [TableBodySelectionUpdateIntent]
 ///
+/// This will restrict the axis of the selection if the selection is a drag
+/// and fill type.
+///
 /// See also:
 /// * [TableBodyGestureDetector] that triggers the intent
 /// * [UserSelectionState] for the implementation of the expand selection.
@@ -458,12 +470,80 @@ class CellSelectionUpdateAction
     TableBodySelectionUpdateIntent intent,
     BuildContext context,
   ) {
+    var coordinate = intent.cellCoordinate;
+
     final selectionController = internalScope.controller.selection;
+
+    final selection = selectionController.userSelectionState.selections.last;
+
+    if (selection is CellUserSelectionModel &&
+        selection.type == CellUserSelectionType.fill) {
+      final anchor = selection.anchor;
+      final restrictVertical = (coordinate.dy - anchor.dy).abs() >=
+          (coordinate.dx - anchor.dx).abs();
+
+      coordinate = coordinate.copyWith(
+        x: restrictVertical ? anchor.dx : null,
+        y: restrictVertical ? null : anchor.dy,
+      );
+    }
+
     selectionController.updateUserSelections(
       (state) => state.updateLastSelectionToCellSelection(
-        focus: intent.cellCoordinate,
+        focus: coordinate,
       ),
     );
+  }
+}
+
+/// Default [Action] for [TableBodySelectionEndIntent]
+///
+/// See also:
+/// * [TableBodyGestureDetector] that triggers the intent
+/// * [UserSelectionState] for the implementation of the expand selection.
+/// * [DefaultActions] for the widget that binds this action into the
+/// widget tree.
+class CellSelectionEndAction
+    extends DefaultSwayzeAction<TableBodySelectionEndIntent> {
+  CellSelectionEndAction(
+    InternalScope internalScope,
+    ViewportContext viewportContext,
+  ) : super(internalScope, viewportContext);
+
+  @override
+  void invokeAction(
+    TableBodySelectionEndIntent intent,
+    BuildContext context,
+  ) {
+    final selectionController = internalScope.controller.selection;
+
+    final primary = selectionController.userSelectionState.primarySelection;
+
+    if (primary is CellUserSelectionModel &&
+        primary.type == CellUserSelectionType.fill) {
+      // Transform the selection into a regular selection
+      selectionController.updateUserSelections(
+        (state) => state.updateLastSelectionToCellSelection(
+          focus: primary.focusCoordinate,
+          type: CellUserSelectionType.regular,
+        ),
+      );
+
+      if (primary.isSingleCell) {
+        return;
+      }
+
+      Actions.invoke(
+        context,
+        FillSelectionIntent(
+          source: Range2D.fromPoints(
+            primary.anchor,
+            primary.anchor + const IntVector2(1, 1),
+          ),
+          target: primary,
+        ),
+      );
+    }
   }
 }
 
