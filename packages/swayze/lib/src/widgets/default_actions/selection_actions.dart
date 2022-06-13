@@ -614,11 +614,43 @@ class CellSelectionEndAction
 
     Actions.invoke(
       context,
-      FillSelectionIntent(
+      FillRangeIntent(
         source: primary,
         target: fill,
       ),
     );
+  }
+}
+
+/// Default [Action] for [TableBodySelectionCancelIntent]
+///
+/// See also:
+/// * [TableBodyGestureDetector] that triggers the intent
+/// * [UserSelectionState] for the implementation of the expand selection.
+/// * [DefaultActions] for the widget that binds this action into the
+/// widget tree.
+class CellSelectionCancelAction
+    extends DefaultSwayzeAction<TableBodySelectionCancelIntent> {
+  CellSelectionCancelAction(
+    InternalScope internalScope,
+    ViewportContext viewportContext,
+  ) : super(internalScope, viewportContext);
+
+  @override
+  void invokeAction(
+    TableBodySelectionCancelIntent intent,
+    BuildContext context,
+  ) {
+    final selectionController = internalScope.controller.selection;
+
+    final selection = selectionController.userSelectionState.selections.last;
+
+    if (selection is CellUserSelectionModel &&
+        selection.type == CellUserSelectionType.fill) {
+      selectionController.updateUserSelections(
+        (state) => state.removeLastSelection(),
+      );
+    }
   }
 }
 

@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:swayze_math/swayze_math.dart';
 
 import '../../../../intents.dart';
+import '../../../core/controller/selection/selection_controller.dart';
 import '../../../core/viewport_context/viewport_context.dart';
 import '../../../core/viewport_context/viewport_context_provider.dart';
 import '../../../helpers/scroll/auto_scroll.dart';
@@ -333,6 +334,14 @@ class _TableBodyGestureDetectorState extends State<TableBodyGestureDetector> {
     );
   }
 
+  /// Handles the cancelling of an ongoing drag operation.
+  void handleDragCancel() {
+    Actions.invoke(
+      context,
+      const TableBodySelectionCancelIntent(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -413,9 +422,9 @@ class _TableBodyGestureDetectorState extends State<TableBodyGestureDetector> {
                       );
                     }
                     ..onEnd = (DragEndDetails details) {
-                      _endDrag();
+                      _endDrag(cancelled: false);
                     }
-                    ..onCancel = _endDrag;
+                    ..onCancel = () => _endDrag(cancelled: true);
                 },
               ),
               DoubleTapGestureRecognizer: GestureRecognizerFactoryWithHandlers<
@@ -424,16 +433,35 @@ class _TableBodyGestureDetectorState extends State<TableBodyGestureDetector> {
                 (DoubleTapGestureRecognizer instance) {
                   instance
                     ..onDoubleTapDown = (TapDownDetails details) {
-                      // Get the coordinate in which the double tap gesture is
-                      // effective to. Equals to the position of the first tap
-                      final gestureCoordinate = _getTableGestureDetails(
+                      final tableGestureDetails = _getTableGestureDetails(
                         context,
                         details.globalPosition,
-                      ).cellCoordinate;
+                      );
+
+                      // Get the coordinate in which the double tap gesture is
+                      // effective to. Equals to the position of the first tap
+                      final gestureCoordinate =
+                          tableGestureDetails.cellCoordinate;
 
                       // If the fist and second tap were made over different
                       // cells, do nothing.
                       if (tapDownCoordinateCache != gestureCoordinate) {
+                        return;
+                      }
+
+                      if (tableGestureDetails.dragAndFill) {
+                        final primary = internalScope.controller.selection
+                            .userSelectionState.primarySelection;
+
+                        if (primary is! CellUserSelectionModel) {
+                          return;
+                        }
+
+                        Actions.invoke(
+                          context,
+                          FillFromRangeIntent(source: primary),
+                        );
+
                         return;
                       }
 
@@ -452,7 +480,9 @@ class _TableBodyGestureDetectorState extends State<TableBodyGestureDetector> {
     );
   }
 
-  void _endDrag() {
+  void _endDrag({
+    required bool cancelled,
+  }) {
     internalScope.controller.scroll
       ..stopAutoScroll(Axis.vertical)
       ..stopAutoScroll(Axis.horizontal);
@@ -461,6 +491,6 @@ class _TableBodyGestureDetectorState extends State<TableBodyGestureDetector> {
     dragOriginOffsetCache = null;
     _cachedDragGestureDetails = null;
 
-    handleDragEnd();
+    cancelled ? handleDragCancel() : handleDragEnd();
   }
 }

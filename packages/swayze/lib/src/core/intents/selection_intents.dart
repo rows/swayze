@@ -41,18 +41,34 @@ class ExpandSelectionByBlockIntent extends SwayzeIntent {
   const ExpandSelectionByBlockIntent(this.direction);
 }
 
-/// A [SwayzeIntent] to fill a selection from an anchor.
+/// A [SwayzeIntent] to fill a range based on cells from the source range.
+///
+/// This differs from [FillFromRangeIntent] as we know the target range.
 ///
 /// See also:
 /// - [TableBodyGestureDetector] that triggers this intent
-class FillSelectionIntent extends SwayzeIntent {
+class FillRangeIntent extends SwayzeIntent {
   final Range2D source;
 
   final Range2D target;
 
-  const FillSelectionIntent({
+  const FillRangeIntent({
     required this.source,
     required this.target,
+  });
+}
+
+/// A [SwayzeIntent] to fill unknown cells from a given range.
+///
+/// This differs from [FillRangeIntent] as we know don't know the target range.
+///
+/// See also:
+/// - [TableBodyGestureDetector] that triggers this intent
+class FillFromRangeIntent extends SwayzeIntent {
+  final Range2D source;
+
+  const FillFromRangeIntent({
+    required this.source,
   });
 }
 
@@ -102,6 +118,14 @@ class TableBodySelectionUpdateIntent extends SwayzeIntent {
 /// - [TableBodyGestureDetector] that triggers this intent
 class TableBodySelectionEndIntent extends SwayzeIntent {
   const TableBodySelectionEndIntent();
+}
+
+/// A [SwayzeIntent] to cancel a selection in the table body.
+///
+/// See also:
+/// - [TableBodyGestureDetector] that triggers this intent
+class TableBodySelectionCancelIntent extends SwayzeIntent {
+  const TableBodySelectionCancelIntent();
 }
 
 /// A [SwayzeIntent] to update a selection in the headers.

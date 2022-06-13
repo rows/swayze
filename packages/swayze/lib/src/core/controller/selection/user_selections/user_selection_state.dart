@@ -87,6 +87,19 @@ class UserSelectionState {
     return UserSelectionState._(newSelections);
   }
 
+  /// Removes the last selection from [selections].
+  UserSelectionState removeLastSelection() {
+    if (selections.isEmpty) {
+      return this;
+    }
+
+    final newSelections = selections.rebuild(
+      (builder) => builder.removeLast(),
+    );
+
+    return UserSelectionState._(newSelections);
+  }
+
   /// Reset all selections to a single [CellUserSelectionModel] created from
   /// [anchor] and [focus], with an optional new [type].
   ///
