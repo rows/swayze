@@ -176,7 +176,7 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
   }
 
   double minExtent(Axis axis) =>
-      axis == Axis.horizontal ? kDefaultCellWidth : kDefaultCellHeight;
+      axis == Axis.horizontal ? kMinCellWidth : kDefaultCellHeight;
 
   /// Inserts an [OverlayEntry] to the current [OverlayState] with resize line
   /// on it at the header edge that is being hovered.
