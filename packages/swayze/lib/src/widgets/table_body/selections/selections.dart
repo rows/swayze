@@ -8,6 +8,7 @@ import '../../../core/viewport_context/viewport_context_provider.dart';
 import '../../../helpers/range_pair_key.dart';
 import '../../internal_scope.dart';
 import 'data_selections/data_selections.dart';
+import 'fill_selections/fill_selection.dart';
 import 'primary_selection/primary_selection.dart';
 import 'secondary_selections/secondary_selections.dart';
 
@@ -165,12 +166,10 @@ class _TableBodySelectionsState extends State<_TableBodySelections> {
           }
 
           if (fill != null) {
-            //TODO(rafaelsouza): Break this into a FillSelection widget.
             children.add(
-              PrimarySelection(
+              FillSelection(
                 key: ValueKey(fill),
                 selectionModel: fill,
-                activeCellRect: activeCellRect,
                 xRange: xRange,
                 yRange: yRange,
                 isOnFrozenColumns: widget.isOnAFrozenColumnsArea,

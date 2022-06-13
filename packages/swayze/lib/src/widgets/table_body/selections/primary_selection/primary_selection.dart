@@ -60,6 +60,11 @@ class _PrimarySelectionState extends State<PrimarySelection>
   @override
   bool get isOnFrozenRows => widget.isOnFrozenRows;
 
+  /// The actual decoration of this particular selection resolved from
+  /// [SwayzeStyle].
+  late final selectionStyle = widget.selectionModel.style ??
+      InternalScope.of(context).style.userSelectionStyle;
+
   /// Holds the handle style, if the configuration says we should use one.
   late final handleStyle = InternalScope.of(context).config.isDragFillEnabled
       ? InternalScope.of(context).style.dragAndFillStyle.handle
@@ -84,16 +89,14 @@ class _PrimarySelectionState extends State<PrimarySelection>
     final isSingleCell =
         selectionModel is CellUserSelectionModel && selectionModel.isSingleCell;
 
-    final effectiveStyle = widget.selectionModel.toSelectionStyle(context) ??
-        InternalScope.of(context).style.userSelectionStyle;
+    final borderSide = selectionStyle.borderSide;
 
     return _AnimatedPrimarySelection(
       size: size,
       offset: leftTopPixelOffset,
-      color: effectiveStyle.backgroundColor,
-      border: getVisibleBorder(
-        range,
-        effectiveStyle.borderSide,
+      decoration: BoxDecoration(
+        color: selectionStyle.backgroundColor,
+        border: getVisibleBorder(range, borderSide).toFlutterBorder(),
       ),
       handleStyle: handleStyle,
       duration: styleContext.selectionAnimationDuration,
@@ -111,8 +114,7 @@ class _PrimarySelectionState extends State<PrimarySelection>
 class _AnimatedPrimarySelection extends ImplicitlyAnimatedWidget {
   final Offset offset;
   final Size size;
-  final Color? color;
-  final SelectionBorder border;
+  final BoxDecoration decoration;
   final SwayzeDragAndFillHandleStyle? handleStyle;
   final Rect activeCellRect;
   final bool isSingleCell;
@@ -122,8 +124,7 @@ class _AnimatedPrimarySelection extends ImplicitlyAnimatedWidget {
     Key? key,
     required this.offset,
     required this.size,
-    required this.color,
-    required this.border,
+    required this.decoration,
     required this.handleStyle,
     required Duration duration,
     required this.activeCellRect,
@@ -186,8 +187,7 @@ class _AnimatedSelectionState
 
     return PrimarySelectionPainter(
       isSingleCell: widget.isSingleCell,
-      color: widget.color,
-      border: widget.border,
+      decoration: widget.decoration,
       handleStyle: widget.handleStyle,
       offset: offset,
       size: size,
@@ -204,8 +204,7 @@ class _AnimatedSelectionState
 class PrimarySelectionPainter extends LeafRenderObjectWidget {
   final Size size;
   final Offset offset;
-  final Color? color;
-  final SelectionBorder border;
+  final BoxDecoration decoration;
   final SwayzeDragAndFillHandleStyle? handleStyle;
   final Rect activeCellRect;
   final bool isSingleCell;
@@ -219,8 +218,7 @@ class PrimarySelectionPainter extends LeafRenderObjectWidget {
     required this.isSingleCell,
     required this.size,
     required this.offset,
-    required this.color,
-    required this.border,
+    required this.decoration,
     this.handleStyle,
     required this.activeCellRect,
     required this.handleValue,
@@ -229,8 +227,7 @@ class PrimarySelectionPainter extends LeafRenderObjectWidget {
   @override
   _RenderPrimarySelectionPainter createRenderObject(BuildContext context) {
     return _RenderPrimarySelectionPainter(
-      color,
-      border,
+      decoration,
       offset,
       size,
       activeCellRect,
@@ -247,8 +244,7 @@ class PrimarySelectionPainter extends LeafRenderObjectWidget {
   ) {
     renderObject
       ..isSingleCell = isSingleCell
-      ..color = color
-      ..border = border
+      ..decoration = decoration
       ..handleStyle = handleStyle
       ..offset = offset
       ..definedSize = size
@@ -259,8 +255,7 @@ class PrimarySelectionPainter extends LeafRenderObjectWidget {
 
 class _RenderPrimarySelectionPainter extends RenderBox {
   _RenderPrimarySelectionPainter(
-    this._color,
-    this._border,
+    this._decoration,
     this._offset,
     this._definedSize,
     this._activeCellRect, {
@@ -298,20 +293,11 @@ class _RenderPrimarySelectionPainter extends RenderBox {
     }
   }
 
-  Color? _color;
-  Color? get color => _color;
-  set color(Color? value) {
-    if (_color != value) {
-      _color = value;
-      markNeedsPaint();
-    }
-  }
-
-  SelectionBorder _border;
-  SelectionBorder get border => _border;
-  set border(SelectionBorder value) {
-    if (_border != value) {
-      _border = value;
+  BoxDecoration _decoration;
+  BoxDecoration get decoration => _decoration;
+  set decoration(BoxDecoration value) {
+    if (_decoration != value) {
+      _decoration = value;
       markNeedsPaint();
     }
   }
@@ -396,14 +382,14 @@ class _RenderPrimarySelectionPainter extends RenderBox {
       }
     }
 
-    paintSelectionBorder(canvas, selectionRect, border);
+    _decoration.border!.paint(canvas, selectionRect);
 
     // Restores the saved stack when adding the border clipping.
     if (handleRect != null) {
       canvas.restore();
     }
 
-    if (!_isSingleCell && _color != null) {
+    if (!_isSingleCell && _decoration.color != null) {
       final activeCellPath = Path()..addRect(_activeCellRect);
 
       // crop active cell
@@ -415,7 +401,7 @@ class _RenderPrimarySelectionPainter extends RenderBox {
 
       canvas.drawPath(
         overallPath,
-        Paint()..color = _color!,
+        Paint()..color = _decoration.color!,
       );
     }
 
@@ -428,33 +414,5 @@ class _RenderPrimarySelectionPainter extends RenderBox {
     }
 
     canvas.restore();
-  }
-}
-
-extension on UserSelectionModel {
-  SelectionStyle? toSelectionStyle(BuildContext context) {
-    final model = this;
-
-    return style ??
-        (model is CellUserSelectionModel
-            ? model.type.toSelectionStyle(context)
-            : null);
-  }
-}
-
-extension on CellUserSelectionType {
-  SelectionStyle? toSelectionStyle(BuildContext context) {
-    switch (this) {
-      case CellUserSelectionType.fill:
-        final style = InternalScope.of(context).style;
-
-        return SelectionStyle.dashedBorderOnly(
-          color: style.dragAndFillStyle.color,
-          borderWidth: style.dragAndFillStyle.borderWidth,
-        );
-
-      default:
-        return null;
-    }
   }
 }
