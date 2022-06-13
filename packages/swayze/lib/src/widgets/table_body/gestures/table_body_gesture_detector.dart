@@ -94,21 +94,20 @@ _TableGestureDetails _getTableGestureDetails(
   return _TableGestureDetails(
     localPosition: localPosition,
     dragAndFill: hoverResult.canFillCell,
-    cellCoordinate: hoverResult.fillCell ??
-        IntVector2(
-          _getCoordinateWithAdditionalOffset(
-            axis: Axis.horizontal,
-            position: hoverResult.cell.dx,
-            overflow: hoverResult.overflowX,
-            localPosition: localPosition.dx,
-          ),
-          _getCoordinateWithAdditionalOffset(
-            axis: Axis.vertical,
-            position: hoverResult.cell.dy,
-            overflow: hoverResult.overflowY,
-            localPosition: localPosition.dy,
-          ),
-        ),
+    cellCoordinate: IntVector2(
+      _getCoordinateWithAdditionalOffset(
+        axis: Axis.horizontal,
+        position: hoverResult.cell.dx,
+        overflow: hoverResult.overflowX,
+        localPosition: localPosition.dx,
+      ),
+      _getCoordinateWithAdditionalOffset(
+        axis: Axis.vertical,
+        position: hoverResult.cell.dy,
+        overflow: hoverResult.overflowY,
+        localPosition: localPosition.dy,
+      ),
+    ),
   );
 }
 
@@ -387,7 +386,11 @@ class _TableBodyGestureDetectorState extends State<TableBodyGestureDetector> {
 
                       _cachedDragGestureDetails = tableGestureDetails;
 
-                      handleStartSelection(tableGestureDetails);
+                      // Does not start one if we have the cache drag already
+                      // which means we already started on the onPointerDown.
+                      if (_cachedDragGestureDetails == null) {
+                        handleStartSelection(tableGestureDetails);
+                      }
 
                       dragOriginOffsetCache = tableGestureDetails.localPosition;
                     }

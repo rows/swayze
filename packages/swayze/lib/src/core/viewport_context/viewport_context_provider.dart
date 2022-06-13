@@ -437,13 +437,11 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
     final positionX = pixelToPosition(pixelOffset.dx, Axis.horizontal);
     final positionY = pixelToPosition(pixelOffset.dy, Axis.vertical);
 
-    IntVector2? fillCell;
+    Range2D? fillRange;
 
     // If the primary selection allows fill, check if we're over the handle.
-    if ((primary?.isSingleCell ?? false) &&
-        primary?.type != CellUserSelectionType.fill &&
-        style != null) {
-      final cellPosition = getCellPosition(primary!.anchor);
+    if (primary?.type != CellUserSelectionType.fill && style != null) {
+      final cellPosition = getCellPosition(primary!.focus);
       final cellRect = cellPosition.leftTop & cellPosition.cellSize;
 
       final canFillCell = Rect.fromLTRB(
@@ -454,7 +452,7 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
       ).inflate(style.borderWidth).contains(pixelOffset);
 
       if (canFillCell) {
-        fillCell = primary.anchor;
+        fillRange = primary;
       }
     }
 
@@ -462,7 +460,7 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
       cell: IntVector2(positionX.position, positionY.position),
       overflowX: positionX.overflow,
       overflowY: positionY.overflow,
-      fillCell: fillCell,
+      fillRange: fillRange,
     );
   }
 

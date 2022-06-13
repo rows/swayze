@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:swayze_math/swayze_math.dart';
@@ -349,14 +351,31 @@ class CellSelectionStartAction
     TableBodySelectionStartIntent intent,
     BuildContext context,
   ) {
-    final tableFocus = TableFocus.of(context);
     final selectionController = internalScope.controller.selection;
+
+    TableFocus.of(context).requestFocus();
+
+    // Drag and fill creates a new selection of the fill type.
+    if (intent.fill) {
+      final primary = internalScope
+          .controller.selection.userSelectionState.primarySelection;
+
+      selectionController.updateUserSelections(
+        (state) => state.addSelection(
+          CellUserSelectionModel.fromAnchorFocus(
+            anchor: primary.anchorCoordinate,
+            focus: primary.focusCoordinate,
+            type: CellUserSelectionType.fill,
+          ),
+        ),
+      );
+
+      return;
+    }
 
     final keysPressed = LogicalKeyboardKey.collapseSynonyms(
       RawKeyboard.instance.keysPressed,
     );
-
-    tableFocus.requestFocus();
 
     if (keysPressed.contains(LogicalKeyboardKey.shift)) {
       selectionController.updateUserSelections(
@@ -385,9 +404,7 @@ class CellSelectionStartAction
       (state) => state.resetSelectionsToACellSelection(
         anchor: intent.cellCoordinate,
         focus: intent.cellCoordinate,
-        type: intent.fill
-            ? CellUserSelectionType.fill
-            : CellUserSelectionType.regular,
+        type: CellUserSelectionType.regular,
       ),
     );
   }
@@ -470,27 +487,78 @@ class CellSelectionUpdateAction
     TableBodySelectionUpdateIntent intent,
     BuildContext context,
   ) {
-    var coordinate = intent.cellCoordinate;
-
     final selectionController = internalScope.controller.selection;
+    final fillSelection =
+        selectionController.userSelectionState.selections.last;
 
-    final selection = selectionController.userSelectionState.selections.last;
+    if (fillSelection is CellUserSelectionModel &&
+        fillSelection.type == CellUserSelectionType.fill) {
+      _updateFillSelection(intent.cellCoordinate);
 
-    if (selection is CellUserSelectionModel &&
-        selection.type == CellUserSelectionType.fill) {
-      final anchor = selection.anchor;
-      final restrictVertical = (coordinate.dy - anchor.dy).abs() >=
-          (coordinate.dx - anchor.dx).abs();
-
-      coordinate = coordinate.copyWith(
-        x: restrictVertical ? anchor.dx : null,
-        y: restrictVertical ? null : anchor.dy,
-      );
+      return;
     }
 
     selectionController.updateUserSelections(
       (state) => state.updateLastSelectionToCellSelection(
-        focus: coordinate,
+        focus: intent.cellCoordinate,
+      ),
+    );
+  }
+
+  void _updateFillSelection(IntVector2 coordinate) {
+    final selectionController = internalScope.controller.selection;
+
+    final primary =
+        selectionController.userSelectionState.selections.lastWhereOrNull(
+      (selection) =>
+          selection is CellUserSelectionModel &&
+          selection.type == CellUserSelectionType.regular,
+    );
+
+    if (primary == null) {
+      return;
+    }
+
+    final anchor = primary.anchorCoordinate;
+    final focus = primary.focusCoordinate;
+
+    final primaryRange = Range2D.fromPoints(
+      IntVector2(
+        min(anchor.dx, focus.dx),
+        min(anchor.dy, focus.dy),
+      ),
+      IntVector2(
+        max(anchor.dx, focus.dx),
+        max(anchor.dy, focus.dy),
+      ),
+    );
+
+    final newRange = Range2D.fromPoints(
+      IntVector2(
+        min(coordinate.dx, anchor.dx),
+        min(coordinate.dy, anchor.dy),
+      ),
+      IntVector2(
+        max(coordinate.dx, focus.dx),
+        max(coordinate.dy, focus.dy),
+      ),
+    );
+
+    // We can only grow the selection vertically or horizontally, and vertical
+    // selections have the preference.
+    final restrictVertical = newRange.size.dy - primaryRange.size.dy >=
+        newRange.size.dx - primaryRange.size.dx;
+
+    selectionController.updateUserSelections(
+      (state) => state.updateLastSelectionToCellSelection(
+        anchor: newRange.leftTop.copyWith(
+          x: restrictVertical ? primaryRange.leftTop.dx : null,
+          y: restrictVertical ? null : primaryRange.leftTop.dy,
+        ),
+        focus: newRange.rightBottom.copyWith(
+          x: restrictVertical ? primaryRange.rightBottom.dx : null,
+          y: restrictVertical ? null : primaryRange.rightBottom.dy,
+        ),
       ),
     );
   }
@@ -517,33 +585,40 @@ class CellSelectionEndAction
   ) {
     final selectionController = internalScope.controller.selection;
 
-    final primary = selectionController.userSelectionState.primarySelection;
+    final fill = selectionController.userSelectionState.selections.last;
 
-    if (primary is CellUserSelectionModel &&
-        primary.type == CellUserSelectionType.fill) {
-      // Transform the selection into a regular selection
-      selectionController.updateUserSelections(
-        (state) => state.updateLastSelectionToCellSelection(
-          focus: primary.focusCoordinate,
-          type: CellUserSelectionType.regular,
-        ),
-      );
-
-      if (primary.isSingleCell) {
-        return;
-      }
-
-      Actions.invoke(
-        context,
-        FillSelectionIntent(
-          source: Range2D.fromPoints(
-            primary.anchor,
-            primary.anchor + const IntVector2(1, 1),
-          ),
-          target: primary,
-        ),
-      );
+    if (fill is! CellUserSelectionModel ||
+        fill.type != CellUserSelectionType.fill) {
+      return;
     }
+
+    final primary =
+        selectionController.userSelectionState.selections.lastWhereOrNull(
+      (selection) =>
+          selection is CellUserSelectionModel &&
+          selection.type == CellUserSelectionType.regular,
+    ) as CellUserSelectionModel?;
+
+    if (primary == null) {
+      return;
+    }
+
+    // Transform the fill selection into a regular selection
+    selectionController.updateUserSelections(
+      (state) => state.resetSelectionsToACellSelection(
+        anchor: primary.anchor,
+        focus: primary.focus,
+        type: CellUserSelectionType.regular,
+      ),
+    );
+
+    Actions.invoke(
+      context,
+      FillSelectionIntent(
+        source: primary,
+        target: fill,
+      ),
+    );
   }
 }
 

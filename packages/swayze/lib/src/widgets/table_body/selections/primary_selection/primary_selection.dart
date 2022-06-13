@@ -170,9 +170,7 @@ class _AnimatedSelectionState
 
     _handleValue = visitor(
       _handleValue,
-      widget.handleStyle != null && widget.isSingleCell && widget.allowsHandle
-          ? 1.0
-          : 0.0,
+      widget.handleStyle != null && widget.allowsHandle ? 1.0 : 0.0,
       (dynamic value) => Tween<double>(begin: value as double),
     ) as Tween<double>?;
   }

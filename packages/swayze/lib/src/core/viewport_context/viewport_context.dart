@@ -430,18 +430,18 @@ class EvaluateHoverResult {
   /// The vertical axis overflow details of [cell].
   final OffscreenDetails overflowY;
 
-  /// If the position allows a drag and fill operation. This holds the
-  /// coordinate of the anchor cell for the operation.
-  final IntVector2? fillCell;
+  /// If the position allows a drag and fill operation, this holds the
+  /// source range for the operation.
+  final Range2D? fillRange;
 
   const EvaluateHoverResult({
     required this.cell,
     required this.overflowX,
     required this.overflowY,
-    required this.fillCell,
+    required this.fillRange,
   });
 
-  bool get canFillCell => fillCell != null;
+  bool get canFillCell => fillRange != null;
 
   @override
   bool operator ==(Object other) =>
@@ -451,12 +451,12 @@ class EvaluateHoverResult {
           cell == other.cell &&
           overflowX == other.overflowX &&
           overflowY == other.overflowY &&
-          fillCell == other.fillCell;
+          fillRange == other.fillRange;
 
   @override
   int get hashCode =>
       cell.hashCode ^
       overflowX.hashCode ^
       overflowY.hashCode ^
-      fillCell.hashCode;
+      fillRange.hashCode;
 }
