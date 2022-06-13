@@ -440,7 +440,7 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
     Range2D? fillRange;
 
     // If the primary selection allows fill, check if we're over the handle.
-    if (primary?.type != CellUserSelectionType.fill && style != null) {
+    if (style != null) {
       final cellPosition = getCellPosition(primary!.focus);
       final cellRect = cellPosition.leftTop & cellPosition.cellSize;
 

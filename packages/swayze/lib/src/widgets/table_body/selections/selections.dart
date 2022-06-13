@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:swayze_math/swayze_math.dart';
 
@@ -126,17 +125,8 @@ class _TableBodySelectionsState extends State<_TableBodySelections> {
             widget.selectionController.userSelectionState;
         final dataSelections = widget.selectionController.dataSelections;
 
-        final primary = userSelectionState.selections.lastWhere(
-          (selection) =>
-              selection is! CellUserSelectionModel ||
-              selection.type != CellUserSelectionType.fill,
-        );
-
-        final fill = userSelectionState.selections.lastWhereOrNull(
-          (selection) =>
-              selection is CellUserSelectionModel &&
-              selection.type == CellUserSelectionType.fill,
-        );
+        final primary = userSelectionState.primarySelection;
+        final fill = userSelectionState.fillSelection;
 
         final positionActiveCell = viewportContext.getCellPosition(
           userSelectionState.activeCellCoordinate,
@@ -175,6 +165,7 @@ class _TableBodySelectionsState extends State<_TableBodySelections> {
           }
 
           if (fill != null) {
+            //TODO(rafaelsouza): Break this into a FillSelection widget.
             children.add(
               PrimarySelection(
                 key: ValueKey(fill),

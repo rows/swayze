@@ -1,5 +1,6 @@
 import 'package:built_collection/built_collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:swayze_math/swayze_math.dart';
 
@@ -43,10 +44,21 @@ class UserSelectionState {
   /// The index of the [primarySelection].
   final int _primaryIndex;
 
+  /// The selection that contains the cells that should be filled.
+  ///
+  /// This is only used on drag and fill operations, and will be always be after
+  /// the [primarySelection].
+  CellUserSelectionModel? get fillSelection => _fillIndex >= 0
+      ? selections.elementAt(_fillIndex) as CellUserSelectionModel
+      : null;
+
+  /// The index of the [fillSelection].
+  final int _fillIndex;
+
   Iterable<UserSelectionModel> get secondarySelections sync* {
     var index = 0;
     for (final selection in selections) {
-      if (index == _primaryIndex) {
+      if ([_primaryIndex, _fillIndex].contains(index)) {
         continue;
       }
       yield selection;
@@ -65,8 +77,17 @@ class UserSelectionState {
   ///
   /// If [primaryIndex] is omitted, the last element on [selections]
   /// will be considered the [primarySelection].
-  const UserSelectionState._(this.selections)
-      : _primaryIndex = selections.length - 1;
+  UserSelectionState._(this.selections)
+      : _primaryIndex = selections.lastIndexWhere(
+          (selection) =>
+              selection is! CellUserSelectionModel ||
+              selection.type != CellUserSelectionType.fill,
+        ),
+        _fillIndex = selections.lastIndexWhere(
+          (selection) =>
+              selection is CellUserSelectionModel &&
+              selection.type == CellUserSelectionType.fill,
+        );
 
   /// Reset user selections into it's initial value.
   UserSelectionState reset() {
@@ -349,10 +370,12 @@ class UserSelectionState {
       other is UserSelectionState &&
           runtimeType == other.runtimeType &&
           selections == other.selections &&
-          _primaryIndex == other._primaryIndex;
+          _primaryIndex == other._primaryIndex &&
+          _fillIndex == other._fillIndex;
 
   @override
-  int get hashCode => selections.hashCode ^ _primaryIndex.hashCode;
+  int get hashCode =>
+      selections.hashCode ^ _primaryIndex.hashCode ^ _fillIndex.hashCode;
 }
 
 /// Get the value of a [IntVector2] in an axis [axis].

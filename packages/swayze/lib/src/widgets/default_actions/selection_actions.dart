@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:swayze_math/swayze_math.dart';
@@ -488,11 +487,9 @@ class CellSelectionUpdateAction
     BuildContext context,
   ) {
     final selectionController = internalScope.controller.selection;
-    final fillSelection =
-        selectionController.userSelectionState.selections.last;
+    final fillSelection = selectionController.userSelectionState.fillSelection;
 
-    if (fillSelection is CellUserSelectionModel &&
-        fillSelection.type == CellUserSelectionType.fill) {
+    if (fillSelection != null) {
       _updateFillSelection(intent.cellCoordinate);
 
       return;
@@ -508,14 +505,9 @@ class CellSelectionUpdateAction
   void _updateFillSelection(IntVector2 coordinate) {
     final selectionController = internalScope.controller.selection;
 
-    final primary =
-        selectionController.userSelectionState.selections.lastWhereOrNull(
-      (selection) =>
-          selection is CellUserSelectionModel &&
-          selection.type == CellUserSelectionType.regular,
-    );
+    final primary = selectionController.userSelectionState.primarySelection;
 
-    if (primary == null) {
+    if (primary is! CellUserSelectionModel) {
       return;
     }
 
@@ -585,21 +577,10 @@ class CellSelectionEndAction
   ) {
     final selectionController = internalScope.controller.selection;
 
-    final fill = selectionController.userSelectionState.selections.last;
+    final primary = selectionController.userSelectionState.primarySelection;
+    final fill = selectionController.userSelectionState.fillSelection;
 
-    if (fill is! CellUserSelectionModel ||
-        fill.type != CellUserSelectionType.fill) {
-      return;
-    }
-
-    final primary =
-        selectionController.userSelectionState.selections.lastWhereOrNull(
-      (selection) =>
-          selection is CellUserSelectionModel &&
-          selection.type == CellUserSelectionType.regular,
-    ) as CellUserSelectionModel?;
-
-    if (primary == null) {
+    if (primary is! CellUserSelectionModel || fill == null) {
       return;
     }
 
@@ -643,10 +624,9 @@ class CellSelectionCancelAction
   ) {
     final selectionController = internalScope.controller.selection;
 
-    final selection = selectionController.userSelectionState.selections.last;
+    final fill = selectionController.userSelectionState.fillSelection;
 
-    if (selection is CellUserSelectionModel &&
-        selection.type == CellUserSelectionType.fill) {
+    if (fill != null) {
       selectionController.updateUserSelections(
         (state) => state.removeLastSelection(),
       );
