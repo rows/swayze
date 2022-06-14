@@ -593,7 +593,7 @@ class CellSelectionEndAction
 
     Actions.invoke(
       context,
-      FillRangeIntent(
+      FillIntoTargetIntent(
         source: primary,
         target: fill,
       ),

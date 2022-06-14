@@ -43,16 +43,16 @@ class ExpandSelectionByBlockIntent extends SwayzeIntent {
 
 /// A [SwayzeIntent] to fill a range based on cells from the source range.
 ///
-/// This differs from [FillFromRangeIntent] as we know the target range.
+/// This differs from [FillIntoUnknownIntent] as we know the target range.
 ///
 /// See also:
 /// - [TableBodyGestureDetector] that triggers this intent
-class FillRangeIntent extends SwayzeIntent {
+class FillIntoTargetIntent extends SwayzeIntent {
   final Range2D source;
 
   final Range2D target;
 
-  const FillRangeIntent({
+  const FillIntoTargetIntent({
     required this.source,
     required this.target,
   });
@@ -60,14 +60,15 @@ class FillRangeIntent extends SwayzeIntent {
 
 /// A [SwayzeIntent] to fill unknown cells from a given range.
 ///
-/// This differs from [FillRangeIntent] as we know don't know the target range.
+/// This differs from [FillIntoTargetIntent] as we know don't know the target
+/// range.
 ///
 /// See also:
 /// - [TableBodyGestureDetector] that triggers this intent
-class FillFromRangeIntent extends SwayzeIntent {
+class FillIntoUnknownIntent extends SwayzeIntent {
   final Range2D source;
 
-  const FillFromRangeIntent({
+  const FillIntoUnknownIntent({
     required this.source,
   });
 }

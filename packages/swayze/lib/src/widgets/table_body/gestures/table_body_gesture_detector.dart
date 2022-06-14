@@ -459,7 +459,7 @@ class _TableBodyGestureDetectorState extends State<TableBodyGestureDetector> {
 
                         Actions.invoke(
                           context,
-                          FillFromRangeIntent(source: primary),
+                          FillIntoUnknownIntent(source: primary),
                         );
 
                         return;
