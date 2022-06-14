@@ -127,7 +127,7 @@ class _TableBodySelectionsState extends State<_TableBodySelections> {
         final dataSelections = widget.selectionController.dataSelections;
 
         final primary = userSelectionState.primarySelection;
-        final fill = userSelectionState.fillSelection;
+        final fill = widget.selectionController.fillSelectionState.selection;
 
         final positionActiveCell = viewportContext.getCellPosition(
           userSelectionState.activeCellCoordinate,

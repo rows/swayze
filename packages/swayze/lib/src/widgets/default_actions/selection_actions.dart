@@ -359,12 +359,11 @@ class CellSelectionStartAction
       final primary = internalScope
           .controller.selection.userSelectionState.primarySelection;
 
-      selectionController.updateUserSelections(
-        (state) => state.addSelection(
-          CellUserSelectionModel.fromAnchorFocus(
+      selectionController.updateFillSelections(
+        (state) => state.add(
+          FillSelectionModel.fromAnchorFocus(
             anchor: primary.anchorCoordinate,
             focus: primary.focusCoordinate,
-            type: CellUserSelectionType.fill,
           ),
         ),
       );
@@ -403,7 +402,6 @@ class CellSelectionStartAction
       (state) => state.resetSelectionsToACellSelection(
         anchor: intent.cellCoordinate,
         focus: intent.cellCoordinate,
-        type: CellUserSelectionType.regular,
       ),
     );
   }
@@ -487,7 +485,7 @@ class CellSelectionUpdateAction
     BuildContext context,
   ) {
     final selectionController = internalScope.controller.selection;
-    final fillSelection = selectionController.userSelectionState.fillSelection;
+    final fillSelection = selectionController.fillSelectionState.selection;
 
     if (fillSelection != null) {
       _updateFillSelection(intent.cellCoordinate);
@@ -507,14 +505,10 @@ class CellSelectionUpdateAction
 
     final primary = selectionController.userSelectionState.primarySelection;
 
-    if (primary is! CellUserSelectionModel) {
-      return;
-    }
-
     final anchor = primary.anchorCoordinate;
     final focus = primary.focusCoordinate;
 
-    final primaryRange = Range2D.fromPoints(
+    final currentRange = Range2D.fromPoints(
       IntVector2(
         min(anchor.dx, focus.dx),
         min(anchor.dy, focus.dy),
@@ -527,29 +521,29 @@ class CellSelectionUpdateAction
 
     final newRange = Range2D.fromPoints(
       IntVector2(
-        min(coordinate.dx, anchor.dx),
-        min(coordinate.dy, anchor.dy),
+        min(coordinate.dx, currentRange.leftTop.dx),
+        min(coordinate.dy, currentRange.leftTop.dy),
       ),
       IntVector2(
-        max(coordinate.dx, focus.dx),
-        max(coordinate.dy, focus.dy),
+        max(coordinate.dx, currentRange.rightBottom.dx),
+        max(coordinate.dy, currentRange.rightBottom.dy),
       ),
     );
 
     // We can only grow the selection vertically or horizontally, and vertical
     // selections have the preference.
-    final restrictVertical = newRange.size.dy - primaryRange.size.dy >=
-        newRange.size.dx - primaryRange.size.dx;
+    final restrictVertical = newRange.size.dy - currentRange.size.dy >=
+        newRange.size.dx - currentRange.size.dx;
 
-    selectionController.updateUserSelections(
-      (state) => state.updateLastSelectionToCellSelection(
-        anchor: newRange.leftTop.copyWith(
-          x: restrictVertical ? primaryRange.leftTop.dx : null,
-          y: restrictVertical ? null : primaryRange.leftTop.dy,
+    selectionController.updateFillSelections(
+      (state) => state.update(
+        anchor: currentRange.leftTop.copyWith(
+          x: restrictVertical ? null : newRange.leftTop.dx,
+          y: restrictVertical ? newRange.leftTop.dy : null,
         ),
-        focus: newRange.rightBottom.copyWith(
-          x: restrictVertical ? primaryRange.rightBottom.dx : null,
-          y: restrictVertical ? null : primaryRange.rightBottom.dy,
+        focus: currentRange.rightBottom.copyWith(
+          x: restrictVertical ? null : newRange.rightBottom.dx,
+          y: restrictVertical ? newRange.rightBottom.dy : null,
         ),
       ),
     );
@@ -578,7 +572,7 @@ class CellSelectionEndAction
     final selectionController = internalScope.controller.selection;
 
     final primary = selectionController.userSelectionState.primarySelection;
-    final fill = selectionController.userSelectionState.fillSelection;
+    final fill = selectionController.fillSelectionState.selection;
 
     if (primary is! CellUserSelectionModel || fill == null) {
       return;
@@ -587,10 +581,14 @@ class CellSelectionEndAction
     // Transform the fill selection into a regular selection
     selectionController.updateUserSelections(
       (state) => state.resetSelectionsToACellSelection(
-        anchor: primary.anchor,
-        focus: primary.focus,
-        type: CellUserSelectionType.regular,
+        anchor: fill.anchor,
+        focus: fill.focus,
       ),
+    );
+
+    // Clear the fill selection
+    selectionController.updateFillSelections(
+      (state) => state.clear(),
     );
 
     Actions.invoke(
@@ -624,11 +622,11 @@ class CellSelectionCancelAction
   ) {
     final selectionController = internalScope.controller.selection;
 
-    final fill = selectionController.userSelectionState.fillSelection;
+    final fill = selectionController.fillSelectionState.selection;
 
     if (fill != null) {
-      selectionController.updateUserSelections(
-        (state) => state.removeLastSelection(),
+      selectionController.updateFillSelections(
+        (state) => state.clear(),
       );
     }
   }

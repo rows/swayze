@@ -102,9 +102,6 @@ class _PrimarySelectionState extends State<PrimarySelection>
       duration: styleContext.selectionAnimationDuration,
       activeCellRect: widget.activeCellRect,
       isSingleCell: isSingleCell,
-      allowsHandle: selectionModel is CellUserSelectionModel
-          ? selectionModel.type != CellUserSelectionType.fill
-          : true,
     );
   }
 }
@@ -118,7 +115,6 @@ class _AnimatedPrimarySelection extends ImplicitlyAnimatedWidget {
   final SwayzeDragAndFillHandleStyle? handleStyle;
   final Rect activeCellRect;
   final bool isSingleCell;
-  final bool allowsHandle;
 
   const _AnimatedPrimarySelection({
     Key? key,
@@ -129,7 +125,6 @@ class _AnimatedPrimarySelection extends ImplicitlyAnimatedWidget {
     required Duration duration,
     required this.activeCellRect,
     required this.isSingleCell,
-    required this.allowsHandle,
   }) : super(key: key, duration: duration);
 
   @override
@@ -171,7 +166,7 @@ class _AnimatedSelectionState
 
     _handleValue = visitor(
       _handleValue,
-      widget.handleStyle != null && widget.allowsHandle ? 1.0 : 0.0,
+      widget.handleStyle != null ? 1.0 : 0.0,
       (dynamic value) => Tween<double>(begin: value as double),
     ) as Tween<double>?;
   }

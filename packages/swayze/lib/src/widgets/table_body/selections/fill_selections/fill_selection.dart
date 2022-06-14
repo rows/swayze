@@ -6,16 +6,13 @@ import '../../../../core/viewport_context/viewport_context_provider.dart';
 import '../../../internal_scope.dart';
 import '../selection_rendering_helpers.dart';
 
-/// A [StatefulWidget] to render the fill selection of the [UserSelectionState].
-///
-/// Differently from [SecondarySelections] it render just a single
-/// [UserSelectionModel].
+/// A [StatefulWidget] to render the a fill selection.
 ///
 /// It is implicitly animated, it means that changes on the size and position
 /// of the selection should reflect in an animation.
 class FillSelection extends StatefulWidget {
-  /// The [UserSelectionModel] to be rendered.
-  final UserSelectionModel selectionModel;
+  /// The [FillSelectionModel] to be rendered.
+  final FillSelectionModel selectionModel;
 
   final Range xRange;
   final Range yRange;
@@ -73,8 +70,7 @@ class _FillSelectionState extends State<FillSelection>
     final rightBottomPixelOffset = getRightBottomOffset(range.rightBottom);
     final sizeOffset = rightBottomPixelOffset - leftTopPixelOffset;
 
-    final effectiveStyle = widget.selectionModel.toSelectionStyle(context) ??
-        InternalScope.of(context).style.userSelectionStyle;
+    final effectiveStyle = widget.selectionModel.toSelectionStyle(context);
 
     return _AnimatedFillSelection(
       size: Size(sizeOffset.dx, sizeOffset.dy),
@@ -241,30 +237,17 @@ class _RenderFillSelectionPainter extends RenderBox {
   }
 }
 
-extension on UserSelectionModel {
-  SelectionStyle? toSelectionStyle(BuildContext context) {
-    final model = this;
-
-    return style ??
-        (model is CellUserSelectionModel
-            ? model.type.toSelectionStyle(context)
-            : null);
-  }
-}
-
-extension on CellUserSelectionType {
-  SelectionStyle? toSelectionStyle(BuildContext context) {
-    switch (this) {
-      case CellUserSelectionType.fill:
-        final style = InternalScope.of(context).style;
-
-        return SelectionStyle.dashedBorderOnly(
-          color: style.dragAndFillStyle.color,
-          borderWidth: style.dragAndFillStyle.borderWidth,
-        );
-
-      default:
-        return null;
+extension on FillSelectionModel {
+  SelectionStyle toSelectionStyle(BuildContext context) {
+    if (style != null) {
+      return style!;
     }
+
+    final effectiveStyle = InternalScope.of(context).style;
+
+    return SelectionStyle.dashedBorderOnly(
+      color: effectiveStyle.dragAndFillStyle.color,
+      borderWidth: effectiveStyle.dragAndFillStyle.borderWidth,
+    );
   }
 }

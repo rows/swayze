@@ -423,12 +423,14 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
   EvaluateHoverResult evaluateHover(Offset pixelOffset) {
     final internalScope = InternalScope.of(context);
 
-    final selectionState =
-        internalScope.controller.selection.userSelectionState;
+    final selectionController = internalScope.controller.selection;
 
-    final primary = selectionState.primarySelection is CellUserSelectionModel
-        ? selectionState.primarySelection as CellUserSelectionModel
-        : null;
+    final selectionState = selectionController.userSelectionState;
+
+    final primarySelection =
+        selectionState.primarySelection is CellUserSelectionModel
+            ? selectionState.primarySelection as CellUserSelectionModel
+            : null;
 
     final style = internalScope.config.isDragFillEnabled
         ? internalScope.style.dragAndFillStyle.handle
@@ -437,11 +439,12 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
     final positionX = pixelToPosition(pixelOffset.dx, Axis.horizontal);
     final positionY = pixelToPosition(pixelOffset.dy, Axis.vertical);
 
-    Range2D? fillRange;
+    // Tries to set the range using the current fill selection, if there's one.
+    Range2D? fillRange = selectionController.fillSelectionState.selection;
 
     // If the primary selection allows fill, check if we're over the handle.
-    if (style != null) {
-      final cellPosition = getCellPosition(primary!.focus);
+    if (fillRange == null && primarySelection != null && style != null) {
+      final cellPosition = getCellPosition(primarySelection.focus);
       final cellRect = cellPosition.leftTop & cellPosition.cellSize;
 
       final canFillCell = Rect.fromLTRB(
@@ -452,7 +455,7 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
       ).inflate(style.borderWidth).contains(pixelOffset);
 
       if (canFillCell) {
-        fillRange = primary;
+        fillRange = primarySelection;
       }
     }
 
