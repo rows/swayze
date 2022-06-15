@@ -483,14 +483,16 @@ class _TableBodyGestureDetectorState extends State<TableBodyGestureDetector> {
   void _endDrag({
     required bool cancelled,
   }) {
-    internalScope.controller.scroll
-      ..stopAutoScroll(Axis.vertical)
-      ..stopAutoScroll(Axis.horizontal);
-
     cachedDragCellCoordinate = null;
     dragOriginOffsetCache = null;
     _cachedDragGestureDetails = null;
 
-    cancelled ? handleDragCancel() : handleDragEnd();
+    if (mounted) {
+      internalScope.controller.scroll
+        ..stopAutoScroll(Axis.vertical)
+        ..stopAutoScroll(Axis.horizontal);
+
+      cancelled ? handleDragCancel() : handleDragEnd();
+    }
   }
 }
