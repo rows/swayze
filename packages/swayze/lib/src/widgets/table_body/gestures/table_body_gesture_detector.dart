@@ -336,10 +336,12 @@ class _TableBodyGestureDetectorState extends State<TableBodyGestureDetector> {
 
   /// Handles the cancelling of an ongoing drag operation.
   void handleDragCancel() {
-    Actions.invoke(
-      context,
-      const TableBodySelectionCancelIntent(),
-    );
+    if (mounted) {
+      Actions.invoke(
+        context,
+        const TableBodySelectionCancelIntent(),
+      );
+    }
   }
 
   @override
@@ -483,16 +485,14 @@ class _TableBodyGestureDetectorState extends State<TableBodyGestureDetector> {
   void _endDrag({
     required bool cancelled,
   }) {
+    internalScope.controller.scroll
+      ..stopAutoScroll(Axis.vertical)
+      ..stopAutoScroll(Axis.horizontal);
+
     cachedDragCellCoordinate = null;
     dragOriginOffsetCache = null;
     _cachedDragGestureDetails = null;
 
-    if (mounted) {
-      internalScope.controller.scroll
-        ..stopAutoScroll(Axis.vertical)
-        ..stopAutoScroll(Axis.horizontal);
-
-      cancelled ? handleDragCancel() : handleDragEnd();
-    }
+    cancelled ? handleDragCancel() : handleDragEnd();
   }
 }
