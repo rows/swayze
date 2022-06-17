@@ -1,7 +1,7 @@
 # 1.2.0
 
 - Adds drag and fill support. When enabled on the `SwayzeConfig`, applications can then react to
-  `FillRangeIntent` and `FillFromRangeIntent`.
+  `FillIntoTargetIntent` and `FillIntoUnknownIntent`.
 - Deprecates `id` property on `UserSelectionModel`.
 - Allow resizing of columns or rows.
 - Add drag and drop for columns and rows.
