@@ -91,7 +91,7 @@ class UserSelectionState {
   /// [anchor] and [focus].
   ///
   /// The resulting lone selection copies everything from the [primarySelection]
-  /// besides [anchor] and [focus] .
+  /// besides [anchor] and [focus].
   UserSelectionState resetSelectionsToACellSelection({
     required IntVector2 anchor,
     required IntVector2 focus,
