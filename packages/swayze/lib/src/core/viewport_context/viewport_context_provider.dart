@@ -444,7 +444,12 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
 
     // If the primary selection allows fill, check if we're over the handle.
     if (fillRange == null && primarySelection != null && style != null) {
-      final cellPosition = getCellPosition(primarySelection.focus);
+      final range = Range2D.fromPoints(
+        primarySelection.anchor,
+        primarySelection.focus,
+      );
+
+      final cellPosition = getCellPosition(range.rightBottom);
       final cellRect = cellPosition.leftTop & cellPosition.cellSize;
 
       final canFillCell = Rect.fromLTRB(
@@ -455,7 +460,7 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
       ).inflate(style.borderWidth).contains(pixelOffset);
 
       if (canFillCell) {
-        fillRange = primarySelection;
+        fillRange = range;
       }
     }
 
