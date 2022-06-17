@@ -46,7 +46,7 @@ class UserSelectionState {
   Iterable<UserSelectionModel> get secondarySelections sync* {
     var index = 0;
     for (final selection in selections) {
-      if (_primaryIndex == index) {
+      if (index == _primaryIndex) {
         continue;
       }
       yield selection;
@@ -88,10 +88,10 @@ class UserSelectionState {
   }
 
   /// Reset all selections to a single [CellUserSelectionModel] created from
-  /// [anchor] and [focus], with an optional new [type].
+  /// [anchor] and [focus].
   ///
   /// The resulting lone selection copies everything from the [primarySelection]
-  /// besides [anchor], [focus] and [type].
+  /// besides [anchor] and [focus] .
   UserSelectionState resetSelectionsToACellSelection({
     required IntVector2 anchor,
     required IntVector2 focus,
