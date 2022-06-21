@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:swayze/src/core/config/config.dart';
@@ -14,6 +13,7 @@ import 'test_utils/create_table_data.dart';
 import 'test_utils/create_test_victim.dart';
 import 'test_utils/fonts.dart';
 import 'test_utils/get_cell_offset.dart';
+import 'test_utils/widget_tester_extension.dart';
 
 void main() async {
   await loadFonts();
@@ -328,13 +328,7 @@ void _testFillUnknown() {
         ),
       );
 
-      await tester.tapAt(handlerOffset);
-      await tester.pumpAndSettle(
-        kDoubleTapMinTime + const Duration(milliseconds: 10),
-      );
-      await tester.tapAt(handlerOffset);
-
-      await tester.pumpAndSettle();
+      await tester.doubleTapAt(handlerOffset);
 
       expect(
         fillSource,
