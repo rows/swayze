@@ -146,38 +146,53 @@ class SwayzeCellsController<CellDataType extends SwayzeCellData>
   /// Access the table of cells in a read only interface.
   MatrixMapReadOnly<CellDataType> get cellMatrixReadOnly => _cellMatrix;
 
-  /// Given a [IntVector2] and a [AxisDirection] return the
-  /// next coordinate in the current block of cells.
+  /// Given an [IntVector2] and an [AxisDirection], return the next coordinate
+  /// in the current block of cells.
   ///
-  /// If the first neighbour cell has value, it traverses the cells
-  /// until it finds an empty cell and returns the previous coordinate (the
-  /// last with value).
+  /// If the base cell has a value, it traverses the cells until it finds an
+  /// empty cell, and returns the previous coordinate (the last with value).
   ///
-  /// If the first neighbour cell does not have value, it traverses the
-  /// cells until it fiends a cell with value and return the previous coordinate
-  /// (the last empty).
+  /// If the base cell does not have value, it traverses the cells until it
+  /// finds a cell with value, and returns the previous coordinate (the last
+  /// empty).
+  ///
+  /// The base cell is the given [originalCoordinate] if
+  /// [useNeighboringCellAsBase] is `false`, or the neighboring cell to the
+  /// [originalCoordinate] in the given [AxisDirection] if
+  /// [useNeighboringCellAsBase] is `true` (the default).
+  ///
+  /// An optional [limit] may be passed to limit how many coordinates can be
+  /// checked.
   IntVector2 getNextCoordinateInCellsBlock({
     required IntVector2 originalCoordinate,
     required AxisDirection direction,
+    bool useNeighboringCellAsBase = true,
+    int? limit,
   }) {
     final axis = axisDirectionToAxis(direction);
-    var previousCoordinate = originalCoordinate;
-    var currentCoordinate = originalCoordinate + _moveVectors[direction]!;
+    var previousCoordinate = useNeighboringCellAsBase
+        ? originalCoordinate
+        : originalCoordinate - _moveVectors[direction]!;
+    var currentCoordinate = useNeighboringCellAsBase
+        ? originalCoordinate + _moveVectors[direction]!
+        : originalCoordinate;
+
     final headerController =
         parent.tableDataController.getHeaderControllerFor(axis: axis);
-    final limit = headerController.value.totalCount - 1;
 
-    final isFirstNeighbourCellFilled =
+    final effectiveLimit = limit ?? headerController.value.totalCount - 1;
+
+    final isBaseCellFilled =
         _cellMatrix[currentCoordinate]?.hasVisibleContent == true;
 
     /// Conditions to stop iterating and finding the next cell.
     ///
     /// - if the previous coordinate and new coordinate are the same
     /// (it probably means we reached a edge of the grid).
-    /// - If the first neighbour cell was filled, then we'll keep iterating
-    /// while we find filled cells.
-    /// - If the first neighbour cell was not filled, then we'll keep iterating
-    /// while we find empty cells.
+    /// - If the base cell was filled, then we'll keep iterating while we find
+    /// filled cells.
+    /// - If the base cell was not filled, then we'll keep iterating while we
+    /// find empty cells.
     bool shouldContinueLookup(IntVector2 prev, IntVector2 curr) {
       if (prev == curr) {
         return false;
@@ -191,7 +206,7 @@ class SwayzeCellsController<CellDataType extends SwayzeCellData>
       }
 
       final hasValue = _cellMatrix[curr]?.hasVisibleContent == true;
-      return isFirstNeighbourCellFilled ? hasValue : !hasValue;
+      return isBaseCellFilled == hasValue;
     }
 
     // Iteratively move the current coordinate until [shouldContinueLookup]
@@ -201,10 +216,10 @@ class SwayzeCellsController<CellDataType extends SwayzeCellData>
       currentCoordinate += _moveVectors[direction]!;
       currentCoordinate = IntVector2(
         axis == Axis.horizontal
-            ? max(0, min(currentCoordinate.dx, limit))
+            ? max(0, min(currentCoordinate.dx, effectiveLimit))
             : currentCoordinate.dx,
         axis == Axis.vertical
-            ? max(0, min(currentCoordinate.dy, limit))
+            ? max(0, min(currentCoordinate.dy, effectiveLimit))
             : currentCoordinate.dy,
       );
     } while (shouldContinueLookup(previousCoordinate, currentCoordinate));
@@ -212,7 +227,7 @@ class SwayzeCellsController<CellDataType extends SwayzeCellData>
     final currentCellIsEmpty =
         _cellMatrix[currentCoordinate]?.hasNoVisibleContent == true;
 
-    return (isFirstNeighbourCellFilled || currentCellIsEmpty)
+    return (isBaseCellFilled != currentCellIsEmpty)
         ? previousCoordinate
         : currentCoordinate;
   }
