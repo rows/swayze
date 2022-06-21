@@ -9,7 +9,7 @@ export 'model/selection_style.dart';
 export 'user_selections/model.dart';
 export 'user_selections/user_selection_state.dart';
 
-typedef _StateChanger<T> = T Function(T previousState);
+typedef SwayzeSelectionChangerCallback<T> = T Function(T previousState);
 
 /// A [ControllerBase] that keeps track of the active selections in the table.
 ///
@@ -86,7 +86,7 @@ class SwayzeSelectionController extends Listenable implements ControllerBase {
   /// version.
   /// If the returned state is the same as before, no update is triggered.
   void updateUserSelections(
-    _StateChanger<UserSelectionState> stateUpdate,
+    SwayzeSelectionChangerCallback<UserSelectionState> stateUpdate,
   ) {
     userSelections.value = stateUpdate(userSelections.value);
   }
@@ -96,7 +96,7 @@ class SwayzeSelectionController extends Listenable implements ControllerBase {
   /// version.
   /// If the returned state is the same as before, no update is triggered.
   void updateFillSelections(
-    _StateChanger<FillSelectionState> stateUpdate,
+    SwayzeSelectionChangerCallback<FillSelectionState> stateUpdate,
   ) =>
       fillSelection.value = stateUpdate(fillSelection.value);
 
@@ -147,7 +147,7 @@ class _UserSelectionsValueNotifier extends ValueNotifier<UserSelectionState> {
 class _FillSelectionsValueNotifier extends ValueNotifier<FillSelectionState> {
   _FillSelectionsValueNotifier()
       : super(
-          FillSelectionState.empty(),
+          const FillSelectionState.empty(),
         );
 
   @override

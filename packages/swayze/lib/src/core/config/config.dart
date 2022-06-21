@@ -4,7 +4,7 @@ import 'package:meta/meta.dart';
 /// Swayze widgets.
 @immutable
 class SwayzeConfig {
-  /// Enabled the drag of the bottom right corner of the cell to
+  /// Enables the drag of the bottom right corner of the cell to
   /// allow for drag and fill values.
   final bool isDragFillEnabled;
 

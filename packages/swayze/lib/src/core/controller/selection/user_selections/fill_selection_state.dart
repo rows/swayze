@@ -21,16 +21,12 @@ class FillSelectionState {
     required this.selection,
   });
 
-  factory FillSelectionState.empty() => const FillSelectionState._(
-        selection: null,
-      );
+  const FillSelectionState.empty() : this._(selection: null);
 
   /// Clears the current selection..
-  FillSelectionState clear() => FillSelectionState.empty();
+  FillSelectionState clear() => const FillSelectionState.empty();
 
   /// Adds a new selection, if none exists.
-  ///
-  /// [anchor] defaults to the current selection anchor.
   FillSelectionState add(
     FillSelectionModel newSelection,
   ) {
