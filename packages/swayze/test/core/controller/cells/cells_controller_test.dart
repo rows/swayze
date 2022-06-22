@@ -277,6 +277,49 @@ void main() {
         IntVector2(0, 6),
       ],
     );
+
+    testCellsController(
+      'should respect given limit',
+      (cellsController) {
+        addHeaderControllerMock(cellsController, count: 11);
+
+        expect(
+          cellsController.getNextCoordinateInCellsBlock(
+            originalCoordinate: const IntVector2(0, 0),
+            direction: AxisDirection.down,
+            limit: 1,
+          ),
+          const IntVector2(0, 1),
+        );
+      },
+      initialRawCells: const <dynamic>[
+        IntVector2(0, 0),
+        IntVector2(0, 1),
+        IntVector2(0, 2),
+        IntVector2(0, 3),
+      ],
+    );
+
+    testCellsController(
+      'should be able to use the given cell as base, instead of neighbor',
+      (cellsController) {
+        addHeaderControllerMock(cellsController, count: 11);
+
+        expect(
+          cellsController.getNextCoordinateInCellsBlock(
+            originalCoordinate: const IntVector2(0, 0),
+            direction: AxisDirection.down,
+            useNeighboringCellAsBase: false,
+          ),
+          const IntVector2(0, 1),
+        );
+      },
+      initialRawCells: const <dynamic>[
+        IntVector2(0, 1),
+        IntVector2(0, 2),
+        IntVector2(0, 3),
+      ],
+    );
   });
 
   group('getNextCoordinate', () {

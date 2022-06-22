@@ -360,7 +360,7 @@ class CellSelectionStartAction
           .controller.selection.userSelectionState.primarySelection;
 
       selectionController.updateFillSelections(
-        (state) => state.add(
+        (state) => state.addIfNoneExists(
           FillSelectionModel.fromAnchorFocus(
             anchor: primary.anchorCoordinate,
             focus: primary.focusCoordinate,

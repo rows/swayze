@@ -27,7 +27,7 @@ class FillSelectionState {
   FillSelectionState clear() => const FillSelectionState.empty();
 
   /// Adds a new selection, if none exists.
-  FillSelectionState add(
+  FillSelectionState addIfNoneExists(
     FillSelectionModel newSelection,
   ) {
     if (selection != null) {

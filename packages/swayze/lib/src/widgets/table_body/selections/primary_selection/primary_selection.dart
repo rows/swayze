@@ -200,7 +200,6 @@ class PrimarySelectionPainter extends LeafRenderObjectWidget {
   final Size size;
   final Offset offset;
   final BoxDecoration decoration;
-  final SwayzeDragAndFillHandleStyle? handleStyle;
   final Rect activeCellRect;
   final bool isSingleCell;
 
@@ -208,15 +207,16 @@ class PrimarySelectionPainter extends LeafRenderObjectWidget {
   /// `0.0` - No handle.
   /// `1.0` - Paint handle.
   final double handleValue;
+  final SwayzeDragAndFillHandleStyle? handleStyle;
 
   const PrimarySelectionPainter({
     required this.isSingleCell,
     required this.size,
     required this.offset,
     required this.decoration,
-    this.handleStyle,
     required this.activeCellRect,
     required this.handleValue,
+    this.handleStyle,
   });
 
   @override
@@ -240,11 +240,11 @@ class PrimarySelectionPainter extends LeafRenderObjectWidget {
     renderObject
       ..isSingleCell = isSingleCell
       ..decoration = decoration
-      ..handleStyle = handleStyle
       ..offset = offset
       ..definedSize = size
       ..activeCellRect = activeCellRect
-      ..handleValue = handleValue;
+      ..handleValue = handleValue
+      ..handleStyle = handleStyle;
   }
 }
 
