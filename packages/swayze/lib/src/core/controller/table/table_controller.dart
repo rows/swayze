@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart' show Axis;
 import 'package:swayze_math/swayze_math.dart';
@@ -120,8 +121,9 @@ class SwayzeTableDataController<ParentType extends SwayzeController>
   void handleSelectionChange() {
     final selections = [
       ...parent.selection.userSelectionState.selections,
+      parent.selection.fillSelectionState.selection,
       ...parent.selection.dataSelections,
-    ];
+    ].whereNotNull();
 
     final currentElasticEdge = IntVector2(
       columns.value.elasticCount,

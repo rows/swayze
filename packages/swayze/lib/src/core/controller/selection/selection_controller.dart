@@ -2,11 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 
 import '../controller.dart';
+import 'user_selections/fill_selection_state.dart';
 
 export 'model/selection.dart';
 export 'model/selection_style.dart';
 export 'user_selections/model.dart';
 export 'user_selections/user_selection_state.dart';
+
+typedef SwayzeSelectionChangerCallback<T> = T Function(T previousState);
 
 /// A [ControllerBase] that keeps track of the active selections in the table.
 ///
@@ -37,7 +40,13 @@ class SwayzeSelectionController extends Listenable implements ControllerBase {
   @protected
   final userSelections = _UserSelectionsValueNotifier();
 
+  /// Internal [ValueNotifier] that controls the [FillSelectionState].
+  @protected
+  final fillSelection = _FillSelectionsValueNotifier();
+
   Listenable get userSelectionsListenable => userSelections;
+
+  Listenable get fillSelectionListenable => fillSelection;
 
   SwayzeSelectionController();
 
@@ -59,11 +68,15 @@ class SwayzeSelectionController extends Listenable implements ControllerBase {
   // selections and data selections.
   late final _mergeListenable = Listenable.merge([
     userSelections,
+    fillSelection,
     dataSelectionsValueListenable,
   ]);
 
   /// Recover the current [UserSelectionState]
   UserSelectionState get userSelectionState => userSelections.value;
+
+  /// Recover the current [FillSelectionState]
+  FillSelectionState get fillSelectionState => fillSelection.value;
 
   /// Recover the current list of data selections.
   Iterable<Selection> get dataSelections => dataSelectionsValueListenable.value;
@@ -73,10 +86,19 @@ class SwayzeSelectionController extends Listenable implements ControllerBase {
   /// version.
   /// If the returned state is the same as before, no update is triggered.
   void updateUserSelections(
-    UserSelectionState Function(UserSelectionState previousState) stateUpdate,
+    SwayzeSelectionChangerCallback<UserSelectionState> stateUpdate,
   ) {
     userSelections.value = stateUpdate(userSelections.value);
   }
+
+  /// Update the current [fillSelectionState]. The callback [stateUpdate]
+  /// receives the actual version of the state and should return the updated
+  /// version.
+  /// If the returned state is the same as before, no update is triggered.
+  void updateFillSelections(
+    SwayzeSelectionChangerCallback<FillSelectionState> stateUpdate,
+  ) =>
+      fillSelection.value = stateUpdate(fillSelection.value);
 
   /// Check if the index [headerIndex] is covered by any header selection.
   bool isHeaderSelected(int headerIndex, Axis axis) =>
@@ -99,6 +121,7 @@ class SwayzeSelectionController extends Listenable implements ControllerBase {
 
   @override
   void dispose() {
+    fillSelection.dispose();
     userSelections.dispose();
   }
 }
@@ -119,7 +142,26 @@ class _UserSelectionsValueNotifier extends ValueNotifier<UserSelectionState> {
   UserSelectionState get value => super.value;
 }
 
-/// Dummy [ValueListenable] thata ct as default to
+/// The internal [ValueNotifier] that keeps track of changes on
+/// [FillSelectionState].
+class _FillSelectionsValueNotifier extends ValueNotifier<FillSelectionState> {
+  _FillSelectionsValueNotifier()
+      : super(
+          const FillSelectionState.empty(),
+        );
+
+  @override
+  @protected
+  set value(FillSelectionState newValue) {
+    super.value = newValue;
+  }
+
+  @override
+  @protected
+  FillSelectionState get value => super.value;
+}
+
+/// Dummy [ValueListenable] that act as default to
 /// [SwayzeSelectionController.dataSelectionsValueListenable]
 class _DummyDataSelectionsValueNotifier
     implements ValueListenable<Iterable<Selection>> {

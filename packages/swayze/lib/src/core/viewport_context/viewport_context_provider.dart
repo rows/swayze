@@ -4,6 +4,7 @@ import 'package:swayze_math/swayze_math.dart';
 
 import '../../widgets/headers/gestures/resize_header/header_edge_info.dart';
 import '../../widgets/internal_scope.dart';
+import '../controller/controller.dart';
 import '../virtualization/virtualization_calculator.dart'
     show VirtualizationCalculator, VirtualizationState;
 import 'viewport_context.dart';
@@ -415,6 +416,59 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
     return CellPositionResult(
       leftTop: Offset(left, top),
       cellSize: Size(width, height),
+    );
+  }
+
+  @override
+  EvaluateHoverResult evaluateHover(Offset pixelOffset) {
+    final internalScope = InternalScope.of(context);
+
+    final selectionController = internalScope.controller.selection;
+
+    final selectionState = selectionController.userSelectionState;
+
+    final primarySelection =
+        selectionState.primarySelection is CellUserSelectionModel
+            ? selectionState.primarySelection as CellUserSelectionModel
+            : null;
+
+    final style = internalScope.config.isDragFillEnabled
+        ? internalScope.style.dragAndFillStyle.handle
+        : null;
+
+    final positionX = pixelToPosition(pixelOffset.dx, Axis.horizontal);
+    final positionY = pixelToPosition(pixelOffset.dy, Axis.vertical);
+
+    // Tries to set the range using the current fill selection, if there's one.
+    Range2D? fillRange = selectionController.fillSelectionState.selection;
+
+    // If the primary selection allows fill, check if we're over the handle.
+    if (fillRange == null && primarySelection != null && style != null) {
+      final range = Range2D.fromPoints(
+        primarySelection.anchor,
+        primarySelection.focus,
+      );
+
+      final cellPosition = getCellPosition(range.rightBottom);
+      final cellRect = cellPosition.leftTop & cellPosition.cellSize;
+
+      final canFillCell = Rect.fromLTRB(
+        cellRect.right - style.size.width,
+        cellRect.bottom - style.size.height,
+        cellRect.right + style.size.width,
+        cellRect.bottom + style.size.height,
+      ).inflate(style.borderWidth).contains(pixelOffset);
+
+      if (canFillCell) {
+        fillRange = range;
+      }
+    }
+
+    return EvaluateHoverResult(
+      cell: IntVector2(positionX.position, positionY.position),
+      overflowX: positionX.overflow,
+      overflowY: positionY.overflow,
+      fillRange: fillRange,
     );
   }
 

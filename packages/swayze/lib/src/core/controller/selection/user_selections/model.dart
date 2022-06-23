@@ -198,7 +198,7 @@ class HeaderUserSelectionModel extends AxisBoundedSelection
 
 /// A [UserSelectionModel] that represents a [Range2D] of cells.
 ///
-/// Unlike [HeaderUserSelectionModel], the edges of this king of selection are
+/// Unlike [HeaderUserSelectionModel], the edges of this kind of selection are
 /// defined by the coordinates in both axis. The selection only covers the
 /// cells in the axis.
 class CellUserSelectionModel extends BoundedSelection
@@ -236,33 +236,21 @@ class CellUserSelectionModel extends BoundedSelection
     required IntVector2 focus,
     SelectionStyle? style,
   }) {
-    final leftTop = IntVector2(
-      min(anchor.dx, focus.dx),
-      min(anchor.dy, focus.dy),
-    );
-
-    // Focus and anchor are inclusive, rightBottom on Range2D is not.
-    final rightBottom = IntVector2(
-      max(anchor.dx, focus.dx) + 1,
-      max(anchor.dy, focus.dy) + 1,
+    final range = _calculateRange(
+      anchor: anchor,
+      focus: focus,
     );
 
     // Define where the anchor is from their positions
-    late Corner anchorCorner;
-    if (anchor.dx <= focus.dx && anchor.dy <= focus.dy) {
-      anchorCorner = Corner.leftTop;
-    } else if (anchor.dx >= focus.dx && anchor.dy >= focus.dy) {
-      anchorCorner = Corner.rightBottom;
-    } else if (anchor.dx < focus.dx) {
-      anchorCorner = Corner.leftBottom;
-    } else {
-      anchorCorner = Corner.rightTop;
-    }
+    final anchorCorner = _calculateCorner(
+      anchor: anchor,
+      focus: focus,
+    );
 
     return CellUserSelectionModel._(
       id: id,
-      leftTop: leftTop,
-      rightBottom: rightBottom,
+      leftTop: range.leftTop,
+      rightBottom: range.rightBottom,
       anchorCorner: anchorCorner,
       style: style,
     );
@@ -313,4 +301,143 @@ class CellUserSelectionModel extends BoundedSelection
 
   @override
   int get hashCode => super.hashCode ^ id.hashCode ^ style.hashCode;
+}
+
+/// A [UserSelectionModel] that represents a [Range2D] used on drag and fill
+/// cells operations.
+///
+/// Unlike [HeaderUserSelectionModel], the edges of this kind of selection are
+/// defined by the coordinates in both axis. The selection only covers the
+/// cells in the axis.
+class FillSelectionModel extends BoundedSelection
+    implements UserSelectionModel {
+  @override
+  @Deprecated('')
+  final String id;
+
+  @override
+  final SelectionStyle? style;
+
+  FillSelectionModel._({
+    @Deprecated('') String? id,
+    required IntVector2 leftTop,
+    required IntVector2 rightBottom,
+    required Corner anchorCorner,
+    required this.style,
+  })  : id = id ?? _uuid.v4(),
+        super(
+          leftTop: leftTop,
+          rightBottom: rightBottom,
+          anchorCorner: anchorCorner,
+        );
+
+  /// Create a [FillSelectionModel] given its opposite corners
+  /// ([anchor] and [focus]).
+  ///
+  /// If [id] is omitted, an uuid is generated.
+  ///
+  /// Since this selection is a [Range2D], we convert [anchor] and [focus]
+  /// into range's [leftTop] and [rightBottom] values.
+  factory FillSelectionModel.fromAnchorFocus({
+    @Deprecated('') String? id,
+    required IntVector2 anchor,
+    required IntVector2 focus,
+    SelectionStyle? style,
+  }) {
+    final range = _calculateRange(
+      anchor: anchor,
+      focus: focus,
+    );
+
+    return FillSelectionModel._(
+      id: id,
+      leftTop: range.leftTop,
+      rightBottom: range.rightBottom,
+      anchorCorner: _calculateCorner(
+        anchor: anchor,
+        focus: focus,
+      ),
+      style: style,
+    );
+  }
+
+  /// Creates a [FillSelectionModel] from any [UserSelectionModel] given an
+  /// [anchor] and [focus].
+  factory FillSelectionModel.fromSelectionModel(
+    UserSelectionModel original, {
+    required IntVector2 anchor,
+    required IntVector2 focus,
+  }) =>
+      FillSelectionModel.fromAnchorFocus(
+        id: original.id,
+        anchor: anchor,
+        focus: focus,
+        style: original.style,
+      );
+
+  /// Creates a copy of the selection with the specified properties replaced.
+  ///
+  /// Calling this method on a selection will return a new transformed selection
+  /// based on the provided properties.
+  FillSelectionModel copyWith({
+    IntVector2? anchor,
+    IntVector2? focus,
+    SelectionStyle? style,
+  }) =>
+      FillSelectionModel.fromAnchorFocus(
+        id: id,
+        anchor: anchor ?? this.anchor,
+        focus: focus ?? this.focus,
+        style: style ?? this.style,
+      );
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      super == other &&
+          other is CellUserSelectionModel &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          style == other.style;
+
+  @override
+  int get hashCode => super.hashCode ^ id.hashCode ^ style.hashCode;
+}
+
+/// Returns an inclusive range with points based on [anchor] and [focus].
+Range2D _calculateRange({
+  required IntVector2 anchor,
+  required IntVector2 focus,
+}) {
+  return Range2D.fromPoints(
+    IntVector2(
+      min(anchor.dx, focus.dx),
+      min(anchor.dy, focus.dy),
+    ),
+    // Focus and anchor are inclusive, rightBottom on Range2D is not.
+    IntVector2(
+      max(anchor.dx, focus.dx) + 1,
+      max(anchor.dy, focus.dy) + 1,
+    ),
+  );
+}
+
+/// Returns the corner based on the given [anchor] and [focus].
+Corner _calculateCorner({
+  required IntVector2 anchor,
+  required IntVector2 focus,
+}) {
+  if (anchor.dx <= focus.dx && anchor.dy <= focus.dy) {
+    return Corner.leftTop;
+  }
+
+  if (anchor.dx >= focus.dx && anchor.dy >= focus.dy) {
+    return Corner.rightBottom;
+  }
+
+  if (anchor.dx < focus.dx) {
+    return Corner.leftBottom;
+  }
+
+  return Corner.rightTop;
 }

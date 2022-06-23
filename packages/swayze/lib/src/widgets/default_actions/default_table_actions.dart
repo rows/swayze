@@ -76,6 +76,14 @@ class _DefaultActionsState extends State<DefaultActions> {
           internalScope,
           viewportContext,
         ).overridable(context),
+        TableBodySelectionEndIntent: CellSelectionEndAction(
+          internalScope,
+          viewportContext,
+        ),
+        TableBodySelectionCancelIntent: CellSelectionCancelAction(
+          internalScope,
+          viewportContext,
+        ),
         HeaderSelectionUpdateIntent: HeaderSelectionUpdateAction(
           internalScope,
           viewportContext,
