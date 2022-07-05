@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -93,7 +92,7 @@ class PointerScrollDetector extends StatelessWidget {
     /// TODO(renancaraujo): windows doesnt automatically applies shift+scroll
     /// as horizontal scroll. This is a workaround and doesnt work if the app
     /// is not focused. To track: https://github.com/flutter/flutter/issues/75180
-    if (Platform.isWindows && containsShift) {
+    if (defaultTargetPlatform == TargetPlatform.windows && containsShift) {
       if (axis == Axis.vertical) {
         return 0.0;
       }
