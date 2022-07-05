@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:swayze_math/swayze_math.dart';
@@ -660,7 +660,8 @@ class HeaderSelectionUpdateAction
 
 extension on Set<LogicalKeyboardKey> {
   bool get containsModifier {
-    final isDarwin = Platform.isMacOS || Platform.isIOS;
+    final isDarwin = defaultTargetPlatform == TargetPlatform.macOS ||
+        defaultTargetPlatform == TargetPlatform.iOS;
     return isDarwin
         ? contains(LogicalKeyboardKey.meta)
         : contains(LogicalKeyboardKey.control);
