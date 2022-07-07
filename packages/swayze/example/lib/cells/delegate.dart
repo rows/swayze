@@ -5,10 +5,8 @@ import '../data/cell_data.dart';
 import 'painters/cell_text.dart';
 import 'policies/painting_policies.dart';
 
-/// The [CellDelegate] for the [EditorTable].
 class MyCellDelegate<CellDataType extends MyCellData>
     extends CellDelegate<CellDataType> with Overlays {
-  /// The list of [CellOverlayPolicy] to be applied to each cell.
   @override
   final Iterable<CellOverlayPolicy<CellDataType>>? overlayPolicies;
 
@@ -16,14 +14,14 @@ class MyCellDelegate<CellDataType extends MyCellData>
 
   @override
   CellLayout getCellLayout(CellDataType data) {
-    return EditorCellLayout(
+    return _MyCellLayout(
       cellData: data,
       cellOverlays: getOverlaysOfACell(data),
     );
   }
 }
 
-class EditorCellLayout<CellDataType extends MyCellData> extends CellLayout {
+class _MyCellLayout<CellDataType extends MyCellData> extends CellLayout {
   final CellDataType cellData;
   final CellOverlays<CellDataType> cellOverlays;
 
@@ -33,7 +31,7 @@ class EditorCellLayout<CellDataType extends MyCellData> extends CellLayout {
   @override
   bool get isHoverAware => cellOverlays.hasAnyOverlay;
 
-  EditorCellLayout({
+  _MyCellLayout({
     required this.cellData,
     required this.cellOverlays,
   });
