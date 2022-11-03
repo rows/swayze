@@ -18,7 +18,7 @@ export 'table/table_controller.dart';
 /// state to be controlled externally.
 ///
 /// [SwayzeController] allows changes to be made to a table during its lifetime
-/// from inside an outside the [SliverSwayzeTable] widget.
+/// from inside and outside the [SliverSwayzeTable] widget.
 ///
 /// Each controller instance should be passed to a single [SliverSwayzeTable]
 /// and disposed when the table is supposed to leave the widget tree.
