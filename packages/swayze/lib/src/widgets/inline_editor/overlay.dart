@@ -249,7 +249,7 @@ class _TableOverlapCalculatorState extends State<_TableOverlapCalculator> {
       return;
     }
 
-    final overlay = Overlay.of(context)!.context.findRenderObject()!;
+    final overlay = Overlay.of(context).context.findRenderObject()!;
 
     final translation =
         contextRenderObjectRect.getTransformTo(overlay).getTranslation();

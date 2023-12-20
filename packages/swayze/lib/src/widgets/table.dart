@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 
 import '../config.dart';
+import '../core/config/config.dart';
 import '../core/controller/controller.dart';
 import '../core/delegates/cell_delegate.dart';
 import '../core/internal_state/table_focus/table_focus_provider.dart';
@@ -19,6 +20,16 @@ import 'wrappers.dart';
 
 export '../config.dart';
 export 'inline_editor/inline_editor.dart' show InlineEditorBuilder;
+
+/// A callback invoked when the extent of an header has changed.
+///
+/// It gives back the header's index, axis, the old and new extent.
+typedef OnHeaderExtentChanged = Function(
+  int index,
+  Axis axis,
+  double oldExtent,
+  double newExtent,
+);
 
 /// Padding to add to the right side of the sticky header when the sticky header
 /// is occupying the full available width.
@@ -45,6 +56,9 @@ class SliverSwayzeTable<CellDataType extends SwayzeCellData>
 
   /// The style of the table, defaults to [SwayzeStyle.defaultSwayzeStyle].
   final SwayzeStyle style;
+
+  /// Configuration for swayze interactions.
+  final SwayzeConfig config;
 
   /// The [ScrollController] that manages the external vertical scroll view.
   final ScrollController verticalScrollController;
@@ -97,6 +111,12 @@ class SliverSwayzeTable<CellDataType extends SwayzeCellData>
 
   final CellDelegate<CellDataType> cellDelegate;
 
+  /// Callback invoked every time an header is resized.
+  ///
+  /// See also:
+  ///   - [OnHeaderExtentChanged].
+  final OnHeaderExtentChanged? onHeaderExtentChanged;
+
   SliverSwayzeTable({
     Key? key,
     required this.controller,
@@ -111,8 +131,11 @@ class SliverSwayzeTable<CellDataType extends SwayzeCellData>
     this.wrapBox,
     this.wrapTableBody,
     this.wrapHeader,
+    SwayzeConfig? config,
+    this.onHeaderExtentChanged,
   })  : autofocus = autofocus ?? false,
         style = style ?? SwayzeStyle.defaultSwayzeStyle,
+        config = config ?? const SwayzeConfig(),
         assert(
           stickyHeader == null || stickyHeaderSize != null,
           'if stickyHeader is not null, stickyHeaderSize must be also not null',
@@ -152,6 +175,7 @@ class SliverSwayzeTableState extends State<SliverSwayzeTable> {
                 horizontalDisplacement: horizontalDisplacement,
                 wrapTableBody: widget.wrapTableBody,
                 wrapHeader: widget.wrapHeader,
+                onHeaderExtentChanged: widget.onHeaderExtentChanged,
               );
 
         return TableShortcuts(
@@ -189,6 +213,7 @@ class SliverSwayzeTableState extends State<SliverSwayzeTable> {
       cellDelegate: widget.cellDelegate,
       controller: widget.controller,
       style: widget.style,
+      config: widget.config,
       child: child,
     );
   }

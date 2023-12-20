@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:swayze/controller.dart';
+import 'package:swayze/src/core/config/config.dart';
 import 'package:swayze/src/core/style/style.dart';
 import 'package:swayze/src/widgets/internal_scope.dart';
 
@@ -41,6 +41,7 @@ Widget wrapWithScope(
             selection: createSelectionsController(),
           ),
       cellDelegate: TestCellDelegate(),
+      config: const SwayzeConfig(),
     ),
   );
 }

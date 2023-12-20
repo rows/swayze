@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 /// A widget that forces all children to render at maximum size possible given
 /// the current [BoxConstraints]
 class ExpandAll extends MultiChildRenderObjectWidget {
-  ExpandAll({
+  const ExpandAll({
     Key? key,
     List<Widget> children = const <Widget>[],
   }) : super(key: key, children: children);
