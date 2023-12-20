@@ -21,11 +21,6 @@ class ResizeLineOverlayManager {
 
   void insertResizeLine(BuildContext context) {
     final overlayState = Overlay.of(context);
-
-    if (overlayState == null) {
-      return;
-    }
-
     final box = context.findRenderObject()! as RenderBox;
     final target = box.localToGlobal(
       Offset.zero,

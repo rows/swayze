@@ -3,29 +3,38 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/src/foundation/diagnostics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meta/meta.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:swayze/controller.dart';
 import 'package:swayze/intents.dart';
 import 'package:swayze/src/core/config/config.dart';
+import 'package:swayze/src/core/viewport_context/viewport_context.dart';
 import 'package:swayze/src/widgets/default_actions/default_swayze_action.dart';
 import 'package:swayze/src/widgets/headers/header.dart';
 import 'package:swayze/src/widgets/headers/header_item.dart';
+import 'package:swayze/src/widgets/internal_scope.dart';
 import 'package:swayze_math/swayze_math.dart';
 
 import '../../../test_utils/create_swayze_controller.dart';
 import '../../../test_utils/create_table_data.dart';
 import '../../../test_utils/create_test_victim.dart';
 
-class _MockAction<T extends SwayzeIntent> extends Mock
-    implements DefaultSwayzeAction<T> {
-  @override
-  bool isEnabled(T intent) => true;
+class MockInternalScope extends Mock implements InternalScope {}
+
+class MockViewportContext extends Mock implements ViewportContext {}
+
+class _MockAction<T extends SwayzeIntent> extends DefaultSwayzeAction<T> {
+  _MockAction() : super(MockInternalScope(), MockViewportContext());
+
+  int invoked = 0;
+  T? lastIntent;
 
   @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.debug}) {
-    return super.toString();
+  void invokeAction(T intent, BuildContext context) {
+    invoked++;
+    lastIntent = intent;
   }
 }
 
@@ -126,18 +135,15 @@ void main() {
         await gesture.up();
         await tester.pumpAndSettle();
 
-        verifyNever(
-          () => dragCancelAction.invoke(captureAny(), any()),
+        expect(dragCancelAction.invoked, 0);
+        expect(dragEndAction.invoked, 1);
+        expect(
+          dragEndAction.lastIntent,
+          const TypeMatcher<HeaderDragEndIntent>(),
         );
-        final captured = verify(
-          () => dragEndAction.invoke(captureAny(), any()),
-        ).captured;
-
-        expect(captured, hasLength(1));
-
-        final dragEndIntent = captured.first as HeaderDragEndIntent;
-        expect(dragEndIntent.header, 5);
-        expect(dragEndIntent.axis, Axis.horizontal);
+        final intent = dragEndAction.lastIntent!;
+        expect(intent.header, 5);
+        expect(intent.axis, Axis.horizontal);
       });
 
       testWidgets(
@@ -186,12 +192,8 @@ void main() {
         await gesture.up();
         await tester.pumpAndSettle();
 
-        verifyNever(
-          () => dragEndAction.invoke(captureAny(), any()),
-        );
-        verify(
-          () => dragCancelAction.invoke(captureAny(), any()),
-        );
+        expect(dragEndAction.invoked, 0);
+        expect(dragCancelAction.invoked, 1);
       });
     });
 

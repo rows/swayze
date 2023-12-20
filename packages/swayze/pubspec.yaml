@@ -6,29 +6,29 @@ issue_tracker: https://github.com/rows/swayze/issues
 homepage: https://github.com/rows/swayze
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: '>=3.2.3 <4.0.0'
   flutter: ">=1.17.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  flutter_sticky_header: ^0.6.0
+  flutter_sticky_header: ^0.6.5
   memoize: ^3.0.0
-  built_collection: ^5.0.0
-  uuid: ^3.0.3
+  built_collection: ^5.1.1
+  uuid: ^4.2.2
   cached_value: ^0.2.0
-  path_drawing: ^1.0.0
-  swayze_math: ^1.1.0
-  meta: ^1.7.0
-  collection: ^1.15.0
+  path_drawing: ^1.0.1
+  swayze_math: 
+    path: ../swayze_math
+  collection: ^1.18.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   rows_lint: 0.1.1
-  test: ^1.16.8
-  mocktail: ^0.2.0
-  build_runner: ^2.0.1
-  dartdoc: ^2.0.0
-
+  test: ^1.24.9
+  mocktail: ^1.0.2
+  build_runner: ^2.4.7
+  dartdoc: ^6.3.0
+  
 flutter:

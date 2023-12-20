@@ -93,6 +93,7 @@ class TestSwayzeVictim extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         fontFamily: 'normal',
+        useMaterial3: false,
       ),
       home: Scaffold(
         body: Container(
