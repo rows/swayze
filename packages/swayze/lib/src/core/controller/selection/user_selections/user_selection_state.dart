@@ -77,6 +77,10 @@ class UserSelectionState {
   UserSelectionState addSelection(
     UserSelectionModel newSelection,
   ) {
+    if (selections.any((selection) => selection == newSelection)) {
+      return this;
+    }
+
     final newSelections =
         selections.rebuild((builder) => builder.add(newSelection));
 

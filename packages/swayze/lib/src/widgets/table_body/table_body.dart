@@ -1,12 +1,14 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../core/style/style.dart';
 import '../../core/viewport_context/viewport_context.dart';
 import '../../core/viewport_context/viewport_context_provider.dart';
+import '../headers/header_drag_and_drop_preview.dart';
 import '../internal_scope.dart';
+import '../shared/border_info.dart';
 import '../shared/expand_all.dart';
 import '../wrappers.dart';
-
 import 'cells/cells_wrapper.dart';
 import 'gestures/table_body_gesture_detector.dart';
 import 'mouse_hover/mouse_hover.dart';
@@ -54,7 +56,7 @@ class TableBody extends StatelessWidget {
     Widget tableBody = MouseHoverTableBody(
       child: ExpandAll(
         children: [
-          // There is 4 possible areas of content in the table body.
+          // There are 5 possible areas of content in the table body.
 
           // There is the always present scrollable area
           _TableBodyScrollableArea(
@@ -97,6 +99,20 @@ class TableBody extends StatelessWidget {
               viewportContext: viewportContext,
               isOnAFrozenColumnsArea: true,
               isOnAFrozenRowsArea: true,
+            ),
+
+          // If columns or rows are being dragged, add the preview on top
+          // of other table layers.
+          if (viewportContext.columns.value.isDragging ||
+              viewportContext.rows.value.isDragging)
+            RepaintBoundary(
+              key: const ValueKey('RepaintBoundaryHeaderDragAndDropPreview'),
+              child: HeaderDragAndDropPreview(
+                axis: viewportContext.columns.value.isDragging
+                    ? Axis.horizontal
+                    : Axis.vertical,
+                swayzeStyle: style,
+              ),
             ),
 
           // All areas respond to only one gesture detector
@@ -159,7 +175,16 @@ class _TableBodyScrollableArea extends StatelessWidget {
           child: TableLines(
             columnSizes: viewportContext.columns.value.sizes,
             rowSizes: viewportContext.rows.value.sizes,
-            swayzeStyle: style,
+            borderInfo: BorderInfo(
+              cellBorderSide: BorderSide(
+                color: style.cellSeparatorColor,
+                width: style.cellSeparatorStrokeWidth,
+              ),
+              frozenBorderSide: BorderSide(
+                color: style.frozenCellSeparatorColor,
+                width: style.cellSeparatorStrokeWidth,
+              ),
+            ),
             translateOffset: offset,
           ),
         ),
@@ -250,7 +275,18 @@ class _TableBodyFrozenArea extends StatelessWidget {
             child: TableLines(
               columnSizes: horizontalSizes,
               rowSizes: verticalSizes,
-              swayzeStyle: style,
+              borderInfo: BorderInfo(
+                cellBorderSide: BorderSide(
+                  color: style.cellSeparatorColor,
+                  width: style.cellSeparatorStrokeWidth,
+                ),
+                frozenBorderSide: BorderSide(
+                  color: style.frozenCellSeparatorColor,
+                  width: style.cellSeparatorStrokeWidth,
+                ),
+                isOnAFrozenRowsArea: isOnAFrozenRowsArea,
+                isOnAFrozenColumnsArea: isOnAFrozenColumnsArea,
+              ),
               translateOffset: offset,
             ),
           ),

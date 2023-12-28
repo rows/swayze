@@ -1,11 +1,14 @@
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:swayze/controller.dart';
 import 'package:swayze/src/widgets/headers/header.dart';
 import 'package:swayze/src/widgets/headers/header_item.dart';
+import 'package:swayze/src/widgets/headers/header_table_select.dart';
 import 'package:swayze/src/widgets/table_body/selections/primary_selection/primary_selection.dart';
 import 'package:swayze/src/widgets/table_body/selections/secondary_selections/secondary_selections.dart';
+import 'package:swayze/widgets.dart';
 import 'package:swayze_math/swayze_math.dart';
 
 import 'test_utils/create_swayze_controller.dart';
@@ -290,5 +293,330 @@ void main() async {
         matchesGoldenFile('goldens/drag-selection-header-frozen.png'),
       );
     });
+  });
+
+  group('resizing headers', () {
+    Future<void> pumpWidget(
+      WidgetTester tester, {
+      int frozenColumns = 0,
+      int frozenRows = 0,
+      SwayzeStyle? style,
+    }) {
+      return tester.pumpWidget(
+        TestSwayzeVictim(
+          tables: [
+            TestTableWrapper(
+              swayzeController: createSwayzeController(
+                tableDataController: createTableController(
+                  tableColumnCount: 5,
+                  tableRowCount: 5,
+                  frozenColumns: frozenColumns,
+                  frozenRows: frozenRows,
+                ),
+              ),
+              config: const SwayzeConfig(isResizingHeadersEnabled: true),
+              style: style ?? testStyle,
+            ),
+          ],
+        ),
+      );
+    }
+
+    Future<TestGesture> createResizeColumnGesture(WidgetTester tester) async {
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+
+      await gesture.addPointer(location: Offset.zero);
+      addTearDown(gesture.removePointer);
+
+      await tester.pump();
+
+      // test column header resize
+      final columnHeaders = find.descendant(
+        of: find.byType(Header).at(0),
+        matching: find.byType(HeaderItem),
+      );
+
+      final columnHeader = columnHeaders.at(1);
+
+      await gesture.moveTo(tester.getTopRight(columnHeader));
+      await tester.pump();
+
+      await gesture.down(tester.getTopRight(columnHeader));
+      await tester.pump();
+
+      // drag vertically too to make sure that the resize line only
+      // moves horizontally.
+      await gesture.moveBy(const Offset(200, 100));
+      await tester.pump();
+
+      return gesture;
+    }
+
+    Future<TestGesture> createResizeRowGesture(WidgetTester tester) async {
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+
+      await gesture.addPointer(location: Offset.zero);
+      addTearDown(gesture.removePointer);
+
+      await tester.pump();
+
+      // test row header resize
+      final rowHeaders = find.descendant(
+        of: find.byType(Header).at(1),
+        matching: find.byType(HeaderItem),
+      );
+
+      final rowHeader = rowHeaders.at(1);
+
+      await gesture.moveTo(tester.getBottomLeft(rowHeader));
+      await tester.pump();
+
+      await gesture.down(tester.getBottomLeft(rowHeader));
+      await tester.pump();
+
+      // drag horizontally too to make sure that the resize line only
+      // moves vertically.
+      await gesture.moveBy(const Offset(200, 25));
+      await tester.pump();
+
+      return gesture;
+    }
+
+    group('no freeze panes', () {
+      testWidgets(
+        'works properly in columns',
+        (tester) async {
+          await pumpWidget(tester);
+
+          final gesture = await createResizeColumnGesture(tester);
+
+          await expectLater(
+            find.byType(TestSwayzeVictim),
+            matchesGoldenFile('goldens/column-header-resizing.png'),
+          );
+
+          await gesture.up();
+          await tester.pumpAndSettle();
+
+          await expectLater(
+            find.byType(TestSwayzeVictim),
+            matchesGoldenFile('goldens/column-header-resize.png'),
+          );
+        },
+      );
+
+      testWidgets(
+        'works properly in rows',
+        (tester) async {
+          await pumpWidget(tester);
+
+          final gesture = await createResizeRowGesture(tester);
+
+          await expectLater(
+            find.byType(TestSwayzeVictim),
+            matchesGoldenFile('goldens/row-header-resizing.png'),
+          );
+
+          await gesture.up();
+          await tester.pumpAndSettle();
+
+          await expectLater(
+            find.byType(TestSwayzeVictim),
+            matchesGoldenFile('goldens/row-header-resize.png'),
+          );
+        },
+      );
+    });
+
+    group('with freeze panes', () {
+      testWidgets(
+        'showing default separation border',
+        (tester) async {
+          await pumpWidget(tester, frozenColumns: 5, frozenRows: 5);
+
+          await expectLater(
+            find.byType(TestSwayzeVictim),
+            matchesGoldenFile('goldens/column-header-frozen-border-normal.png'),
+          );
+        },
+      );
+
+      testWidgets(
+        'showing styled separation border',
+        (tester) async {
+          await pumpWidget(
+            tester,
+            frozenColumns: 2,
+            frozenRows: 2,
+            style: testStyle.copyWith(
+              frozenCellSeparatorColor: Colors.red,
+              frozenCellSeparatorStrokeWidth: 2.0,
+            ),
+          );
+
+          await expectLater(
+            find.byType(TestSwayzeVictim),
+            matchesGoldenFile(
+              'goldens/column-header-frozen-border-style.png',
+            ),
+          );
+        },
+      );
+
+      testWidgets(
+        'works properly in columns',
+        (tester) async {
+          await pumpWidget(tester, frozenColumns: 5, frozenRows: 5);
+
+          final gesture = await createResizeColumnGesture(tester);
+
+          await expectLater(
+            find.byType(TestSwayzeVictim),
+            matchesGoldenFile(
+              'goldens/column-header-resizing-frozen-panes.png',
+            ),
+          );
+
+          await gesture.up();
+          await tester.pumpAndSettle();
+
+          await expectLater(
+            find.byType(TestSwayzeVictim),
+            matchesGoldenFile('goldens/column-header-resize-frozen-panes.png'),
+          );
+        },
+      );
+
+      testWidgets(
+        'works properly in rows',
+        (tester) async {
+          await pumpWidget(tester, frozenColumns: 5, frozenRows: 5);
+
+          final gesture = await createResizeRowGesture(tester);
+
+          await expectLater(
+            find.byType(TestSwayzeVictim),
+            matchesGoldenFile('goldens/row-header-resizing-frozen-panes.png'),
+          );
+
+          await gesture.up();
+          await tester.pumpAndSettle();
+
+          await expectLater(
+            find.byType(TestSwayzeVictim),
+            matchesGoldenFile('goldens/row-header-resize-frozen-panes.png'),
+          );
+        },
+      );
+    });
+  });
+
+  group('Table Select', () {
+    Future<void> configureSelectTable(
+        WidgetTester tester, TableSelectStyle style) async {
+      final verticalScrollController = ScrollController();
+      final controller = createSwayzeController(
+        tableDataController: createTableController(
+          tableColumnCount: 5,
+          tableRowCount: 5,
+        ),
+      );
+
+      await tester.pumpWidget(
+        TestSwayzeVictim(
+          verticalScrollController: verticalScrollController,
+          tables: [
+            TestTableWrapper(
+              verticalScrollController: verticalScrollController,
+              swayzeController: controller,
+              style: testStyle.copyWith(
+                tableSelectStyle: style,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    testWidgets(
+      'has a different background when set',
+      (WidgetTester tester) async {
+        await configureSelectTable(
+          tester,
+          const TableSelectStyle(
+            foregroundColor: Colors.transparent,
+            selectedForegroundColor: Colors.transparent,
+            backgroundFillColor: Colors.black,
+          ),
+        );
+
+        await expectLater(
+          find.byType(TestSwayzeVictim),
+          matchesGoldenFile('goldens/table-select-background.png'),
+        );
+      },
+    );
+
+    testWidgets(
+      'has a triangle table select style when set ',
+      (WidgetTester tester) async {
+        await configureSelectTable(
+          tester,
+          const TableSelectStyle(
+            foregroundColor: Colors.black,
+            selectedForegroundColor: Colors.transparent,
+            backgroundFillColor: Colors.transparent,
+          ),
+        );
+
+        await expectLater(
+          find.byType(TestSwayzeVictim),
+          matchesGoldenFile('goldens/table-select-foreground.png'),
+        );
+      },
+    );
+    testWidgets(
+      'has a triangle hover when selection style when set ',
+      (WidgetTester tester) async {
+        await configureSelectTable(
+          tester,
+          const TableSelectStyle(
+            foregroundColor: Colors.yellow,
+            selectedForegroundColor: Colors.black,
+            backgroundFillColor: Colors.pink,
+          ),
+        );
+
+        final testPointer = TestPointer(1, PointerDeviceKind.mouse);
+        testPointer.hover(tester.getCenter(find.byType(HeaderTableSelect)));
+        await tester.pumpAndSettle();
+
+        await expectLater(
+          find.byType(TestSwayzeVictim),
+          matchesGoldenFile('goldens/table-select-hover.png'),
+        );
+      },
+    );
+
+    testWidgets(
+      'has a triangle tap selected style when set ',
+      (WidgetTester tester) async {
+        await configureSelectTable(
+          tester,
+          const TableSelectStyle(
+            foregroundColor: Colors.yellow,
+            selectedForegroundColor: Colors.black,
+            backgroundFillColor: Colors.pink,
+          ),
+        );
+
+        await tester.tap(find.byType(HeaderTableSelect));
+
+        await expectLater(
+          find.byType(TestSwayzeVictim),
+          matchesGoldenFile('goldens/table-select-tap.png'),
+        );
+      },
+    );
   });
 }

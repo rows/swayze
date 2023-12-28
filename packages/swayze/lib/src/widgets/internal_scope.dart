@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../core/config/config.dart';
 import '../core/controller/controller.dart';
 import '../core/delegates/cell_delegate.dart';
 import '../core/style/style.dart';
@@ -19,6 +20,9 @@ abstract class InternalScope<CellDataType extends SwayzeCellData> {
   SwayzeStyle get style;
 
   CellDelegate<CellDataType> get cellDelegate;
+
+  /// Current swayze configuration.
+  SwayzeConfig get config;
 
   /// Access the scope from a [context] subtree.
   /// Should be called by descendants of [InternalScopeProvider].
@@ -45,12 +49,16 @@ class InternalScopeProvider<CellDataType extends SwayzeCellData>
   @override
   final CellDelegate<CellDataType> cellDelegate;
 
+  @override
+  final SwayzeConfig config;
+
   const InternalScopeProvider({
     Key? key,
     required Widget child,
     required this.controller,
     required this.style,
     required this.cellDelegate,
+    required this.config,
   }) : super(key: key, child: child);
 
   @override
