@@ -516,7 +516,7 @@ class _CellsElement<CellDataType extends SwayzeCellData>
   }
 
   @override
-  void rebuild() {
+  void rebuild({bool force = false}) {
     super.rebuild();
     // Sync with cells store if necessary
     cellControllerSync();

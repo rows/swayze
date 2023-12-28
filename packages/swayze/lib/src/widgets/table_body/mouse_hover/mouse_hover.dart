@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:swayze_math/swayze_math.dart';
 
+import '../../../core/internal_state/table_focus/table_focus_provider.dart';
 import '../../../core/viewport_context/viewport_context_provider.dart';
 import '../../../helpers/keyed_notifier/keyed_notifier.dart';
 
@@ -33,11 +34,21 @@ class _MouseHoverTableBodyState extends State<MouseHoverTableBody> {
 
   Timer? _debounce;
 
+  MouseCursor _cursor = MouseCursor.defer;
+  MouseCursor get cursor => _cursor;
+  set cursor(MouseCursor value) {
+    if (mounted && _cursor != value) {
+      setState(() => _cursor = value);
+    }
+  }
+
   @override
   void dispose() {
     _debounce?.cancel();
     super.dispose();
   }
+
+  void _resetCursor() => cursor = MouseCursor.defer;
 
   void onPointerHover(PointerHoverEvent event) {
     final localPosition = event.localPosition;
@@ -52,19 +63,22 @@ class _MouseHoverTableBodyState extends State<MouseHoverTableBody> {
   }
 
   void updateMouseHoverNotifier(Offset localPosition) {
-    final column =
-        viewportContext.pixelToPosition(localPosition.dx, Axis.horizontal);
-    final row =
-        viewportContext.pixelToPosition(localPosition.dy, Axis.vertical);
+    final hoverResult = viewportContext.evaluateHover(localPosition);
 
-    mouseHoverNotifier.setKey(IntVector2(column.position, row.position));
+    mouseHoverNotifier.setKey(hoverResult.cell);
+
+    hoverResult.canFillCell && TableFocus.of(context).value.isActive
+        ? cursor = SystemMouseCursors.precise
+        : _resetCursor();
   }
 
   void onPointerExit(PointerExitEvent event) {
     if (_debounce?.isActive ?? false) {
       _debounce!.cancel();
     }
+
     mouseHoverNotifier.setKey(null);
+    _resetCursor();
   }
 
   @override
@@ -72,6 +86,7 @@ class _MouseHoverTableBodyState extends State<MouseHoverTableBody> {
         onHover: onPointerHover,
         onExit: onPointerExit,
         opaque: false,
+        cursor: _cursor,
         child: _TableBodyMouseHoverProvider(
           hoverNotifier: mouseHoverNotifier,
           child: widget.child,

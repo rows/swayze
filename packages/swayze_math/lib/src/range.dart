@@ -138,7 +138,7 @@ const _kListEquality = ListEquality<Range>();
 /// A list of ranges that keeps with the smallest possible size (no overlaps
 /// between its members)
 @immutable
-class RangeCompactList extends IterableMixin<Range> implements Iterable<Range> {
+class RangeCompactList extends IterableMixin<Range> {
   final List<Range> _ranges;
 
   RangeCompactList() : _ranges = [];
@@ -265,7 +265,7 @@ class RangeIterable with IterableMixin<int> implements Iterable<int> {
 ///  - [current] will return [Range.start] when [moveNext] is not yet called
 ///  - After  reaching the end of the iteration [current] will return the last
 ///  element, one  before [Range.end]
-class RangeIterator extends Iterator<int> {
+class RangeIterator implements Iterator<int> {
   final Range _range;
   int _position = -1;
 
