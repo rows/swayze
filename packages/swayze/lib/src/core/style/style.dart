@@ -3,7 +3,8 @@ import 'package:flutter/widgets.dart';
 
 import '../../../widgets.dart';
 import '../controller/selection/model/selection_style.dart';
-import 'resize_header_style.dart';
+export 'resize_header_style.dart';
+export 'table_select_style.dart';
 
 /// Describes a collection of colors for headers in a determinate state.
 @immutable
@@ -54,6 +55,11 @@ class SwayzeStyle {
     headerTextStyle: const TextStyle(
       fontSize: 12,
     ),
+    tableSelectStyle: const TableSelectStyle(
+      foregroundColor: Colors.transparent,
+      selectedForegroundColor: Colors.transparent,
+      backgroundFillColor: Colors.transparent,
+    ),
     cellSeparatorColor: const Color(0xFFE1E1E1),
     cellSeparatorStrokeWidth: 1.0,
     defaultCellBackground: const Color(0xFFFFFFFF),
@@ -102,6 +108,9 @@ class SwayzeStyle {
   /// [SwayzeHeaderPalette.foreground].
   final TextStyle headerTextStyle;
 
+  /// The style of the table select area
+  final TableSelectStyle tableSelectStyle;
+
   /// The color of the lines that separates cells.
   final Color cellSeparatorColor;
 
@@ -134,6 +143,7 @@ class SwayzeStyle {
     required this.highlightedHeaderPalette,
     required this.headerSeparatorColor,
     required this.headerTextStyle,
+    required this.tableSelectStyle,
     required this.defaultCellBackground,
     required this.cellSeparatorColor,
     required this.cellSeparatorStrokeWidth,
@@ -154,6 +164,7 @@ class SwayzeStyle {
     SwayzeHeaderPalette? highlightedHeaderPalette,
     Color? headerSeparatorColor,
     TextStyle? headerTextStyle,
+    TableSelectStyle? tableSelectStyle,
     Color? defaultCellBackground,
     Color? cellSeparatorColor,
     double? cellSeparatorStrokeWidth,
@@ -172,6 +183,7 @@ class SwayzeStyle {
           highlightedHeaderPalette ?? this.highlightedHeaderPalette,
       headerSeparatorColor: headerSeparatorColor ?? this.headerSeparatorColor,
       headerTextStyle: headerTextStyle ?? this.headerTextStyle,
+      tableSelectStyle: tableSelectStyle ?? this.tableSelectStyle,
       defaultCellBackground:
           defaultCellBackground ?? this.defaultCellBackground,
       cellSeparatorColor: cellSeparatorColor ?? this.cellSeparatorColor,
@@ -197,6 +209,7 @@ class SwayzeStyle {
           highlightedHeaderPalette == other.highlightedHeaderPalette &&
           headerSeparatorColor == other.headerSeparatorColor &&
           headerTextStyle == other.headerTextStyle &&
+          tableSelectStyle == other.tableSelectStyle &&
           cellSeparatorColor == other.cellSeparatorColor &&
           defaultCellBackground == other.defaultCellBackground &&
           userSelectionStyle == other.userSelectionStyle &&
@@ -213,6 +226,7 @@ class SwayzeStyle {
       highlightedHeaderPalette.hashCode ^
       headerSeparatorColor.hashCode ^
       headerTextStyle.hashCode ^
+      tableSelectStyle.hashCode ^
       cellSeparatorColor.hashCode ^
       defaultCellBackground.hashCode ^
       userSelectionStyle.hashCode ^

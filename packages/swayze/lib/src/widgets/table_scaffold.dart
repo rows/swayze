@@ -6,6 +6,7 @@ import '../core/viewport_context/viewport_context_provider.dart';
 import '../core/virtualization/virtualization_calculator.dart';
 import 'headers/gestures/resize_header/header_edge_mouse_listener.dart';
 import 'headers/header.dart';
+import 'headers/header_table_select.dart';
 import 'internal_scope.dart';
 import 'table.dart';
 import 'table_body/table_body.dart';
@@ -61,7 +62,7 @@ class TableScaffold extends StatefulWidget {
   _TableScaffoldState createState() => _TableScaffoldState();
 }
 
-enum _TableScaffoldSlot { columnHeaders, rowsHeaders, tableBody }
+enum _TableScaffoldSlot { columnHeaders, rowsHeaders, tableBody, tableSelect }
 
 class _TableScaffoldState extends State<TableScaffold> {
   late final viewportContext = ViewportContextProvider.of(context);
@@ -111,6 +112,10 @@ class _TableScaffoldState extends State<TableScaffold> {
       delegate: _TableScaffoldDelegate(rowHeaderWidth, columnHeaderHeight),
       children: [
         LayoutId(
+          id: _TableScaffoldSlot.tableSelect,
+          child: const HeaderTableSelect(),
+        ),
+        LayoutId(
           id: _TableScaffoldSlot.columnHeaders,
           child: Header(
             axis: Axis.horizontal,
@@ -159,6 +164,14 @@ class _TableScaffoldDelegate extends MultiChildLayoutDelegate {
 
   @override
   void performLayout(Size size) {
+    if (hasChild(_TableScaffoldSlot.tableSelect)) {
+      layoutChild(
+        _TableScaffoldSlot.tableSelect,
+        BoxConstraints.tight(Size(headerWidth, headerHeight)),
+      );
+      positionChild(_TableScaffoldSlot.tableSelect, Offset.zero);
+    }
+
     // The dimensions of the table area excluding the space covered by headers
     final remainingHeight =
         (size.height - headerHeight).clamp(0.0, size.height);

@@ -1,10 +1,11 @@
 import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:swayze/controller.dart';
 import 'package:swayze/src/widgets/headers/header.dart';
 import 'package:swayze/src/widgets/headers/header_item.dart';
+import 'package:swayze/src/widgets/headers/header_table_select.dart';
 import 'package:swayze/src/widgets/table_body/selections/primary_selection/primary_selection.dart';
 import 'package:swayze/src/widgets/table_body/selections/secondary_selections/secondary_selections.dart';
 import 'package:swayze/widgets.dart';
@@ -472,5 +473,114 @@ void main() async {
         },
       );
     });
+  });
+
+  group('Table Select', () {
+    Future<void> configureSelectTable(
+        WidgetTester tester, TableSelectStyle style) async {
+      final verticalScrollController = ScrollController();
+      final controller = createSwayzeController(
+        tableDataController: createTableController(
+          tableColumnCount: 5,
+          tableRowCount: 5,
+        ),
+      );
+
+      await tester.pumpWidget(
+        TestSwayzeVictim(
+          verticalScrollController: verticalScrollController,
+          tables: [
+            TestTableWrapper(
+              verticalScrollController: verticalScrollController,
+              swayzeController: controller,
+              style: testStyle.copyWith(
+                tableSelectStyle: style,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    testWidgets(
+      'has a different background when set',
+      (WidgetTester tester) async {
+        await configureSelectTable(
+          tester,
+          const TableSelectStyle(
+            foregroundColor: Colors.transparent,
+            selectedForegroundColor: Colors.transparent,
+            backgroundFillColor: Colors.black,
+          ),
+        );
+
+        await expectLater(
+          find.byType(TestSwayzeVictim),
+          matchesGoldenFile('goldens/table-select-background.png'),
+        );
+      },
+    );
+
+    testWidgets(
+      'has a triangle table select style when set ',
+      (WidgetTester tester) async {
+        await configureSelectTable(
+          tester,
+          const TableSelectStyle(
+            foregroundColor: Colors.black,
+            selectedForegroundColor: Colors.transparent,
+            backgroundFillColor: Colors.transparent,
+          ),
+        );
+
+        await expectLater(
+          find.byType(TestSwayzeVictim),
+          matchesGoldenFile('goldens/table-select-foreground.png'),
+        );
+      },
+    );
+    testWidgets(
+      'has a triangle hover when selection style when set ',
+      (WidgetTester tester) async {
+        await configureSelectTable(
+          tester,
+          const TableSelectStyle(
+            foregroundColor: Colors.yellow,
+            selectedForegroundColor: Colors.black,
+            backgroundFillColor: Colors.pink,
+          ),
+        );
+
+        final testPointer = TestPointer(1, PointerDeviceKind.mouse);
+        testPointer.hover(tester.getCenter(find.byType(HeaderTableSelect)));
+        await tester.pumpAndSettle();
+
+        await expectLater(
+          find.byType(TestSwayzeVictim),
+          matchesGoldenFile('goldens/table-select-hover.png'),
+        );
+      },
+    );
+
+    testWidgets(
+      'has a triangle tap selected style when set ',
+      (WidgetTester tester) async {
+        await configureSelectTable(
+          tester,
+          const TableSelectStyle(
+            foregroundColor: Colors.yellow,
+            selectedForegroundColor: Colors.black,
+            backgroundFillColor: Colors.pink,
+          ),
+        );
+
+        await tester.tap(find.byType(HeaderTableSelect));
+
+        await expectLater(
+          find.byType(TestSwayzeVictim),
+          matchesGoldenFile('goldens/table-select-tap.png'),
+        );
+      },
+    );
   });
 }
