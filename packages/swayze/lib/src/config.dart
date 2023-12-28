@@ -15,10 +15,14 @@ const kRowHeaderWidth = 24.0;
 /// size of the header to show larger numbers.
 ///
 /// The starting value is [kRowHeaderWidth].
-double headerWidthForRange(Range range) {
+double headerWidthForRange(
+  Range range, {
+  double charactorWidth = 8.0,
+  double rowHeaderWidth = kRowHeaderWidth,
+}) {
   final length = range.end.toString().length;
   final digitOverflow = math.max(length - 3, 0);
-  return kRowHeaderWidth + digitOverflow * 8;
+  return rowHeaderWidth + digitOverflow * charactorWidth;
 }
 
 const kDefaultCellWidth = 120.0;

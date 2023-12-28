@@ -133,10 +133,19 @@ class _HeaderEdgeMouseListenerState extends State<HeaderEdgeMouseListener> {
     // that from `0` to `kRowHeaderWidth` or `kColumnHeaderHeight` (depending on
     // the axis), there's an empty space. Since the `localPosition` will still
     // count that into its offset, we subtract that extent.
+
+    final tableDataController = internalScope.controller.tableDataController;
     if (axis == Axis.horizontal) {
-      localPixelOffset -= kRowHeaderWidth;
+      final range = viewportContext
+          .getAxisContextFor(axis: Axis.vertical)
+          .virtualizationState
+          .rangeNotifier
+          .value;
+      localPixelOffset -=
+          tableDataController.rowHeaderWidthForRange(range); //kRowHeaderWidth;
     } else {
-      localPixelOffset -= kColumnHeaderHeight;
+      localPixelOffset -=
+          tableDataController.columnHeaderHeight(); //kColumnHeaderHeight;
     }
 
     final frozenExtent = axisContext.value.frozenExtent;

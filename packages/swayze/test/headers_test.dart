@@ -583,4 +583,90 @@ void main() async {
       },
     );
   });
+
+  group('Style Headers', () {
+    Future<void> setupTable(
+      WidgetTester tester,
+      TextAlign style, {
+      double startingCellWidth = 60.0,
+      double startingCellHeight = 24.0,
+      double Function() columnHeaderHeight =
+          SwayzeTableDataController.defaultColumnHeaderHeight,
+      double Function(Range) rowHeaderWidthForRange =
+          SwayzeTableDataController.defaultRowHeaderWidthForRange,
+    }) async {
+      final verticalScrollController = ScrollController();
+      final controller = createSwayzeController(
+        tableDataController: createTableController(
+          tableColumnCount: 5,
+          tableRowCount: 5,
+          startingCellHeight: startingCellHeight,
+          startingCellWidth: startingCellWidth,
+          columnHeaderHeight: columnHeaderHeight,
+          rowHeaderWidthForRange: rowHeaderWidthForRange,
+        ),
+      );
+
+      await tester.pumpWidget(
+        TestSwayzeVictim(
+          verticalScrollController: verticalScrollController,
+          tables: [
+            TestTableWrapper(
+              verticalScrollController: verticalScrollController,
+              swayzeController: controller,
+              style: testStyle.copyWith(headerVerticalTextAlign: style),
+            ),
+          ],
+        ),
+      );
+    }
+
+    testWidgets(
+      'with wider row header widths and column header heights',
+      (WidgetTester tester) async {
+        await setupTable(
+          tester,
+          TextAlign.center,
+          columnHeaderHeight: () => 35,
+          rowHeaderWidthForRange: (_) => 100,
+        );
+
+        await expectLater(
+          find.byType(TestSwayzeVictim),
+          matchesGoldenFile('goldens/headers_styled_widthheight.png'),
+        );
+      },
+    );
+    testWidgets(
+      'with wider initial cell widths and row heights',
+      (WidgetTester tester) async {
+        await setupTable(
+          tester,
+          TextAlign.center,
+          startingCellWidth: 50,
+          startingCellHeight: 10,
+        );
+
+        await expectLater(
+          find.byType(TestSwayzeVictim),
+          matchesGoldenFile('goldens/cells_styled_widthheight.png'),
+        );
+      },
+    );
+
+    testWidgets(
+      'with right aligned column header text',
+      (WidgetTester tester) async {
+        await setupTable(
+          tester,
+          TextAlign.right,
+        );
+
+        await expectLater(
+          find.byType(TestSwayzeVictim),
+          matchesGoldenFile('goldens/headers_row_styled_alignment.png'),
+        );
+      },
+    );
+  });
 }

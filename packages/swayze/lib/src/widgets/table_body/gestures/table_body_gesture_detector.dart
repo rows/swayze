@@ -253,16 +253,18 @@ class _TableBodyGestureDetectorState extends State<TableBodyGestureDetector> {
     );
 
     final verticalDragScrollData = getVerticalDragScrollData(
-      displacement: widget.verticalDisplacement,
-      globalOffset: globalOffset.dy,
-      localOffset: localOffset.dy,
-      gestureOriginOffset: originOffset.dy,
-      positionPixel: scrollController.verticalScrollController!.position.pixels,
-      screenHeight: MediaQuery.of(context).size.height,
-      scrollingData: viewportContext.rows.virtualizationState.scrollingData,
-      viewportExtent: viewportContext.rows.value.extent,
-      frozenExtent: viewportContext.rows.value.frozenExtent,
-    );
+        displacement: widget.verticalDisplacement,
+        globalOffset: globalOffset.dy,
+        localOffset: localOffset.dy,
+        gestureOriginOffset: originOffset.dy,
+        positionPixel:
+            scrollController.verticalScrollController!.position.pixels,
+        screenHeight: MediaQuery.of(context).size.height,
+        scrollingData: viewportContext.rows.virtualizationState.scrollingData,
+        viewportExtent: viewportContext.rows.value.extent,
+        frozenExtent: viewportContext.rows.value.frozenExtent,
+        columnHeaderHeight:
+            internalScope.controller.tableDataController.columnHeaderHeight());
 
     if (horizontalDragScrollData is AutoScrollDragScrollData) {
       // auto scroll

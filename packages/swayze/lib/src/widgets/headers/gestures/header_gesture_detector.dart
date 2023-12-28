@@ -215,17 +215,18 @@ class _HeaderGestureDetectorState extends State<HeaderGestureDetector> {
       );
     } else {
       scrollData = getVerticalDragScrollData(
-        displacement: widget.displacement,
-        globalOffset: globalOffset.dy,
-        localOffset: localOffset.dy,
-        gestureOriginOffset: originOffset.dy,
-        positionPixel:
-            scrollController.verticalScrollController!.position.pixels,
-        screenHeight: screenSize.height,
-        scrollingData: viewportContext.rows.virtualizationState.scrollingData,
-        viewportExtent: viewportContext.rows.value.extent,
-        frozenExtent: viewportContext.rows.value.frozenExtent,
-      );
+          displacement: widget.displacement,
+          globalOffset: globalOffset.dy,
+          localOffset: localOffset.dy,
+          gestureOriginOffset: originOffset.dy,
+          positionPixel:
+              scrollController.verticalScrollController!.position.pixels,
+          screenHeight: screenSize.height,
+          scrollingData: viewportContext.rows.virtualizationState.scrollingData,
+          viewportExtent: viewportContext.rows.value.extent,
+          frozenExtent: viewportContext.rows.value.frozenExtent,
+          columnHeaderHeight: internalScope.controller.tableDataController
+              .columnHeaderHeight());
     }
 
     if (scrollData is AutoScrollDragScrollData) {

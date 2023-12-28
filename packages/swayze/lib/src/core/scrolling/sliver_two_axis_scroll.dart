@@ -98,7 +98,8 @@ class _SliverTwoAxisScrollState extends State<SliverTwoAxisScroll> {
                 ScrollingData verticalScrollingData,
               ) {
                 return VirtualizationCalculator(
-                  headerSize: kColumnHeaderHeight,
+                  headerSize: tableDataController
+                      .columnHeaderHeight(), //kColumnHeaderHeight,
                   scrollingData: verticalScrollingData,
                   axis: Axis.vertical,
                   frozenAmount: rowsState.frozenCount,
@@ -106,7 +107,8 @@ class _SliverTwoAxisScrollState extends State<SliverTwoAxisScroll> {
                     return ValueListenableBuilder<SwayzeHeaderState>(
                       valueListenable: tableDataController.columns,
                       builder: (context, columnsState, child) {
-                        final rowHeaderWidth = config.headerWidthForRange(
+                        final rowHeaderWidth =
+                            tableDataController.rowHeaderWidthForRange(
                           verticalVirtualizationState.rangeNotifier.value,
                         );
 

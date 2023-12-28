@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 
-import '../config.dart' as config;
 import '../core/scrolling/sliver_scrolling_data_builder.dart';
 import '../core/viewport_context/viewport_context_provider.dart';
 import '../core/virtualization/virtualization_calculator.dart';
@@ -69,10 +68,12 @@ class _TableScaffoldState extends State<TableScaffold> {
   late final verticalRangeNotifier =
       viewportContext.rows.virtualizationState.rangeNotifier;
   late final internalScope = InternalScope.of(context);
+  late final tableDataController = internalScope.controller.tableDataController;
 
   // The state for sizes of headers
-  final double columnHeaderHeight = config.kColumnHeaderHeight;
-  late double rowHeaderWidth = config.headerWidthForRange(
+  late final double columnHeaderHeight =
+      tableDataController.columnHeaderHeight(); //config.kColumnHeaderHeight;
+  late double rowHeaderWidth = tableDataController.rowHeaderWidthForRange(
     verticalRangeNotifier.value,
   );
 
@@ -89,7 +90,7 @@ class _TableScaffoldState extends State<TableScaffold> {
   /// For this is subscribe to changes in the vertical visible range and save
   /// the width into the state.
   void didChangeVerticalRange() {
-    final newRowHeaderWidth = config.headerWidthForRange(
+    final newRowHeaderWidth = tableDataController.rowHeaderWidthForRange(
       verticalRangeNotifier.value,
     );
     if (newRowHeaderWidth == rowHeaderWidth) {

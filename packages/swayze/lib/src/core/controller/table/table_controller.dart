@@ -48,6 +48,15 @@ class SwayzeTableDataController<ParentType extends SwayzeController>
   /// Merged [Listenable] to listen for changes on [columns] and [rows].
   late final _columnsAndRowsListenable = Listenable.merge([columns, rows]);
 
+  /// Overridable defaults for column widths and heights
+  final double Function() columnHeaderHeight;
+  final double Function(Range) rowHeaderWidthForRange;
+
+  /// Defaults call the original methods in the constant config
+  static double defaultColumnHeaderHeight() => config.kColumnHeaderHeight;
+  static double defaultRowHeaderWidthForRange(Range range) =>
+      config.headerWidthForRange(range);
+
   SwayzeTableDataController({
     required this.id,
     required this.parent,
@@ -59,9 +68,13 @@ class SwayzeTableDataController<ParentType extends SwayzeController>
     required int frozenRows,
     int? maxElasticColumns,
     int? maxElasticRows,
+    double startingCellWidth = config.kDefaultCellWidth,
+    double startingCellHeight = config.kDefaultCellHeight,
+    this.columnHeaderHeight = defaultColumnHeaderHeight,
+    this.rowHeaderWidthForRange = defaultRowHeaderWidthForRange,
   })  : columns = SwayzeHeaderController._(
           initialState: SwayzeHeaderState(
-            defaultHeaderExtent: config.kDefaultCellWidth,
+            defaultHeaderExtent: startingCellWidth,
             count: columnCount,
             headerData: columns,
             frozenCount: frozenColumns,
@@ -70,7 +83,7 @@ class SwayzeTableDataController<ParentType extends SwayzeController>
         ),
         rows = SwayzeHeaderController._(
           initialState: SwayzeHeaderState(
-            defaultHeaderExtent: config.kDefaultCellHeight,
+            defaultHeaderExtent: startingCellHeight,
             count: rowCount,
             headerData: rows,
             frozenCount: frozenRows,
