@@ -91,6 +91,16 @@ class _PrimarySelectionState extends State<PrimarySelection>
 
     final borderSide = selectionStyle.borderSide;
 
+    final visibleRangeForHandle = Range2D.fromLTRB(
+      IntVector2(xRange.start, yRange.start),
+      IntVector2(xRange.end + 1, yRange.end + 1),
+    );
+
+    // Avoid drawing handle in frozen cells if not adjacent
+    final handleStyle = visibleRangeForHandle.containsVector(range.rightBottom)
+        ? this.handleStyle
+        : null;
+
     return _AnimatedPrimarySelection(
       size: size,
       offset: leftTopPixelOffset,

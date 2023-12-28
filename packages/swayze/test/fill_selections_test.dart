@@ -20,6 +20,76 @@ void main() async {
 
   _testFillUnknown();
 
+  group('Fill Handle works across frozen edge', () {
+    Future<void> _setupTable(WidgetTester tester) async {
+      tester.binding.window.physicalSizeTestValue = const Size(1024, 1024);
+      tester.binding.window.devicePixelRatioTestValue = 1.0;
+
+      // resets the screen to its original size after the test end
+      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+
+      await tester.pumpWidget(
+        TestSwayzeVictim(
+          tables: [
+            TestTableWrapper(
+              config: const SwayzeConfig(
+                isDragFillEnabled: true,
+              ),
+              autofocus: true,
+              swayzeController: createSwayzeController(
+                tableDataController: createTableController(
+                  tableColumnCount: 5,
+                  tableRowCount: 5,
+                  frozenColumns: 1,
+                  frozenRows: 1,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    testWidgets('checking handle on frozen row edge',
+        (WidgetTester tester) async {
+      await _setupTable(tester);
+
+      await tester.tapAt(getCellOffset(tester, column: 0, row: 1));
+      await tester.pumpAndSettle();
+
+      await expectLater(
+        find.byType(TestSwayzeVictim),
+        matchesGoldenFile('goldens/fill_selection_single_cell_frozen_col.png'),
+      );
+    });
+
+    testWidgets('checking handle on frozen col edge',
+        (WidgetTester tester) async {
+      await _setupTable(tester);
+
+      await tester.tapAt(getCellOffset(tester, column: 1, row: 0));
+      await tester.pumpAndSettle();
+
+      await expectLater(
+        find.byType(TestSwayzeVictim),
+        matchesGoldenFile('goldens/fill_selection_single_cell_frozen_row.png'),
+      );
+    });
+
+    testWidgets('checking handle on frozen col + row edge',
+        (WidgetTester tester) async {
+      await _setupTable(tester);
+
+      await tester.tapAt(getCellOffset(tester, column: 0, row: 0));
+      await tester.pumpAndSettle();
+
+      await expectLater(
+        find.byType(TestSwayzeVictim),
+        matchesGoldenFile(
+            'goldens/fill_selection_single_cell_frozen_colrow.png'),
+      );
+    });
+  });
   group(
     'Fill Target Selection',
     () {
