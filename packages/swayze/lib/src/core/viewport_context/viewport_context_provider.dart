@@ -2,10 +2,15 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:swayze_math/swayze_math.dart';
 
+import '../../widgets/headers/gestures/resize_header/header_edge_info.dart';
 import '../../widgets/internal_scope.dart';
+import '../controller/controller.dart';
 import '../virtualization/virtualization_calculator.dart'
     show VirtualizationCalculator, VirtualizationState;
 import 'viewport_context.dart';
+
+const _kMinEdgeOffsetAdder = -2;
+const kMaxEdgeOffsetAdder = 2;
 
 /// A [StatefulWidget] that detects changes on the two axis
 /// [VirtualizationState.rangeNotifier] to create a [ViewportContext] and
@@ -140,6 +145,8 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
     final headerController = tableController.getHeaderControllerFor(axis: axis);
     final scrollableRange = rangeNotifier.value;
 
+    final headersEdgesOffsets = <double, HeaderEdgeInfo>{};
+
     // Frozen
     final frozenSizes = <double>[];
     final frozenOffsets = <double>[];
@@ -153,6 +160,14 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
       final size = headerController.value.getHeaderExtentFor(index: index);
       frozenSizes.add(size);
       frozenExtentAcc += size;
+
+      _addHeaderEdge(
+        headersEdgesOffsets,
+        offset: frozenExtentAcc,
+        index: index,
+        size: size,
+      );
+
       if (size > 0) {
         visibleFrozenHeaders.add(index);
       }
@@ -169,9 +184,34 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
       final size = headerController.value.getHeaderExtentFor(index: index);
       sizes.add(size);
       extentAcc += size;
+
+      _addHeaderEdge(
+        headersEdgesOffsets,
+        offset: extentAcc,
+        index: index,
+        size: size,
+      );
+
       if (size > 0) {
         visibleHeaders.add(index);
       }
+    }
+
+    final dragState = headerController.value.dragState;
+    ViewportHeaderDragContextState? dragContextState;
+    if (dragState != null) {
+      var draggingHeaderExtent = 0.0;
+      for (final index in dragState.headers.iterable) {
+        draggingHeaderExtent +=
+            headerController.value.getHeaderExtentFor(index: index);
+      }
+
+      dragContextState = ViewportHeaderDragContextState(
+        headers: dragState.headers,
+        dropAtIndex: dragState.dropAtIndex,
+        position: dragState.position,
+        headersExtent: draggingHeaderExtent,
+      );
     }
 
     viewportAxisContext._unprotectedSetState(
@@ -186,8 +226,31 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
         frozenSizes: frozenSizes,
         visibleIndices: visibleHeaders,
         visibleFrozenIndices: visibleFrozenHeaders,
+        headerDragState: dragContextState,
+        headersEdgesOffsets: headersEdgesOffsets,
       ),
     );
+  }
+
+  /// Maps the headers edges to the corresponding index.
+  ///
+  /// Since we also want to show the resize cursor when the user hovers a bit
+  /// to the left or right of the edge, we save a range of positions and map
+  /// them to the right header index.
+  void _addHeaderEdge(
+    Map<double, HeaderEdgeInfo> headersEdgesOffsets, {
+    required double offset,
+    required int index,
+    required double size,
+  }) {
+    for (var i = _kMinEdgeOffsetAdder; i <= kMaxEdgeOffsetAdder; i++) {
+      headersEdgesOffsets[offset.floorToDouble() + i] = HeaderEdgeInfo(
+        index: index,
+        width: size,
+        displacement: -i,
+        offset: offset,
+      );
+    }
   }
 
   @override
@@ -353,6 +416,59 @@ class _ViewportContextProviderState extends State<ViewportContextProvider>
     return CellPositionResult(
       leftTop: Offset(left, top),
       cellSize: Size(width, height),
+    );
+  }
+
+  @override
+  EvaluateHoverResult evaluateHover(Offset pixelOffset) {
+    final internalScope = InternalScope.of(context);
+
+    final selectionController = internalScope.controller.selection;
+
+    final selectionState = selectionController.userSelectionState;
+
+    final primarySelection =
+        selectionState.primarySelection is CellUserSelectionModel
+            ? selectionState.primarySelection as CellUserSelectionModel
+            : null;
+
+    final style = internalScope.config.isDragFillEnabled
+        ? internalScope.style.dragAndFillStyle.handle
+        : null;
+
+    final positionX = pixelToPosition(pixelOffset.dx, Axis.horizontal);
+    final positionY = pixelToPosition(pixelOffset.dy, Axis.vertical);
+
+    // Tries to set the range using the current fill selection, if there's one.
+    Range2D? fillRange = selectionController.fillSelectionState.selection;
+
+    // If the primary selection allows fill, check if we're over the handle.
+    if (fillRange == null && primarySelection != null && style != null) {
+      final range = Range2D.fromPoints(
+        primarySelection.anchor,
+        primarySelection.focus,
+      );
+
+      final cellPosition = getCellPosition(range.rightBottom);
+      final cellRect = cellPosition.leftTop & cellPosition.cellSize;
+
+      final canFillCell = Rect.fromLTRB(
+        cellRect.right - style.size.width,
+        cellRect.bottom - style.size.height,
+        cellRect.right + style.size.width,
+        cellRect.bottom + style.size.height,
+      ).inflate(style.borderWidth).contains(pixelOffset);
+
+      if (canFillCell) {
+        fillRange = range;
+      }
+    }
+
+    return EvaluateHoverResult(
+      cell: IntVector2(positionX.position, positionY.position),
+      overflowX: positionX.overflow,
+      overflowY: positionY.overflow,
+      fillRange: fillRange,
     );
   }
 

@@ -1,8 +1,10 @@
-import 'package:cached_value/cached_value.dart';
+import 'dart:ui';
+
 import 'package:flutter/widgets.dart';
 import 'package:swayze_math/swayze_math.dart';
 
 import '../../../../../controller.dart';
+import '../../../../core/style/style.dart';
 import '../../../../core/viewport_context/viewport_context_provider.dart';
 import '../../../internal_scope.dart';
 import '../selection_rendering_helpers.dart';
@@ -63,6 +65,11 @@ class _PrimarySelectionState extends State<PrimarySelection>
   late final selectionStyle = widget.selectionModel.style ??
       InternalScope.of(context).style.userSelectionStyle;
 
+  /// Holds the handle style, if the configuration says we should use one.
+  late final handleStyle = InternalScope.of(context).config.isDragFillEnabled
+      ? InternalScope.of(context).style.dragAndFillStyle.handle
+      : null;
+
   @override
   late final viewportContext = ViewportContextProvider.of(context);
 
@@ -84,6 +91,16 @@ class _PrimarySelectionState extends State<PrimarySelection>
 
     final borderSide = selectionStyle.borderSide;
 
+    final visibleRangeForHandle = Range2D.fromLTRB(
+      IntVector2(xRange.start, yRange.start),
+      IntVector2(xRange.end + 1, yRange.end + 1),
+    );
+
+    // Avoid drawing handle in frozen cells if not adjacent
+    final handleStyle = visibleRangeForHandle.containsVector(range.rightBottom)
+        ? this.handleStyle
+        : null;
+
     return _AnimatedPrimarySelection(
       size: size,
       offset: leftTopPixelOffset,
@@ -91,6 +108,7 @@ class _PrimarySelectionState extends State<PrimarySelection>
         color: selectionStyle.backgroundColor,
         border: getVisibleBorder(range, borderSide).toFlutterBorder(),
       ),
+      handleStyle: handleStyle,
       duration: styleContext.selectionAnimationDuration,
       activeCellRect: widget.activeCellRect,
       isSingleCell: isSingleCell,
@@ -104,6 +122,7 @@ class _AnimatedPrimarySelection extends ImplicitlyAnimatedWidget {
   final Offset offset;
   final Size size;
   final BoxDecoration decoration;
+  final SwayzeDragAndFillHandleStyle? handleStyle;
   final Rect activeCellRect;
   final bool isSingleCell;
 
@@ -112,6 +131,7 @@ class _AnimatedPrimarySelection extends ImplicitlyAnimatedWidget {
     required this.offset,
     required this.size,
     required this.decoration,
+    required this.handleStyle,
     required Duration duration,
     required this.activeCellRect,
     required this.isSingleCell,
@@ -129,6 +149,11 @@ class _AnimatedSelectionState
   Tween<double>? _top;
   SizeTween? _size;
 
+  /// Holds the animation value for the handle.
+  /// `0.0` - No handle.
+  /// `1.0` - Paint handle.
+  Tween<double>? _handleValue;
+
   @override
   void forEachTween(TweenVisitor<dynamic> visitor) {
     _left = visitor(
@@ -136,16 +161,24 @@ class _AnimatedSelectionState
       widget.offset.dx,
       (dynamic value) => Tween<double>(begin: value as double),
     ) as Tween<double>?;
+
     _top = visitor(
       _top,
       widget.offset.dy,
       (dynamic value) => Tween<double>(begin: value as double),
     ) as Tween<double>?;
+
     _size = visitor(
       _size,
       widget.size,
       (dynamic value) => SizeTween(begin: value as Size),
     ) as SizeTween?;
+
+    _handleValue = visitor(
+      _handleValue,
+      widget.handleStyle != null ? 1.0 : 0.0,
+      (dynamic value) => Tween<double>(begin: value as double),
+    ) as Tween<double>?;
   }
 
   @override
@@ -160,9 +193,11 @@ class _AnimatedSelectionState
     return PrimarySelectionPainter(
       isSingleCell: widget.isSingleCell,
       decoration: widget.decoration,
+      handleStyle: widget.handleStyle,
       offset: offset,
       size: size,
       activeCellRect: widget.activeCellRect,
+      handleValue: _handleValue?.evaluate(animation) ?? 0,
     );
   }
 }
@@ -178,12 +213,20 @@ class PrimarySelectionPainter extends LeafRenderObjectWidget {
   final Rect activeCellRect;
   final bool isSingleCell;
 
+  /// Paints the handle depending on the value.
+  /// `0.0` - No handle.
+  /// `1.0` - Paint handle.
+  final double handleValue;
+  final SwayzeDragAndFillHandleStyle? handleStyle;
+
   const PrimarySelectionPainter({
     required this.isSingleCell,
     required this.size,
     required this.offset,
     required this.decoration,
     required this.activeCellRect,
+    required this.handleValue,
+    this.handleStyle,
   });
 
   @override
@@ -194,6 +237,8 @@ class PrimarySelectionPainter extends LeafRenderObjectWidget {
       size,
       activeCellRect,
       isSingleCell: isSingleCell,
+      handleValue: handleValue,
+      handleStyle: handleStyle,
     );
   }
 
@@ -207,7 +252,9 @@ class PrimarySelectionPainter extends LeafRenderObjectWidget {
       ..decoration = decoration
       ..offset = offset
       ..definedSize = size
-      ..activeCellRect = activeCellRect;
+      ..activeCellRect = activeCellRect
+      ..handleValue = handleValue
+      ..handleStyle = handleStyle;
   }
 }
 
@@ -218,61 +265,73 @@ class _RenderPrimarySelectionPainter extends RenderBox {
     this._definedSize,
     this._activeCellRect, {
     required bool isSingleCell,
-  }) : _isSingleCell = isSingleCell;
+    required double handleValue,
+    SwayzeDragAndFillHandleStyle? handleStyle,
+  })  : _isSingleCell = isSingleCell,
+        _handleValue = handleValue,
+        _handleStyle = handleStyle;
 
   bool _isSingleCell;
-
-  bool get isSingleCell {
-    return _isSingleCell;
-  }
-
+  bool get isSingleCell => _isSingleCell;
   set isSingleCell(bool value) {
-    _isSingleCell = value;
-    markNeedsPaint();
+    if (_isSingleCell != value) {
+      _isSingleCell = value;
+      markNeedsPaint();
+    }
   }
 
   Offset _offset;
-
-  Offset get offset {
-    return _offset;
-  }
-
+  Offset get offset => _offset;
   set offset(Offset value) {
-    _offset = value;
-    markNeedsPaint();
+    if (_offset != value) {
+      _offset = value;
+      markNeedsPaint();
+    }
   }
 
   Size _definedSize;
-
-  Size get definedSize {
-    return _definedSize;
-  }
-
+  Size get definedSize => _definedSize;
   set definedSize(Size value) {
-    _definedSize = value;
-    markNeedsLayout();
+    if (_definedSize != value) {
+      _definedSize = value;
+      markNeedsLayout();
+    }
   }
 
   BoxDecoration _decoration;
-
-  BoxDecoration get decoration {
-    return _decoration;
-  }
-
+  BoxDecoration get decoration => _decoration;
   set decoration(BoxDecoration value) {
-    _decoration = value;
-    markNeedsPaint();
+    if (_decoration != value) {
+      _decoration = value;
+      markNeedsPaint();
+    }
   }
 
   Rect _activeCellRect;
-
-  Rect get activeCellRect {
-    return _activeCellRect;
+  Rect get activeCellRect => _activeCellRect;
+  set activeCellRect(Rect value) {
+    if (_activeCellRect != value) {
+      _activeCellRect = value;
+      markNeedsPaint();
+    }
   }
 
-  set activeCellRect(Rect value) {
-    _activeCellRect = value;
-    markNeedsPaint();
+  double _handleValue;
+  double get handleValue => _handleValue;
+  set handleValue(double value) {
+    if (_handleValue != value) {
+      _handleValue = value;
+      markNeedsPaint();
+    }
+  }
+
+  SwayzeDragAndFillHandleStyle? _handleStyle;
+  SwayzeDragAndFillHandleStyle? get handleStyle => _handleStyle;
+  set handleStyle(SwayzeDragAndFillHandleStyle? value) {
+    if (_handleStyle != value) {
+      _handleStyle = value;
+      markNeedsPaint();
+    }
   }
 
   @override
@@ -280,25 +339,62 @@ class _RenderPrimarySelectionPainter extends RenderBox {
     size = constraints.constrain(_definedSize);
   }
 
-  late final backgroundPaint = CachedValue(
-    () => Paint()..color = _decoration.color!,
-  ).withDependency(() => _decoration);
-
   @override
   void paint(PaintingContext context, Offset offset) {
     final canvas = context.canvas;
 
     canvas.save();
-
     canvas.translate(offset.dx, offset.dy);
 
     final selectionRect = _offset & size;
     final selectionPath = Path()..addRect(selectionRect);
 
-    // paint border
+    // Prepares the handle rect, if one is to be shown.
+    final handleRect = _handleValue > 0.0 && _handleStyle != null
+        ? Rect.fromLTWH(
+            selectionRect.right -
+                (_handleStyle!.size.width / 2.0).ceilToDouble(),
+            selectionRect.bottom -
+                (_handleStyle!.size.height / 2.0).ceilToDouble(),
+            _handleStyle!.size.width,
+            _handleStyle!.size.height,
+          )
+        : null;
+    final emptyHandleRect = handleRect != null
+        ? Rect.fromCenter(
+            center: handleRect.center,
+            width: 0.0,
+            height: 0.0,
+          )
+        : null;
+
+    // If a handle is to be shown, we need to first clip the border so that
+    // is doesn't paint where the handle will be painted.
+    if (handleRect != null) {
+      canvas.save();
+
+      final clipRect = Rect.lerp(
+        emptyHandleRect!,
+        handleRect.inflate(_handleStyle!.borderWidth),
+        _handleValue,
+      );
+
+      if (clipRect != null) {
+        canvas.clipRect(
+          clipRect,
+          clipOp: ClipOp.difference,
+        );
+      }
+    }
+
     _decoration.border!.paint(canvas, selectionRect);
 
-    if (!_isSingleCell) {
+    // Restores the saved stack when adding the border clipping.
+    if (handleRect != null) {
+      canvas.restore();
+    }
+
+    if (!_isSingleCell && _decoration.color != null) {
       final activeCellPath = Path()..addRect(_activeCellRect);
 
       // crop active cell
@@ -308,7 +404,18 @@ class _RenderPrimarySelectionPainter extends RenderBox {
         activeCellPath,
       );
 
-      canvas.drawPath(overallPath, backgroundPaint.value);
+      canvas.drawPath(
+        overallPath,
+        Paint()..color = _decoration.color!,
+      );
+    }
+
+    // Paints the handle, if one is needed.
+    if (handleRect != null) {
+      canvas.drawRect(
+        Rect.lerp(emptyHandleRect!, handleRect, _handleValue) ?? Rect.zero,
+        Paint()..color = handleStyle!.color,
+      );
     }
 
     canvas.restore();

@@ -27,13 +27,14 @@ class TableShortcuts extends StatefulWidget {
 class _TableShortcutsState extends State<TableShortcuts> {
   late final internalScope = InternalScope.of(context);
 
-  late final manager = _CustomShortcutManager({
+  late final manager =
+      _CustomShortcutManager(<ShortcutActivator, Intent Function(RawKeyEvent)>{
     const AnyCharacterActivator(): (event) {
       return OpenInlineEditorIntent(
         initialText: event.character,
       );
-    }
-  });
+    },
+  }, shortcuts: _staticShortcuts);
 
   @override
   void dispose() {
@@ -43,9 +44,8 @@ class _TableShortcutsState extends State<TableShortcuts> {
 
   @override
   Widget build(BuildContext context) {
-    return Shortcuts(
+    return Shortcuts.manager(
       debugLabel: '<Table Shortcuts>',
-      shortcuts: _staticShortcuts,
       manager: manager,
       child: widget.child,
     );
@@ -193,7 +193,7 @@ const _kMacShortcuts = <ShortcutActivator, Intent>{
 class _CustomShortcutManager extends ShortcutManager {
   final Map<ShortcutActivator, Intent Function(RawKeyEvent)> customShortcuts;
 
-  _CustomShortcutManager(this.customShortcuts);
+  _CustomShortcutManager(this.customShortcuts, {required super.shortcuts});
 
   @override
   KeyEventResult handleKeypress(BuildContext context, RawKeyEvent event) {
