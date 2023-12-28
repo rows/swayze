@@ -300,6 +300,7 @@ void main() async {
       WidgetTester tester, {
       int frozenColumns = 0,
       int frozenRows = 0,
+      SwayzeStyle? style,
     }) {
       return tester.pumpWidget(
         TestSwayzeVictim(
@@ -314,6 +315,7 @@ void main() async {
                 ),
               ),
               config: const SwayzeConfig(isResizingHeadersEnabled: true),
+              style: style ?? testStyle,
             ),
           ],
         ),
@@ -427,6 +429,40 @@ void main() async {
     });
 
     group('with freeze panes', () {
+      testWidgets(
+        'showing default separation border',
+        (tester) async {
+          await pumpWidget(tester, frozenColumns: 5, frozenRows: 5);
+
+          await expectLater(
+            find.byType(TestSwayzeVictim),
+            matchesGoldenFile('goldens/column-header-frozen-border-normal.png'),
+          );
+        },
+      );
+
+      testWidgets(
+        'showing styled separation border',
+        (tester) async {
+          await pumpWidget(
+            tester,
+            frozenColumns: 2,
+            frozenRows: 2,
+            style: testStyle.copyWith(
+              frozenCellSeparatorColor: Colors.red,
+              frozenCellSeparatorStrokeWidth: 2.0,
+            ),
+          );
+
+          await expectLater(
+            find.byType(TestSwayzeVictim),
+            matchesGoldenFile(
+              'goldens/column-header-frozen-border-style.png',
+            ),
+          );
+        },
+      );
+
       testWidgets(
         'works properly in columns',
         (tester) async {

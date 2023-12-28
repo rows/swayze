@@ -26,6 +26,8 @@ class HeaderItem extends StatefulWidget {
 
   final SwayzeStyle swayzeStyle;
 
+  final bool lastFrozen;
+
   const HeaderItem({
     Key? key,
     required this.index,
@@ -33,6 +35,7 @@ class HeaderItem extends StatefulWidget {
     required this.extent,
     required this.styleState,
     required this.swayzeStyle,
+    this.lastFrozen = false,
   }) : super(key: key);
 
   @override
@@ -75,6 +78,7 @@ class _HeaderItemState extends State<HeaderItem> {
       index: widget.index,
       label: label,
       swayzeStyle: swayzeStyle,
+      lastFrozen: widget.lastFrozen,
     );
   }
 }
@@ -97,6 +101,7 @@ class _HeaderItemPainter extends SingleChildRenderObjectWidget {
   final Color? backgroundColor;
   final String label;
   final SwayzeStyle swayzeStyle;
+  final bool lastFrozen;
 
   _HeaderItemPainter({
     Key? key,
@@ -107,9 +112,13 @@ class _HeaderItemPainter extends SingleChildRenderObjectWidget {
     required this.label,
     this.backgroundColor,
     required this.swayzeStyle,
+    required this.lastFrozen,
   }) : super(
           key: key,
-          child: _HeaderSeparator(swayzeStyle: swayzeStyle),
+          child: _HeaderSeparator(
+            swayzeStyle: swayzeStyle,
+            lastFrozen: lastFrozen,
+          ),
         );
 
   @override
@@ -134,6 +143,8 @@ class _HeaderItemPainter extends SingleChildRenderObjectWidget {
     renderObject.backgroundColor = backgroundColor;
     renderObject.textStyle = textStyle;
     renderObject.mainAxisExtent = extent;
+    renderObject.cellSeparatorStrokeWidth =
+        swayzeStyle.cellSeparatorStrokeWidth;
   }
 }
 
@@ -293,16 +304,20 @@ class _RenderHeaderItem extends RenderBox
 
 class _HeaderSeparator extends StatelessWidget {
   final SwayzeStyle swayzeStyle;
+  final bool lastFrozen;
 
   const _HeaderSeparator({
     Key? key,
     required this.swayzeStyle,
+    required this.lastFrozen,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: swayzeStyle.headerSeparatorColor,
+      color: lastFrozen
+          ? swayzeStyle.frozenCellSeparatorColor
+          : swayzeStyle.headerSeparatorColor,
     );
   }
 }

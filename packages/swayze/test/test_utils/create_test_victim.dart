@@ -8,6 +8,7 @@ import 'create_swayze_controller.dart';
 
 final testStyle = SwayzeStyle.defaultSwayzeStyle.copyWith(
   userSelectionStyle: SelectionStyle.semiTransparent(color: Colors.amberAccent),
+  frozenCellSeparatorColor: SwayzeStyle.defaultSwayzeStyle.cellSeparatorColor,
   headerTextStyle: const TextStyle(
     fontSize: 12,
     fontFamily: 'normal',

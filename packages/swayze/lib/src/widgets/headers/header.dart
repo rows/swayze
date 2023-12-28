@@ -330,6 +330,7 @@ class _HeaderRangeSubscriberState extends State<_HeaderRangeSubscriber> {
     }
 
     // First add widgets for frozen headers
+    final lastFrozenIndex = frozenCount - 1;
     final headers = <HeaderItem>[];
     for (var index = 0; index < frozenCount; index++) {
       final extent = viewportAxisContextState.frozenSizes[index];
@@ -342,6 +343,7 @@ class _HeaderRangeSubscriberState extends State<_HeaderRangeSubscriber> {
             extent: extent,
             styleState: headerStyleStates[index],
             swayzeStyle: style,
+            lastFrozen: index == lastFrozenIndex,
           ),
         );
       }

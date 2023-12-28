@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../core/style/style.dart';
@@ -5,6 +6,7 @@ import '../../core/viewport_context/viewport_context.dart';
 import '../../core/viewport_context/viewport_context_provider.dart';
 import '../headers/header_drag_and_drop_preview.dart';
 import '../internal_scope.dart';
+import '../shared/border_info.dart';
 import '../shared/expand_all.dart';
 import '../wrappers.dart';
 import 'cells/cells_wrapper.dart';
@@ -173,7 +175,16 @@ class _TableBodyScrollableArea extends StatelessWidget {
           child: TableLines(
             columnSizes: viewportContext.columns.value.sizes,
             rowSizes: viewportContext.rows.value.sizes,
-            swayzeStyle: style,
+            borderInfo: BorderInfo(
+              cellBorderSide: BorderSide(
+                color: style.cellSeparatorColor,
+                width: style.cellSeparatorStrokeWidth,
+              ),
+              frozenBorderSide: BorderSide(
+                color: style.frozenCellSeparatorColor,
+                width: style.cellSeparatorStrokeWidth,
+              ),
+            ),
             translateOffset: offset,
           ),
         ),
@@ -264,7 +275,18 @@ class _TableBodyFrozenArea extends StatelessWidget {
             child: TableLines(
               columnSizes: horizontalSizes,
               rowSizes: verticalSizes,
-              swayzeStyle: style,
+              borderInfo: BorderInfo(
+                cellBorderSide: BorderSide(
+                  color: style.cellSeparatorColor,
+                  width: style.cellSeparatorStrokeWidth,
+                ),
+                frozenBorderSide: BorderSide(
+                  color: style.frozenCellSeparatorColor,
+                  width: style.cellSeparatorStrokeWidth,
+                ),
+                isOnAFrozenRowsArea: isOnAFrozenRowsArea,
+                isOnAFrozenColumnsArea: isOnAFrozenColumnsArea,
+              ),
               translateOffset: offset,
             ),
           ),

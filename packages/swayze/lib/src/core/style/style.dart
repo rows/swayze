@@ -62,6 +62,7 @@ class SwayzeStyle {
     ),
     cellSeparatorColor: const Color(0xFFE1E1E1),
     cellSeparatorStrokeWidth: 1.0,
+    frozenCellSeparatorColor: const Color(0xFF464646),
     defaultCellBackground: const Color(0xFFFFFFFF),
     userSelectionStyle: SelectionStyle.semiTransparent(
       color: Colors.amberAccent,
@@ -117,6 +118,9 @@ class SwayzeStyle {
   /// The width of the line that separates cells.
   final double cellSeparatorStrokeWidth;
 
+  /// The color of the lines that separates frozen cells.
+  final Color frozenCellSeparatorColor;
+
   /// The color of the lines that separates cells.
   final Color defaultCellBackground;
 
@@ -147,6 +151,7 @@ class SwayzeStyle {
     required this.defaultCellBackground,
     required this.cellSeparatorColor,
     required this.cellSeparatorStrokeWidth,
+    required this.frozenCellSeparatorColor,
     required this.userSelectionStyle,
     required this.selectionAnimationDuration,
     required this.inlineEditorShadow,
@@ -168,6 +173,8 @@ class SwayzeStyle {
     Color? defaultCellBackground,
     Color? cellSeparatorColor,
     double? cellSeparatorStrokeWidth,
+    Color? frozenCellSeparatorColor,
+    double? frozenCellSeparatorStrokeWidth,
     SelectionStyle? userSelectionStyle,
     Duration? selectionAnimationDuration,
     List<BoxShadow>? inlineEditorShadow,
@@ -189,6 +196,8 @@ class SwayzeStyle {
       cellSeparatorColor: cellSeparatorColor ?? this.cellSeparatorColor,
       cellSeparatorStrokeWidth:
           cellSeparatorStrokeWidth ?? this.cellSeparatorStrokeWidth,
+      frozenCellSeparatorColor:
+          frozenCellSeparatorColor ?? this.frozenCellSeparatorColor,
       userSelectionStyle: userSelectionStyle ?? this.userSelectionStyle,
       selectionAnimationDuration:
           selectionAnimationDuration ?? this.selectionAnimationDuration,
@@ -211,6 +220,8 @@ class SwayzeStyle {
           headerTextStyle == other.headerTextStyle &&
           tableSelectStyle == other.tableSelectStyle &&
           cellSeparatorColor == other.cellSeparatorColor &&
+          cellSeparatorStrokeWidth == other.cellSeparatorStrokeWidth &&
+          frozenCellSeparatorColor == other.frozenCellSeparatorColor &&
           defaultCellBackground == other.defaultCellBackground &&
           userSelectionStyle == other.userSelectionStyle &&
           selectionAnimationDuration == other.selectionAnimationDuration &&
@@ -228,6 +239,8 @@ class SwayzeStyle {
       headerTextStyle.hashCode ^
       tableSelectStyle.hashCode ^
       cellSeparatorColor.hashCode ^
+      cellSeparatorStrokeWidth.hashCode ^
+      frozenCellSeparatorColor.hashCode ^
       defaultCellBackground.hashCode ^
       userSelectionStyle.hashCode ^
       inlineEditorShadow.hashCode ^

@@ -1,7 +1,7 @@
 import 'package:cached_value/cached_value.dart';
 import 'package:flutter/widgets.dart';
 
-import '../../core/style/style.dart';
+import '../shared/border_info.dart';
 import 'table_body.dart';
 
 /// A [Widget] that paints the lines that separate the cells.
@@ -14,7 +14,8 @@ class TableLines extends StatelessWidget {
   /// The size of each visible row
   final List<double> rowSizes;
 
-  final SwayzeStyle swayzeStyle;
+  //final SwayzeStyle swayzeStyle;
+  final BorderInfo borderInfo;
 
   /// The offset in which the painting of lines will be translated by.
   final Offset translateOffset;
@@ -23,24 +24,27 @@ class TableLines extends StatelessWidget {
     Key? key,
     required this.columnSizes,
     required this.rowSizes,
-    required this.swayzeStyle,
+    required this.borderInfo,
     required this.translateOffset,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final lineColor = swayzeStyle.cellSeparatorColor;
-    final lineWidth = swayzeStyle.cellSeparatorStrokeWidth;
-
-    if (lineWidth == 0.0 || lineColor.alpha == 0) {
+    final hasFrozen =
+        borderInfo.isOnAFrozenColumnsArea || borderInfo.isOnAFrozenRowsArea;
+    final isFrozenVisible = borderInfo.frozenBorderSide.color.alpha > 0 ||
+        borderInfo.frozenBorderSide.width > 0;
+    final isCellVisible = borderInfo.cellBorderSide.color.alpha > 0 ||
+        borderInfo.cellBorderSide.width > 0;
+    if ((!hasFrozen && !isCellVisible) ||
+        (!isFrozenVisible && !isCellVisible)) {
       return const SizedBox.shrink();
     }
 
     return _TableLinesPainter(
       columnSizes: columnSizes,
       rowSizes: rowSizes,
-      lineColor: lineColor,
-      lineWidth: lineWidth,
+      borderInfo: borderInfo,
       translateOffset: translateOffset,
     );
   }
@@ -53,9 +57,10 @@ class _TableLinesPainter extends LeafRenderObjectWidget {
   /// The size of each visible row
   final List<double> rowSizes;
 
-  final Color lineColor;
+  // final Color lineColor;
 
-  final double lineWidth;
+  // final double lineWidth;
+  final BorderInfo borderInfo;
 
   /// The offset in which the painting of lines will be translated by.
   final Offset translateOffset;
@@ -64,8 +69,7 @@ class _TableLinesPainter extends LeafRenderObjectWidget {
     Key? key,
     required this.columnSizes,
     required this.rowSizes,
-    required this.lineColor,
-    required this.lineWidth,
+    required this.borderInfo,
     required this.translateOffset,
   }) : super(key: key);
 
@@ -74,8 +78,7 @@ class _TableLinesPainter extends LeafRenderObjectWidget {
     return _RenderTableAreaLines(
       columnSizes,
       rowSizes,
-      lineColor,
-      lineWidth,
+      borderInfo,
       translateOffset,
     );
   }
@@ -88,8 +91,7 @@ class _TableLinesPainter extends LeafRenderObjectWidget {
     renderObject
       ..columnSizes = columnSizes
       ..rowSizes = rowSizes
-      ..lineWidth = lineWidth
-      ..lineColor = lineColor
+      ..borderInfo = borderInfo
       ..translateOffset = translateOffset;
   }
 }
@@ -113,21 +115,12 @@ class _RenderTableAreaLines extends RenderBox {
     markNeedsPaint();
   }
 
-  Color _lineColor;
+  BorderInfo _borderInfo;
 
-  Color get lineColor => _lineColor;
+  BorderInfo get borderInfo => _borderInfo;
 
-  set lineColor(Color value) {
-    _lineColor = value;
-    markNeedsPaint();
-  }
-
-  double _lineWidth;
-
-  double get lineWidth => _lineWidth;
-
-  set lineWidth(double value) {
-    _lineWidth = value;
+  set borderInfo(BorderInfo value) {
+    _borderInfo = value;
     markNeedsPaint();
   }
 
@@ -143,8 +136,7 @@ class _RenderTableAreaLines extends RenderBox {
   _RenderTableAreaLines(
     this._columnSizes,
     this._rowSizes,
-    this._lineColor,
-    this._lineWidth,
+    this._borderInfo,
     this._translateOffset,
   );
 
@@ -162,13 +154,17 @@ class _RenderTableAreaLines extends RenderBox {
     return constraints.biggest;
   }
 
-  late final linePaintCache = CachedValue(
-    () {
-      return Paint()
-        ..color = lineColor
-        ..strokeWidth = lineWidth;
-    },
-  ).withDependency<Color?>(() => lineColor).withDependency(() => lineWidth);
+  CachedValue<Paint> paintCache(BorderSide side) => CachedValue(
+        () {
+          return Paint()
+            ..color = side.color
+            ..strokeWidth = side.width;
+        },
+      ).withDependency<BorderSide?>(() => side);
+
+  late final frozenLinePaintCache = paintCache(borderInfo.frozenBorderSide);
+
+  late final cellLinePaintCache = paintCache(borderInfo.cellBorderSide);
 
   @override
   void paint(PaintingContext context, Offset offset) {
@@ -180,25 +176,34 @@ class _RenderTableAreaLines extends RenderBox {
     canvas.translate(translateOffset.dx, translateOffset.dy);
 
     canvas.save();
+
     // paint column lines
+    final lastColumn = _columnSizes.length - 1;
+    final bool isFrozenColumnArea = borderInfo.isOnAFrozenColumnsArea;
     for (var i = 0; i < _columnSizes.length; i++) {
       canvas.translate(_columnSizes[i], 0);
       canvas.drawLine(
         Offset.zero,
         Offset(0, size.height),
-        linePaintCache.value,
+        isFrozenColumnArea && i == lastColumn
+            ? frozenLinePaintCache.value
+            : cellLinePaintCache.value,
       );
     }
     canvas.restore();
 
     canvas.save();
     // paint row lines
+    final lastRow = _rowSizes.length - 1;
+    final bool isFrozenRowArea = borderInfo.isOnAFrozenRowsArea;
     for (var index = 0; index < _rowSizes.length; index++) {
       canvas.translate(0, _rowSizes[index]);
       canvas.drawLine(
         Offset.zero,
         Offset(size.width, 0),
-        linePaintCache.value,
+        isFrozenRowArea && index == lastRow
+            ? frozenLinePaintCache.value
+            : cellLinePaintCache.value,
       );
     }
     canvas.restore();
