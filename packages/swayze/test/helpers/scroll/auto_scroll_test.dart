@@ -1,5 +1,6 @@
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:swayze/src/core/controller/controller.dart';
 import 'package:swayze/src/core/scrolling/sliver_scrolling_data_builder.dart';
 import 'package:swayze/src/helpers/scroll/auto_scroll.dart';
 
@@ -50,6 +51,8 @@ void main() {
           scrollingData: scrollingData,
           viewportExtent: 500.0,
           frozenExtent: 0.0,
+          columnHeaderHeight:
+              SwayzeTableDataController.defaultColumnHeaderHeight(),
         );
 
         result as AutoScrollDragScrollData;
@@ -76,6 +79,8 @@ void main() {
           scrollingData: scrollingData,
           viewportExtent: 500.0,
           frozenExtent: 0.0,
+          columnHeaderHeight:
+              SwayzeTableDataController.defaultColumnHeaderHeight(),
         );
 
         result as AutoScrollDragScrollData;
@@ -104,6 +109,8 @@ void main() {
           scrollingData: scrollingData,
           viewportExtent: 500.0,
           frozenExtent: 0.0,
+          columnHeaderHeight:
+              SwayzeTableDataController.defaultColumnHeaderHeight(),
         );
 
         expect(result, const TypeMatcher<DoNotScrollDragScrollData>());
@@ -128,6 +135,8 @@ void main() {
           scrollingData: scrollingData,
           viewportExtent: 500.0,
           frozenExtent: 0.0,
+          columnHeaderHeight:
+              SwayzeTableDataController.defaultColumnHeaderHeight(),
         );
 
         result as AutoScrollDragScrollData;
@@ -153,6 +162,8 @@ void main() {
           scrollingData: scrollingData,
           viewportExtent: 500.0,
           frozenExtent: 0.0,
+          columnHeaderHeight:
+              SwayzeTableDataController.defaultColumnHeaderHeight(),
         );
 
         result as AutoScrollDragScrollData;
@@ -181,6 +192,8 @@ void main() {
           scrollingData: scrollingData,
           viewportExtent: 500.0,
           frozenExtent: 0.0,
+          columnHeaderHeight:
+              SwayzeTableDataController.defaultColumnHeaderHeight(),
         );
 
         expect(result, const TypeMatcher<DoNotScrollDragScrollData>());

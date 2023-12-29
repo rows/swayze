@@ -1,10 +1,12 @@
 import 'package:flutter/widgets.dart';
 
-import '../config.dart' as config;
 import '../core/scrolling/sliver_scrolling_data_builder.dart';
 import '../core/viewport_context/viewport_context_provider.dart';
 import '../core/virtualization/virtualization_calculator.dart';
+import 'headers/gestures/resize_header/header_edge_mouse_listener.dart';
 import 'headers/header.dart';
+import 'headers/header_table_select.dart';
+import 'internal_scope.dart';
 import 'table.dart';
 import 'table_body/table_body.dart';
 import 'wrappers.dart';
@@ -43,28 +45,35 @@ class TableScaffold extends StatefulWidget {
   /// See [SliverSwayzeTable.wrapHeader]
   final WrapHeaderBuilder? wrapHeader;
 
+  /// See [SliverSwayzeTable.onHeaderExtentChanged].
+  final OnHeaderExtentChanged? onHeaderExtentChanged;
+
   const TableScaffold({
     Key? key,
     required this.horizontalDisplacement,
     required this.verticalDisplacement,
     this.wrapTableBody,
     this.wrapHeader,
+    this.onHeaderExtentChanged,
   }) : super(key: key);
 
   @override
   _TableScaffoldState createState() => _TableScaffoldState();
 }
 
-enum _TableScaffoldSlot { columnHeaders, rowsHeaders, tableBody }
+enum _TableScaffoldSlot { columnHeaders, rowsHeaders, tableBody, tableSelect }
 
 class _TableScaffoldState extends State<TableScaffold> {
   late final viewportContext = ViewportContextProvider.of(context);
   late final verticalRangeNotifier =
       viewportContext.rows.virtualizationState.rangeNotifier;
+  late final internalScope = InternalScope.of(context);
+  late final tableDataController = internalScope.controller.tableDataController;
 
   // The state for sizes of headers
-  final double columnHeaderHeight = config.kColumnHeaderHeight;
-  late double rowHeaderWidth = config.headerWidthForRange(
+  late final double columnHeaderHeight =
+      tableDataController.columnHeaderHeight(); //config.kColumnHeaderHeight;
+  late double rowHeaderWidth = tableDataController.rowHeaderWidthForRange(
     verticalRangeNotifier.value,
   );
 
@@ -81,7 +90,7 @@ class _TableScaffoldState extends State<TableScaffold> {
   /// For this is subscribe to changes in the vertical visible range and save
   /// the width into the state.
   void didChangeVerticalRange() {
-    final newRowHeaderWidth = config.headerWidthForRange(
+    final newRowHeaderWidth = tableDataController.rowHeaderWidthForRange(
       verticalRangeNotifier.value,
     );
     if (newRowHeaderWidth == rowHeaderWidth) {
@@ -100,9 +109,13 @@ class _TableScaffoldState extends State<TableScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomMultiChildLayout(
+    final child = CustomMultiChildLayout(
       delegate: _TableScaffoldDelegate(rowHeaderWidth, columnHeaderHeight),
       children: [
+        LayoutId(
+          id: _TableScaffoldSlot.tableSelect,
+          child: const HeaderTableSelect(),
+        ),
         LayoutId(
           id: _TableScaffoldSlot.columnHeaders,
           child: Header(
@@ -129,6 +142,15 @@ class _TableScaffoldState extends State<TableScaffold> {
         ),
       ],
     );
+
+    if (internalScope.config.isResizingHeadersEnabled) {
+      return HeaderEdgeMouseListener(
+        onHeaderExtentChanged: widget.onHeaderExtentChanged,
+        child: child,
+      );
+    }
+
+    return child;
   }
 }
 
@@ -143,6 +165,14 @@ class _TableScaffoldDelegate extends MultiChildLayoutDelegate {
 
   @override
   void performLayout(Size size) {
+    if (hasChild(_TableScaffoldSlot.tableSelect)) {
+      layoutChild(
+        _TableScaffoldSlot.tableSelect,
+        BoxConstraints.tight(Size(headerWidth, headerHeight)),
+      );
+      positionChild(_TableScaffoldSlot.tableSelect, Offset.zero);
+    }
+
     // The dimensions of the table area excluding the space covered by headers
     final remainingHeight =
         (size.height - headerHeight).clamp(0.0, size.height);

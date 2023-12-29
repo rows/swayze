@@ -117,6 +117,9 @@ class _HeaderItemPainter extends SingleChildRenderObjectWidget {
     return _RenderHeaderItem(
       axis: axis,
       textStyle: textStyle,
+      textAlign: axis == Axis.vertical
+          ? swayzeStyle.headerVerticalTextAlign
+          : TextAlign.center,
       backgroundColor: backgroundColor,
       mainAxisExtent: extent,
       label: label,
@@ -134,6 +137,9 @@ class _HeaderItemPainter extends SingleChildRenderObjectWidget {
     renderObject.backgroundColor = backgroundColor;
     renderObject.textStyle = textStyle;
     renderObject.mainAxisExtent = extent;
+    renderObject.textAlign = axis == Axis.vertical
+        ? swayzeStyle.headerVerticalTextAlign
+        : TextAlign.center;
   }
 }
 
@@ -159,6 +165,16 @@ class _RenderHeaderItem extends RenderBox
 
   set textStyle(TextStyle value) {
     _textStyle = value;
+    markNeedsLayout();
+  }
+
+  /// Text alignment to be applied to the header.
+  TextAlign _textAlign;
+
+  TextAlign get textAlign => _textAlign;
+
+  set textAlign(TextAlign value) {
+    _textAlign = value;
     markNeedsLayout();
   }
 
@@ -217,22 +233,27 @@ class _RenderHeaderItem extends RenderBox
 
       return TextPainter(
         text: textSpan,
-        textAlign: TextAlign.center,
+        textAlign: textAlign,
         textDirection: TextDirection.ltr,
         maxLines: 1,
       )..layout(minWidth: size.width, maxWidth: size.width);
     },
-  ).withDependency<TextStyle>(() => textStyle).withDependency<Size>(() => size);
+  )
+      .withDependency<TextStyle>(() => textStyle)
+      .withDependency<Size>(() => size)
+      .withDependency<TextAlign>(() => textAlign);
 
   _RenderHeaderItem({
     required Axis axis,
     required TextStyle textStyle,
+    required TextAlign textAlign,
     required double mainAxisExtent,
     required this.label,
     required double cellSeparatorStrokeWidth,
     Color? backgroundColor,
   })  : _axis = axis,
         _textStyle = textStyle,
+        _textAlign = textAlign,
         _backgroundColor = backgroundColor,
         _mainAxisExtent = mainAxisExtent,
         _cellSeparatorStrokeWidth = cellSeparatorStrokeWidth;
@@ -280,8 +301,18 @@ class _RenderHeaderItem extends RenderBox
     if (mainAxisExtent >= _kMinimalLabelRenderingThreshold) {
       final textPainter = textPainterCache.value;
       final textVerticalCenter = size.height / 2 - textPainter.height / 2;
+
+      var minorPadding = 0.0;
+      switch (textAlign) {
+        case TextAlign.start:
+        case TextAlign.left:
+          minorPadding += 3;
+          break;
+        default:
+      }
       textPainter
-        ..paint(context.canvas, offset + Offset(0, textVerticalCenter));
+        ..paint(
+            context.canvas, offset + Offset(minorPadding, textVerticalCenter));
     }
 
     final childOffset = axis == Axis.horizontal

@@ -62,17 +62,17 @@ class ResetScrollDragScrollData implements DragScrollData {}
 /// - [frozenExtent] How much of the viewport is dedicated to frozen headers.
 /// - [positionPixel] the current scrolled amount in the scroll view
 /// - [scrollingData] see [VirtualizationState.scrollingData]
-DragScrollData getVerticalDragScrollData({
-  required double displacement,
-  required double globalOffset,
-  required double localOffset,
-  required double gestureOriginOffset,
-  required double viewportExtent,
-  required double screenHeight,
-  required double frozenExtent,
-  required double positionPixel,
-  required ScrollingData scrollingData,
-}) {
+DragScrollData getVerticalDragScrollData(
+    {required double displacement,
+    required double globalOffset,
+    required double localOffset,
+    required double gestureOriginOffset,
+    required double viewportExtent,
+    required double screenHeight,
+    required double frozenExtent,
+    required double positionPixel,
+    required ScrollingData scrollingData,
+    required double columnHeaderHeight}) {
   // The point that represents the top edge of the scrollable part.
   final topThreshold = displacement.abs() + frozenExtent;
   if (gestureOriginOffset < topThreshold) {
@@ -111,8 +111,7 @@ DragScrollData getVerticalDragScrollData({
         positionPixel + viewportExtent + scrollingData.leadingPadding;
     return AutoScrollDragScrollData(
       direction: AxisDirection.down,
-      maxToScroll:
-          tableBottomPixel - viewportTableBottom + config.kColumnHeaderHeight,
+      maxToScroll: tableBottomPixel - viewportTableBottom + columnHeaderHeight,
       pointerDistance: pointerDistanceToBottomThreshold,
     );
   }

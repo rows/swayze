@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -349,38 +350,60 @@ class CellSelectionStartAction
     TableBodySelectionStartIntent intent,
     BuildContext context,
   ) {
-    final tableFocus = TableFocus.of(context);
     final selectionController = internalScope.controller.selection;
+
+    TableFocus.of(context).requestFocus();
+
+    // Drag and fill creates a new selection of the fill type.
+    if (intent.fill) {
+      final primary = internalScope
+          .controller.selection.userSelectionState.primarySelection;
+
+      selectionController.updateFillSelections(
+        (state) => state.addIfNoneExists(
+          FillSelectionModel.fromAnchorFocus(
+            anchor: primary.anchorCoordinate,
+            focus: primary.focusCoordinate,
+          ),
+        ),
+      );
+
+      return;
+    }
 
     final keysPressed = LogicalKeyboardKey.collapseSynonyms(
       RawKeyboard.instance.keysPressed,
     );
 
     if (keysPressed.contains(LogicalKeyboardKey.shift)) {
-      tableFocus.requestFocus();
       selectionController.updateUserSelections(
         (state) => state.updateLastSelectionToCellSelection(
           focus: intent.cellCoordinate,
         ),
       );
-    } else if (keysPressed.containsModifier) {
+
+      return;
+    }
+
+    if (keysPressed.containsModifier) {
       final selection = CellUserSelectionModel.fromAnchorFocus(
         anchor: intent.cellCoordinate,
         focus: intent.cellCoordinate,
       );
-      tableFocus.requestFocus();
+
       selectionController.updateUserSelections(
         (state) => state.addSelection(selection),
       );
-    } else {
-      tableFocus.requestFocus();
-      selectionController.updateUserSelections(
-        (state) => state.resetSelectionsToACellSelection(
-          anchor: intent.cellCoordinate,
-          focus: intent.cellCoordinate,
-        ),
-      );
+
+      return;
     }
+
+    selectionController.updateUserSelections(
+      (state) => state.resetSelectionsToACellSelection(
+        anchor: intent.cellCoordinate,
+        focus: intent.cellCoordinate,
+      ),
+    );
   }
 }
 
@@ -441,6 +464,9 @@ class HeaderSelectionStartAction
 
 /// Default [Action] for [TableBodySelectionUpdateIntent]
 ///
+/// This will restrict the axis of the selection if the selection is a drag
+/// and fill type.
+///
 /// See also:
 /// * [TableBodyGestureDetector] that triggers the intent
 /// * [UserSelectionState] for the implementation of the expand selection.
@@ -459,11 +485,150 @@ class CellSelectionUpdateAction
     BuildContext context,
   ) {
     final selectionController = internalScope.controller.selection;
+    final fillSelection = selectionController.fillSelectionState.selection;
+
+    if (fillSelection != null) {
+      _updateFillSelection(intent.cellCoordinate);
+
+      return;
+    }
+
     selectionController.updateUserSelections(
       (state) => state.updateLastSelectionToCellSelection(
         focus: intent.cellCoordinate,
       ),
     );
+  }
+
+  void _updateFillSelection(IntVector2 coordinate) {
+    final selectionController = internalScope.controller.selection;
+
+    final primary = selectionController.userSelectionState.primarySelection;
+
+    final anchor = primary.anchorCoordinate;
+    final focus = primary.focusCoordinate;
+
+    final currentRange = Range2D.fromPoints(
+      IntVector2(
+        min(anchor.dx, focus.dx),
+        min(anchor.dy, focus.dy),
+      ),
+      IntVector2(
+        max(anchor.dx, focus.dx),
+        max(anchor.dy, focus.dy),
+      ),
+    );
+
+    final newRange = Range2D.fromPoints(
+      IntVector2(
+        min(coordinate.dx, currentRange.leftTop.dx),
+        min(coordinate.dy, currentRange.leftTop.dy),
+      ),
+      IntVector2(
+        max(coordinate.dx, currentRange.rightBottom.dx),
+        max(coordinate.dy, currentRange.rightBottom.dy),
+      ),
+    );
+
+    // We can only grow the selection vertically or horizontally, and vertical
+    // selections have the preference.
+    final restrictVertical = newRange.size.dy - currentRange.size.dy >=
+        newRange.size.dx - currentRange.size.dx;
+
+    selectionController.updateFillSelections(
+      (state) => state.update(
+        anchor: currentRange.leftTop.copyWith(
+          x: restrictVertical ? null : newRange.leftTop.dx,
+          y: restrictVertical ? newRange.leftTop.dy : null,
+        ),
+        focus: currentRange.rightBottom.copyWith(
+          x: restrictVertical ? null : newRange.rightBottom.dx,
+          y: restrictVertical ? newRange.rightBottom.dy : null,
+        ),
+      ),
+    );
+  }
+}
+
+/// Default [Action] for [TableBodySelectionEndIntent]
+///
+/// See also:
+/// * [TableBodyGestureDetector] that triggers the intent
+/// * [UserSelectionState] for the implementation of the expand selection.
+/// * [DefaultActions] for the widget that binds this action into the
+/// widget tree.
+class CellSelectionEndAction
+    extends DefaultSwayzeAction<TableBodySelectionEndIntent> {
+  CellSelectionEndAction(
+    InternalScope internalScope,
+    ViewportContext viewportContext,
+  ) : super(internalScope, viewportContext);
+
+  @override
+  void invokeAction(
+    TableBodySelectionEndIntent intent,
+    BuildContext context,
+  ) {
+    final selectionController = internalScope.controller.selection;
+
+    final primary = selectionController.userSelectionState.primarySelection;
+    final fill = selectionController.fillSelectionState.selection;
+
+    if (primary is! CellUserSelectionModel || fill == null) {
+      return;
+    }
+
+    // Transform the fill selection into a regular selection
+    selectionController.updateUserSelections(
+      (state) => state.resetSelectionsToACellSelection(
+        anchor: fill.anchor,
+        focus: fill.focus,
+      ),
+    );
+
+    // Clear the fill selection
+    selectionController.updateFillSelections(
+      (state) => state.clear(),
+    );
+
+    Actions.invoke(
+      context,
+      FillIntoTargetIntent(
+        source: primary,
+        target: fill,
+      ),
+    );
+  }
+}
+
+/// Default [Action] for [TableBodySelectionCancelIntent]
+///
+/// See also:
+/// * [TableBodyGestureDetector] that triggers the intent
+/// * [UserSelectionState] for the implementation of the expand selection.
+/// * [DefaultActions] for the widget that binds this action into the
+/// widget tree.
+class CellSelectionCancelAction
+    extends DefaultSwayzeAction<TableBodySelectionCancelIntent> {
+  CellSelectionCancelAction(
+    InternalScope internalScope,
+    ViewportContext viewportContext,
+  ) : super(internalScope, viewportContext);
+
+  @override
+  void invokeAction(
+    TableBodySelectionCancelIntent intent,
+    BuildContext context,
+  ) {
+    final selectionController = internalScope.controller.selection;
+
+    final fill = selectionController.fillSelectionState.selection;
+
+    if (fill != null) {
+      selectionController.updateFillSelections(
+        (state) => state.clear(),
+      );
+    }
   }
 }
 

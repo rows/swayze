@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:swayze/controller.dart';
 import 'package:swayze/widgets.dart';
 import 'package:swayze_math/swayze_math.dart';
@@ -7,7 +6,7 @@ import 'package:swayze_math/swayze_math.dart';
 import 'create_cell_delegate.dart';
 import 'create_swayze_controller.dart';
 
-final myStyle = SwayzeStyle.defaultSwayzeStyle.copyWith(
+final testStyle = SwayzeStyle.defaultSwayzeStyle.copyWith(
   userSelectionStyle: SelectionStyle.semiTransparent(color: Colors.amberAccent),
   headerTextStyle: const TextStyle(
     fontSize: 12,
@@ -33,6 +32,8 @@ class TestTableWrapper extends StatefulWidget {
 
   final SwayzeController? swayzeController;
   final InlineEditorBuilder? editorBuilder;
+  final SwayzeConfig? config;
+  final SwayzeStyle? style;
 
   final Widget? header;
 
@@ -43,6 +44,8 @@ class TestTableWrapper extends StatefulWidget {
     this.header,
     this.swayzeController,
     this.editorBuilder,
+    this.config,
+    this.style,
   })  : verticalScrollController =
             verticalScrollController ?? ScrollController(),
         autofocus = autofocus ?? false,
@@ -64,11 +67,12 @@ class _TestTableWrapperState extends State<TestTableWrapper> {
       focusNode: myFocusNode,
       autofocus: widget.autofocus,
       controller: controller,
-      style: myStyle,
+      style: widget.style ?? testStyle,
       stickyHeader: widget.header,
       stickyHeaderSize: 70.0,
       inlineEditorBuilder: widget.editorBuilder ?? defaultCellEditorBuilder,
       verticalScrollController: widget.verticalScrollController,
+      config: widget.config,
     );
   }
 }
@@ -91,6 +95,7 @@ class TestSwayzeVictim extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         fontFamily: 'normal',
+        useMaterial3: false,
       ),
       home: Scaffold(
         body: Container(

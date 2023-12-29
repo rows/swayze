@@ -3,11 +3,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:swayze_math/swayze_math.dart';
 
+import '../../widgets/headers/gestures/resize_header/header_edge_info.dart';
 import '../virtualization/virtualization_calculator.dart';
 import 'viewport_context_provider.dart';
 
 const _kDoubleListEquality = ListEquality<double>();
 const _kIntIterableEquality = IterableEquality<int>();
+const _kDoubleHeaderEdgeInfoMapEquality = MapEquality<double, HeaderEdgeInfo>();
 
 /// Interface that provides information about the visible rows and columns:
 /// Their sizes, which space in the viewport each one occupies and their
@@ -54,6 +56,12 @@ abstract class ViewportContext extends Listenable {
   /// Given a cell's coordinates it returns it's [CellPositionResult] which
   /// contains info about it's [Offset] in pixels and it's [Size].
   CellPositionResult getCellPosition(IntVector2 globalPosition);
+
+  /// Checks if the point in the table belongs to a place that should react
+  /// differently, like a drag and fill start position.
+  ///
+  /// The [pixelOffset] is the offset from the leading edge of the table.
+  EvaluateHoverResult evaluateHover(Offset pixelOffset);
 }
 
 /// A [ChangeNotifier] that manages has [ViewportAxisContextState]
@@ -86,6 +94,7 @@ class ViewportAxisContext extends ChangeNotifier
     frozenRange: Range.zero,
     visibleIndices: [],
     visibleFrozenIndices: [],
+    headersEdgesOffsets: {},
   );
 
   ViewportAxisContext(this.axis, this.virtualizationState);
@@ -162,6 +171,16 @@ class ViewportAxisContextState {
   /// Just like [visibleIndices] but for the [frozenRange]
   final Iterable<int> visibleFrozenIndices;
 
+  /// Holds the current header drag state if there is an ongoing drag and drop
+  /// action.
+  final ViewportHeaderDragContextState? headerDragState;
+
+  /// A map that contains the headers edges offsets.
+  ///
+  /// Useful to show the correct cursor when hovering the edge of an header
+  /// for resizing purposes.
+  final Map<double, HeaderEdgeInfo> headersEdgesOffsets;
+
   const ViewportAxisContextState({
     required this.scrollableRange,
     required this.frozenRange,
@@ -173,7 +192,12 @@ class ViewportAxisContextState {
     required this.frozenSizes,
     required this.visibleIndices,
     required this.visibleFrozenIndices,
+    required this.headersEdgesOffsets,
+    this.headerDragState,
   });
+
+  /// True if there is an ongoing drag and drop action.
+  bool get isDragging => headerDragState != null;
 
   @override
   bool operator ==(Object other) =>
@@ -184,6 +208,7 @@ class ViewportAxisContextState {
           frozenRange == other.frozenRange &&
           extent == other.extent &&
           frozenExtent == other.frozenExtent &&
+          headerDragState == other.headerDragState &&
           _kDoubleListEquality.equals(offsets, other.offsets) &&
           _kDoubleListEquality.equals(frozenOffsets, other.frozenOffsets) &&
           _kDoubleListEquality.equals(sizes, other.sizes) &&
@@ -192,6 +217,10 @@ class ViewportAxisContextState {
           _kIntIterableEquality.equals(
             visibleFrozenIndices,
             other.visibleFrozenIndices,
+          ) &&
+          _kDoubleHeaderEdgeInfoMapEquality.equals(
+            headersEdgesOffsets,
+            other.headersEdgesOffsets,
           );
 
   @override
@@ -205,7 +234,50 @@ class ViewportAxisContextState {
       sizes.hashCode ^
       frozenSizes.hashCode ^
       visibleIndices.hashCode ^
-      visibleFrozenIndices.hashCode;
+      visibleFrozenIndices.hashCode ^
+      headerDragState.hashCode ^
+      headersEdgesOffsets.hashCode;
+}
+
+/// Holds the state of an ongoing header drag and drop action.
+@immutable
+class ViewportHeaderDragContextState {
+  /// Headers that are being dragged.
+  final Range headers;
+
+  /// Current dragging reference, eg, the current header that [position]
+  /// is hovering.
+  final int dropAtIndex;
+
+  /// Current dragging position.
+  final Offset position;
+
+  /// Extent of all headers being dragged.
+  final double headersExtent;
+
+  const ViewportHeaderDragContextState({
+    required this.headers,
+    required this.dropAtIndex,
+    required this.position,
+    required this.headersExtent,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ViewportHeaderDragContextState &&
+          runtimeType == other.runtimeType &&
+          headers == other.headers &&
+          dropAtIndex == other.dropAtIndex &&
+          position == other.position &&
+          headersExtent == other.headersExtent;
+
+  @override
+  int get hashCode =>
+      headers.hashCode ^
+      position.hashCode ^
+      headersExtent.hashCode ^
+      dropAtIndex.hashCode;
 }
 
 /// A result of a conversion of a pixel offset into column/row index.
@@ -341,4 +413,50 @@ enum OffscreenDetails { noOverflow, leading, trailing }
 extension OverflowViewportMethods on OffscreenDetails {
   /// Defines if a [OffscreenDetails] describes a overflow situation.
   bool get isOffscreen => this != OffscreenDetails.noOverflow;
+}
+
+/// The result of the evaluation of a position on the table.
+///
+/// See also:
+/// - [ViewportContext.evaluateHover] that generates this result.
+@immutable
+class EvaluateHoverResult {
+  /// The coordinate of the cell on the given position.
+  final IntVector2 cell;
+
+  /// The horizontal axis overflow details of [cell].
+  final OffscreenDetails overflowX;
+
+  /// The vertical axis overflow details of [cell].
+  final OffscreenDetails overflowY;
+
+  /// If the position allows a drag and fill operation, this holds the
+  /// source range for the operation.
+  final Range2D? fillRange;
+
+  const EvaluateHoverResult({
+    required this.cell,
+    required this.overflowX,
+    required this.overflowY,
+    required this.fillRange,
+  });
+
+  bool get canFillCell => fillRange != null;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EvaluateHoverResult &&
+          runtimeType == other.runtimeType &&
+          cell == other.cell &&
+          overflowX == other.overflowX &&
+          overflowY == other.overflowY &&
+          fillRange == other.fillRange;
+
+  @override
+  int get hashCode =>
+      cell.hashCode ^
+      overflowX.hashCode ^
+      overflowY.hashCode ^
+      fillRange.hashCode;
 }
