@@ -655,11 +655,11 @@ void main() async {
     );
 
     testWidgets(
-      'with right aligned column header text',
+      'with left aligned column header text',
       (WidgetTester tester) async {
         await setupTable(
           tester,
-          TextAlign.right,
+          TextAlign.left,
         );
 
         await expectLater(

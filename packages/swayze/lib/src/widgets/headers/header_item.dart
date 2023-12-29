@@ -305,10 +305,9 @@ class _RenderHeaderItem extends RenderBox
       var minorPadding = 0.0;
       switch (textAlign) {
         case TextAlign.start:
-          minorPadding += 2;
+        case TextAlign.left:
+          minorPadding += 3;
           break;
-        case TextAlign.end:
-          minorPadding--;
         default:
       }
       textPainter
