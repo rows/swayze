@@ -1,4 +1,5 @@
 import 'package:built_collection/built_collection.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -278,4 +279,60 @@ void main() async {
       matchesGoldenFile('goldens/cells-data-selection-2.png'),
     );
   });
+  testWidgets(
+    'shoulds render custom wrapper on active cell',
+    (WidgetTester tester) async {
+      tester.binding.window.physicalSizeTestValue = const Size(1024, 1024);
+      tester.binding.window.devicePixelRatioTestValue = 1.0;
+
+      // resets the screen to its original size after the test end
+      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      final verticalScrollController = ScrollController();
+
+      await tester.pumpWidget(
+        TestSwayzeVictim(
+          verticalScrollController: verticalScrollController,
+          tables: [
+            TestTableWrapper(
+              verticalScrollController: verticalScrollController,
+              swayzeController: createSwayzeController(
+                tableDataController: createTableController(
+                  tableColumnCount: 5,
+                  tableRowCount: 5,
+                ),
+              ),
+              wrapActiveCell: (context, viewportContext, position, child) {
+                return Stack(
+                  children: [
+                    ColoredBox(
+                      color: Colors.blue,
+                      child: Center(
+                        child: Text('${position.dx},${position.dy}'),
+                      ),
+                    ),
+                    child,
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      );
+
+      final from = getCellOffset(tester, column: 1, row: 1);
+      final to = getCellOffset(tester, column: 2, row: 2);
+
+      await tester.timedDragFrom(
+        from,
+        to - from,
+        const Duration(milliseconds: 300),
+      );
+
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(TestSwayzeVictim),
+        matchesGoldenFile('goldens/cells-selection-wrapper-active-cell.png'),
+      );
+    },
+  );
 }

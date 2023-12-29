@@ -96,6 +96,14 @@ class SliverSwayzeTable<CellDataType extends SwayzeCellData>
   /// - [WrapHeaderBuilder]
   final WrapHeaderBuilder? wrapHeader;
 
+  /// Builder to wrap the active cell of the table.
+  ///
+  /// The active cell render a selection over the top of cells layout
+  ///
+  /// See also:
+  /// - [WrapActiveCellBuilder]
+  final WrapActiveCellBuilder? wrapActiveCell;
+
   /// The Builder that generates the widget that will be rendered when the user
   /// will edit a particular cell inline, that is, in the same physical spot
   /// occupied by the cell in the screen.
@@ -131,6 +139,7 @@ class SliverSwayzeTable<CellDataType extends SwayzeCellData>
     this.wrapBox,
     this.wrapTableBody,
     this.wrapHeader,
+    this.wrapActiveCell,
     SwayzeConfig? config,
     this.onHeaderExtentChanged,
   })  : autofocus = autofocus ?? false,
@@ -175,6 +184,7 @@ class SliverSwayzeTableState extends State<SliverSwayzeTable> {
                 horizontalDisplacement: horizontalDisplacement,
                 wrapTableBody: widget.wrapTableBody,
                 wrapHeader: widget.wrapHeader,
+                wrapActiveCell: widget.wrapActiveCell,
                 onHeaderExtentChanged: widget.onHeaderExtentChanged,
               );
 
