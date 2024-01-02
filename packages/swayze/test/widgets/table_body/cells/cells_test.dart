@@ -478,7 +478,8 @@ void main() {
           ),
         );
       });
-      await tester.pumpAndSettle();
+
+      await tester.pumpWidget(widgetUpdated);
 
       // has removed one cell
       expect(

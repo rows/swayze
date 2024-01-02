@@ -7,7 +7,9 @@ import '../../../core/internal_state/table_focus/table_focus_state.dart';
 import '../../../core/viewport_context/viewport_context_provider.dart';
 import '../../../helpers/range_pair_key.dart';
 import '../../internal_scope.dart';
+import '../../wrappers.dart';
 import 'data_selections/data_selections.dart';
+import 'fill_selections/fill_selection.dart';
 import 'primary_selection/primary_selection.dart';
 import 'secondary_selections/secondary_selections.dart';
 
@@ -23,10 +25,13 @@ class TableBodySelections extends StatelessWidget {
   /// vertically frozen, that is, it does not scroll in that axis.
   final bool isOnAFrozenRowsArea;
 
+  final WrapActiveCellBuilder? wrapActiveCell;
+
   const TableBodySelections({
     Key? key,
     this.isOnAFrozenColumnsArea = false,
     this.isOnAFrozenRowsArea = false,
+    this.wrapActiveCell,
   }) : super(key: key);
 
   @override
@@ -40,6 +45,7 @@ class TableBodySelections extends StatelessWidget {
           selectionController: selectionController,
           isOnAFrozenColumnsArea: isOnAFrozenColumnsArea,
           isOnAFrozenRowsArea: isOnAFrozenRowsArea,
+          wrapActiveCell: wrapActiveCell,
         );
       },
     );
@@ -53,12 +59,14 @@ class _TableBodySelections extends StatefulWidget {
   final SwayzeSelectionController selectionController;
   final bool isOnAFrozenColumnsArea;
   final bool isOnAFrozenRowsArea;
+  final WrapActiveCellBuilder? wrapActiveCell;
 
   const _TableBodySelections({
     Key? key,
     required this.selectionController,
     required this.isOnAFrozenColumnsArea,
     required this.isOnAFrozenRowsArea,
+    required this.wrapActiveCell,
   }) : super(key: key);
 
   @override
@@ -126,6 +134,7 @@ class _TableBodySelectionsState extends State<_TableBodySelections> {
         final dataSelections = widget.selectionController.dataSelections;
 
         final primary = userSelectionState.primarySelection;
+        final fill = widget.selectionController.fillSelectionState.selection;
 
         final positionActiveCell = viewportContext.getCellPosition(
           userSelectionState.activeCellCoordinate,
@@ -162,15 +171,30 @@ class _TableBodySelectionsState extends State<_TableBodySelections> {
               ),
             );
           }
+
+          if (fill != null) {
+            children.add(
+              FillSelection(
+                key: ValueKey(fill),
+                selectionModel: fill,
+                xRange: xRange,
+                yRange: yRange,
+                isOnFrozenColumns: widget.isOnAFrozenColumnsArea,
+                isOnFrozenRows: widget.isOnAFrozenRowsArea,
+              ),
+            );
+          }
+
           children.add(
             PrimarySelection(
-              key: ValueKey(primary.id),
+              key: ValueKey(primary),
               selectionModel: primary,
               activeCellRect: activeCellRect,
               xRange: xRange,
               yRange: yRange,
               isOnFrozenColumns: widget.isOnAFrozenColumnsArea,
               isOnFrozenRows: widget.isOnAFrozenRowsArea,
+              wrapActiveCell: widget.wrapActiveCell,
             ),
           );
         }

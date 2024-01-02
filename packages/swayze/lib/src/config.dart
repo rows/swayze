@@ -24,5 +24,7 @@ double headerWidthForRange(Range range) {
 const kDefaultCellWidth = 120.0;
 const kDefaultCellHeight = 33.0;
 
+const kMinCellWidth = 30.0;
+
 const kDefaultScrollAnimationDuration = Duration(milliseconds: 50);
 const kDefaultScrollAnimationCurve = Curves.easeOut;

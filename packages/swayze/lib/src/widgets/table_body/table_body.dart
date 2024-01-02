@@ -1,12 +1,13 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../core/style/style.dart';
 import '../../core/viewport_context/viewport_context.dart';
 import '../../core/viewport_context/viewport_context_provider.dart';
+import '../headers/header_drag_and_drop_preview.dart';
 import '../internal_scope.dart';
 import '../shared/expand_all.dart';
 import '../wrappers.dart';
-
 import 'cells/cells_wrapper.dart';
 import 'gestures/table_body_gesture_detector.dart';
 import 'mouse_hover/mouse_hover.dart';
@@ -28,11 +29,14 @@ class TableBody extends StatelessWidget {
 
   final WrapTableBodyBuilder? wrapTableBody;
 
+  final WrapActiveCellBuilder? wrapActiveCell;
+
   const TableBody({
     Key? key,
     required this.horizontalDisplacement,
     required this.verticalDisplacement,
     required this.wrapTableBody,
+    required this.wrapActiveCell,
   }) : super(key: key);
 
   @override
@@ -54,12 +58,13 @@ class TableBody extends StatelessWidget {
     Widget tableBody = MouseHoverTableBody(
       child: ExpandAll(
         children: [
-          // There is 4 possible areas of content in the table body.
+          // There are 5 possible areas of content in the table body.
 
           // There is the always present scrollable area
           _TableBodyScrollableArea(
             style: style,
             viewportContext: viewportContext,
+            wrapActiveCell: wrapActiveCell,
           ),
 
           // If there is any frozen rows, add the area responsible for
@@ -72,6 +77,7 @@ class TableBody extends StatelessWidget {
               verticalDisplacement: verticalDisplacement,
               viewportContext: viewportContext,
               isOnAFrozenRowsArea: true,
+              wrapActiveCell: wrapActiveCell,
             ),
 
           // If there is any frozen columns, add the area responsible for
@@ -84,6 +90,7 @@ class TableBody extends StatelessWidget {
               verticalDisplacement: verticalDisplacement,
               viewportContext: viewportContext,
               isOnAFrozenColumnsArea: true,
+              wrapActiveCell: wrapActiveCell,
             ),
 
           // If there is any frozen columns and rows,
@@ -97,6 +104,21 @@ class TableBody extends StatelessWidget {
               viewportContext: viewportContext,
               isOnAFrozenColumnsArea: true,
               isOnAFrozenRowsArea: true,
+              wrapActiveCell: wrapActiveCell,
+            ),
+
+          // If columns or rows are being dragged, add the preview on top
+          // of other table layers.
+          if (viewportContext.columns.value.isDragging ||
+              viewportContext.rows.value.isDragging)
+            RepaintBoundary(
+              key: const ValueKey('RepaintBoundaryHeaderDragAndDropPreview'),
+              child: HeaderDragAndDropPreview(
+                axis: viewportContext.columns.value.isDragging
+                    ? Axis.horizontal
+                    : Axis.vertical,
+                swayzeStyle: style,
+              ),
             ),
 
           // All areas respond to only one gesture detector
@@ -134,11 +156,13 @@ class TableBody extends StatelessWidget {
 class _TableBodyScrollableArea extends StatelessWidget {
   final SwayzeStyle style;
   final ViewportContext viewportContext;
+  final WrapActiveCellBuilder? wrapActiveCell;
 
   const _TableBodyScrollableArea({
     Key? key,
     required this.style,
     required this.viewportContext,
+    required this.wrapActiveCell,
   }) : super(key: key);
 
   @override
@@ -163,7 +187,7 @@ class _TableBodyScrollableArea extends StatelessWidget {
             translateOffset: offset,
           ),
         ),
-        const ClipRect(child: TableBodySelections()),
+        ClipRect(child: TableBodySelections(wrapActiveCell: wrapActiveCell)),
       ],
     );
   }
@@ -180,6 +204,7 @@ class _TableBodyFrozenArea extends StatelessWidget {
   final bool isOnAFrozenColumnsArea;
   final bool isOnAFrozenRowsArea;
   final ViewportContext viewportContext;
+  final WrapActiveCellBuilder? wrapActiveCell;
 
   const _TableBodyFrozenArea({
     Key? key,
@@ -189,6 +214,7 @@ class _TableBodyFrozenArea extends StatelessWidget {
     this.isOnAFrozenColumnsArea = false,
     this.isOnAFrozenRowsArea = false,
     required this.viewportContext,
+    required this.wrapActiveCell,
   }) : super(key: key);
 
   @override
@@ -258,6 +284,7 @@ class _TableBodyFrozenArea extends StatelessWidget {
             child: TableBodySelections(
               isOnAFrozenRowsArea: isOnAFrozenRowsArea,
               isOnAFrozenColumnsArea: isOnAFrozenColumnsArea,
+              wrapActiveCell: wrapActiveCell,
             ),
           ),
         ],

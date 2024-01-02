@@ -1,9 +1,12 @@
 import 'dart:collection';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:swayze_math/swayze_math.dart';
 
+import '../../../helpers/wrapped.dart';
 import '../controller.dart';
 
 const _kMapEquality = MapEquality<int, SwayzeHeaderData>();
@@ -28,6 +31,10 @@ class SwayzeHeaderState {
   /// The amount of headers in this axis that exist only due to table's
   /// elastic expansion.
   final int elasticCount;
+
+  /// The maximum amount allowed of headers in this axis that exist only due to
+  /// table's elastic expansion.
+  final int? maxElasticCount;
 
   /// The amount of headers in this axis.
   final int count;
@@ -79,6 +86,11 @@ class SwayzeHeaderState {
     return result;
   })();
 
+  /// Current state of a drag and drop action.
+  ///
+  /// null if no drag is being performed.
+  final SwayzeHeaderDragState? dragState;
+
   /// Creates a header state from an unsorted list of [SwayzeHeaderData].
   ///
   /// This is axis agnostic.
@@ -88,6 +100,8 @@ class SwayzeHeaderState {
     required Iterable<SwayzeHeaderData> headerData,
     required int frozenCount,
     int? elasticCount,
+    this.maxElasticCount,
+    this.dragState,
   })  : _frozenCount = frozenCount,
         elasticCount = elasticCount ?? 0,
         _customSizedHeaders = headerData.fold(
@@ -105,6 +119,8 @@ class SwayzeHeaderState {
     required this.count,
     required SplayTreeMap<int, SwayzeHeaderData> sortedHeaderData,
     required int frozenCount,
+    this.dragState,
+    this.maxElasticCount,
   })  : _frozenCount = frozenCount,
         _customSizedHeaders = sortedHeaderData;
 
@@ -115,25 +131,31 @@ class SwayzeHeaderState {
   SwayzeHeaderState copyWith({
     int? count,
     int? elasticCount,
+    Wrapped<int?>? maxElasticCount,
     Iterable<SwayzeHeaderData>? headerData,
     int? frozenCount,
+    Wrapped<SwayzeHeaderDragState?>? dragState,
   }) {
     if (headerData != null) {
       return SwayzeHeaderState(
         elasticCount: elasticCount ?? this.elasticCount,
+        maxElasticCount: maxElasticCount?.value ?? this.maxElasticCount,
         defaultHeaderExtent: defaultHeaderExtent,
         count: count ?? this.count,
         headerData: headerData,
         frozenCount: frozenCount ?? this.frozenCount,
+        dragState: dragState != null ? dragState.value : this.dragState,
       );
     }
 
     return SwayzeHeaderState._fromSortedHeaderData(
       elasticCount: elasticCount ?? this.elasticCount,
+      maxElasticCount: maxElasticCount?.value ?? this.maxElasticCount,
       defaultHeaderExtent: defaultHeaderExtent,
       count: count ?? this.count,
       sortedHeaderData: _customSizedHeaders,
       frozenCount: frozenCount ?? this.frozenCount,
+      dragState: dragState != null ? dragState.value : this.dragState,
     );
   }
 
@@ -159,6 +181,7 @@ class SwayzeHeaderState {
 
     return SwayzeHeaderState._fromSortedHeaderData(
       elasticCount: elasticCount,
+      maxElasticCount: maxElasticCount,
       defaultHeaderExtent: defaultHeaderExtent,
       count: count,
       sortedHeaderData: _newCustomSizedHeaders,
@@ -180,6 +203,8 @@ class SwayzeHeaderState {
           defaultHeaderExtent == other.defaultHeaderExtent &&
           count == other.count &&
           elasticCount == other.elasticCount &&
+          maxElasticCount == other.maxElasticCount &&
+          dragState == other.dragState &&
           _kMapEquality.equals(customSizedHeaders, other.customSizedHeaders);
 
   @override
@@ -188,7 +213,9 @@ class SwayzeHeaderState {
       defaultHeaderExtent.hashCode ^
       count.hashCode ^
       elasticCount.hashCode ^
-      customSizedHeaders.hashCode;
+      maxElasticCount.hashCode ^
+      customSizedHeaders.hashCode ^
+      dragState.hashCode;
 
   @override
   String toString() {
@@ -197,11 +224,13 @@ class SwayzeHeaderState {
       defaultHeaderExtent: $defaultHeaderExtent,
       count: $count,
       elasticCount: $elasticCount,
+      maxElasticCount: $maxElasticCount,
       orderedCustomSizedIndices: $orderedCustomSizedIndices,
       hasCustomSizes: $hasCustomSizes,
       customSizedHeaders: $customSizedHeaders,
       extent: $extent,
       frozenCount: $frozenCount,
+      dragState: $dragState,
     )
     ''';
   }
@@ -251,4 +280,58 @@ class SwayzeHeaderData {
 
   @override
   int get hashCode => index.hashCode ^ extent.hashCode ^ hidden.hashCode;
+}
+
+/// Holds the state of a header drag and drop action.
+@immutable
+class SwayzeHeaderDragState {
+  /// Headers being dragged.
+  final Range headers;
+
+  /// Current dropping position.
+  final int dropAtIndex;
+
+  /// Current drag global position.
+  final Offset position;
+
+  const SwayzeHeaderDragState({
+    required this.headers,
+    required this.dropAtIndex,
+    required this.position,
+  });
+
+  /// Checks if the current [headers] can be dropped at the [dropAtIndex]
+  /// position.
+  ///
+  /// The headers can only be dropped outside its own range.
+  bool get isDropAllowed => !headers.contains(dropAtIndex);
+
+  SwayzeHeaderDragState copyWith({
+    Range? headers,
+    int? dropAtIndex,
+    Offset? position,
+  }) {
+    return SwayzeHeaderDragState(
+      headers: headers ?? this.headers,
+      dropAtIndex: dropAtIndex ?? this.dropAtIndex,
+      position: position ?? this.position,
+    );
+  }
+
+  @override
+  String toString() =>
+      'SwayzeHeaderDragState($headers, $dropAtIndex, $position)';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SwayzeHeaderDragState &&
+          runtimeType == other.runtimeType &&
+          headers == other.headers &&
+          dropAtIndex == other.dropAtIndex &&
+          position == other.position;
+
+  @override
+  int get hashCode =>
+      headers.hashCode ^ dropAtIndex.hashCode ^ position.hashCode;
 }

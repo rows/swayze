@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart' show Axis;
 import 'package:swayze_math/swayze_math.dart';
@@ -38,6 +39,12 @@ class SwayzeTableDataController<ParentType extends SwayzeController>
   /// A [SwayzeHeaderController] for the vertical axis
   final SwayzeHeaderController rows;
 
+  /// The maximum amount of columns allowed in elastic expansion.
+  final int? _maxElasticColumns;
+
+  /// The maximum amount of rows allowed in elastic expansion.
+  final int? _maxElasticRows;
+
   /// Merged [Listenable] to listen for changes on [columns] and [rows].
   late final _columnsAndRowsListenable = Listenable.merge([columns, rows]);
 
@@ -50,12 +57,15 @@ class SwayzeTableDataController<ParentType extends SwayzeController>
     required Iterable<SwayzeHeaderData> rows,
     required int frozenColumns,
     required int frozenRows,
+    int? maxElasticColumns,
+    int? maxElasticRows,
   })  : columns = SwayzeHeaderController._(
           initialState: SwayzeHeaderState(
             defaultHeaderExtent: config.kDefaultCellWidth,
             count: columnCount,
             headerData: columns,
             frozenCount: frozenColumns,
+            maxElasticCount: maxElasticColumns,
           ),
         ),
         rows = SwayzeHeaderController._(
@@ -64,8 +74,11 @@ class SwayzeTableDataController<ParentType extends SwayzeController>
             count: rowCount,
             headerData: rows,
             frozenCount: frozenRows,
+            maxElasticCount: maxElasticRows,
           ),
         ),
+        _maxElasticColumns = maxElasticColumns,
+        _maxElasticRows = maxElasticRows,
         super() {
     parent.selection.addListener(handleSelectionChange);
   }
@@ -108,8 +121,9 @@ class SwayzeTableDataController<ParentType extends SwayzeController>
   void handleSelectionChange() {
     final selections = [
       ...parent.selection.userSelectionState.selections,
+      parent.selection.fillSelectionState.selection,
       ...parent.selection.dataSelections,
-    ];
+    ].whereNotNull();
 
     final currentElasticEdge = IntVector2(
       columns.value.elasticCount,
@@ -134,8 +148,12 @@ class SwayzeTableDataController<ParentType extends SwayzeController>
     }
 
     scheduleMicrotask(() {
-      columns.updateElasticCount(elasticEdge.dx);
-      rows.updateElasticCount(elasticEdge.dy);
+      columns.updateElasticCount(
+        min(_maxElasticColumns ?? elasticEdge.dx, elasticEdge.dx),
+      );
+      rows.updateElasticCount(
+        min(_maxElasticRows ?? elasticEdge.dy, elasticEdge.dy),
+      );
     });
   }
 

@@ -70,3 +70,9 @@ final myStyle = SwayzeStyle.defaultSwayzeStyle.copyWith(
   selectionStyle: SelectionStyle(color: Colors.pink),
 );
 ```
+
+
+### Example
+
+Take a look at [example/lib/main.dart](example/lib/main.dart) for a working example. 
+
